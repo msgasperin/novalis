@@ -1,0 +1,434 @@
+:root {
+  --blanco: #FFFFFF;
+  --negro: #0A1118;               
+  --gris-bg: #F4F7F9;             
+  --gris-card: #FFFFFF;           
+  
+  --primary: #0F2744;             
+  --primary-dark: #0c1b2c;        
+  --secondary: #009688;           
+  --secondary-light: #4DB6AC;     
+  
+  --tertiary: #4A607A;            
+  --border-color: #E2E8F0;        
+  
+  --success: #4CAF50;             
+  --warning: #F59E0B;             
+  --danger: #EF4444;              
+  --info: #3B82F6;                
+}
+.submenu {
+  border-right: solid 1px var(--gris-light);
+  padding: 10px;
+  min-height: 900px;
+}
+
+.opt-sub-menu {
+  padding: 10px;
+  border-bottom: solid 1px var(--gris-light);
+  border-left: solid 3px var(--blanco);
+}
+
+.opt-sub-menu:hover {
+  background-color: var(--gris-light);
+  cursor: pointer;
+  border-left: solid 3px var(--gris);
+}
+
+.fondo-azul-1 {
+  background-color: var(--primary);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+}
+
+#sortableList li {
+  list-style: none;
+  width: 100px;
+  height: 30px;
+  line-height: 30px;
+  background-color: #585858;
+  margin-bottom: 10px;
+  cursor: move;
+  border: 1px solid #001B54;
+}
+
+#sortableList .placeholder {
+  border: 3px dotted #390032;
+  background-color: #585858;
+}
+
+.dropbtn {
+  background-color: transparent;
+  color: var(--negro);
+  padding: 5px;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+.text-gris {
+  color: #585858;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown-per {
+  position: relative;
+  display: inline-block;
+  padding-right: 10px;
+  z-index: 999999;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-per-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  margin-right: 100px !important;
+}
+
+/* Links inside the dropdown */
+.dropdown-per-content a {
+  color: black;
+  padding: 10px 10px;
+  text-decoration: none;
+  display: block;
+  font-size: 14px;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-per-content a:hover {
+  background-color: #f1f1f1
+}
+
+/* Show the dropdown menu on hover */
+.dropdown-per:hover .dropdown-per-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown-per:hover .dropbtn {
+  background-color: var(--gris-light);
+}
+
+.opciones_menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: var(--blanco);
+}
+
+.opciones_menu_ {
+  padding: 10px;
+  color: var(--negro);
+  font-family: "Inter";
+  border-left: solid 3px #eaecee;
+}
+
+.opciones_menu:hover {
+  text-decoration: none;
+  cursor: pointer;
+  border-left: solid 3px rgba(73, 195, 202, 0.15);
+  background-color:rgba(73, 195, 202, 0.15);
+  color: var(--secondary);
+}
+
+.opciones_menu_active {
+  padding: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  border-left: solid 3px rgba(73, 195, 202, 0.15);
+  background-color: rgba(73, 195, 202, 0.15);
+  color: var(--secondary);
+}
+
+.overlay-menu {
+  display: block;
+  width: 100%;
+  height: 0;
+  position: absolute;
+  background: rgba(11, 27, 46, 0.6);
+  transition: opacity 1s ease-out 0s;
+}
+
+.side-menu {
+  display: block;
+  position: fixed;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-x: visible !important;
+  overflow-y: auto;
+  font-size: 25px;
+  font-family: "Inter";
+  transition: left 0.2s ease 0s;
+  scrollbar-width: none;
+  /* Ocultar scrollbar en IE/Edge antiguo */
+  -ms-overflow-style: none;  
+}
+
+.global-submenu{
+  display:none;
+  position:fixed;
+  width:200px;
+  background:#1f3556;
+  border-radius:10px;
+  z-index: 99999;
+  box-shadow:0 5px 20px rgba(0,0,0,.2);
+}
+
+.global-submenu div{
+  color:white;
+  cursor:pointer;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.global-submenu div:hover{
+  background:rgba(255,255,255,.1);
+}
+
+/* PC */
+@media (min-width: 1400px) {
+
+  .m-responsive {
+    opacity: 1;
+    left: 0px;
+  }
+
+  .wm-responsive {
+    background-color: var(--primary);
+    width: 5%;
+    margin-top: -5px;
+  }
+
+  .img-logo {
+    width: 50%;
+    margin-top: 3px;
+    margin-bottom: 5px;
+    margin-left: 40px;
+  }
+
+  .align-menu {
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .icon-menu {
+    font-size: 20px;
+  }
+
+  .container-main {
+    margin-left: 5%;
+    padding: 20px;
+  }
+
+  .mt-cel {
+    margin-top: -20px;
+  }
+
+  .opciones_menu {
+    padding: 10px;
+  }
+}
+
+/* Laptop */
+@media (min-width: 1280px) and (max-width: 1399px) {
+
+  .header-top {
+    height: 65px;
+  }
+
+  .m-responsive {
+    opacity: 1;
+    left: 0px;
+    top: 200;
+  }
+
+  .wm-responsive {
+    width: 5%;
+    /*background-color: #969c3a;*/
+    background-color: var(--primary-dark);
+  }
+
+  .img-logo {
+    width: 100%;
+    margin-top: 1px;
+    margin-bottom: 2px;
+    margin-left: 70px;
+  }
+
+  .align-menu {
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .icon-menu {
+    font-size: 20px;
+  }
+
+  .container-main {
+    margin-left: 6%;
+    padding: 20px;
+  }
+
+  .mt-cel {
+    margin-top: -30px;
+  }
+
+  .opciones_menu {
+    padding: 5px;
+  }
+}
+
+
+/* Tablets */
+@media (min-width: 576px) and (max-width: 1279px) {
+
+  .header-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 9997;
+  }
+
+  .overlay-menu {
+    z-index: 9998;  /* debajo de bootstrap */
+  }
+  .side-menu {
+    z-index: 9999;
+  }
+
+  .opciones_menu {
+    flex-direction: row;        /* Ícono izquierda / texto derecha */
+    align-items: center;
+    text-align: left;
+    padding: 10px;
+  }
+
+  .icon-menu {
+    margin-bottom: 0;           /* Quitamos margen inferior */
+    margin-right: 10px;         /* Separación entre ícono y texto */
+    font-size: 22px;
+  }
+
+  .opciones_menu > div {
+    font-size: 15px;
+  }
+
+  .m-responsive {
+    opacity: 0;
+    left: -3600px;
+    top: 0;
+  }
+
+  .wm-responsive {
+    background-color: rgba(19, 33, 88, 0.92);
+    width: 100%;
+  }
+
+  .img-logo {
+    width: 85%;
+    margin-top: -1px;
+  }
+
+  .align-menu {
+    text-align: left;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .icon-menu {
+    font-size: 20px;
+  }
+
+  .container-main {
+    margin-left: 0;
+    padding: 20px;
+    margin-top: 80px;
+  }
+
+  .mt-cel {
+    margin-top: 30px;
+  }
+}
+
+
+/* Celulares */
+@media (max-width: 575px) {
+
+  .header-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 9997;
+  }
+
+  .overlay-menu {
+    z-index: 9998;  /* debajo de bootstrap */
+  }
+  .side-menu {
+    z-index: 9999;
+  }
+
+  .opciones_menu {
+    flex-direction: row;        /* Ícono izquierda / texto derecha */
+    align-items: center;
+    text-align: left;
+  }
+
+  .icon-menu {
+    margin-bottom: 0;           /* Quitamos margen inferior */
+    margin-right: 10px;         /* Separación entre ícono y texto */
+    font-size: 22px;
+  }
+
+  .opciones_menu > div {
+    font-size: 15px;
+  }
+
+  .m-responsive {
+    opacity: 0;
+    left: -3600px;
+    top: 0;
+  }
+
+  .wm-responsive {
+    background-color: rgba(11, 27, 46, 0.92);
+    width: 100%;
+  }
+
+  .img-logo {
+    width: 60%;
+    margin-left: 0px;
+    margin-top: 0px;
+  }
+
+  .align-menu {
+    text-align: left;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .icon-menu {
+    font-size: 20px;
+  }
+
+  .container-main {
+    margin-left: 0;
+    padding: 20px;
+    margin-top: 80px;
+  }
+
+  .mt-cel {
+    margin-top: 0px;
+  }
+
+  .global-submenu {
+    width: calc(100vw - 40px);
+    max-width:300px;
+  }
+}

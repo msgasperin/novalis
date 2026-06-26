@@ -1,0 +1,5 @@
+Order allow,deny
+Deny from all
+Require all denied
+
+ErrorDocument 403 /403.html

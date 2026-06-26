@@ -1,0 +1,47 @@
+/* Contenedor de los tabs para que el scroll sea suave */
+.nav-tabs-custom {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    border-bottom: 2px solid #f0f2f5;
+}
+
+.nav-tabs-custom::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* Estilo base de los botones (sin seleccionar) */
+.nav-tabs-custom .nav-link {
+    border: none;
+    background: none;
+    color: #8a92a6; /* Gris neutro */
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+/* Efecto cuando pasas el mouse (Hover) */
+.nav-tabs-custom .nav-link:hover {
+    color: #495057;
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* EL EFECTO DE SELECCIÓN (Sin ser azul) */
+.nav-tabs-custom .nav-link.active {
+    color: #1a1a1a; /* Texto casi negro para resaltar */
+    background: none;
+}
+
+/* La línea indicadora inferior personalizada */
+.nav-tabs-custom .nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 3px;
+    background-color: #1C307E; /* Aquí usa el color de tu logo o marca */
+    border-radius: 10px 10px 10px 10px;
+}
