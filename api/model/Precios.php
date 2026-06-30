@@ -2,14 +2,15 @@
 	require_once('../config/class.pdo.php');
 	class Precios extends Conexion {
 		//Objeto principal del constructor de la clase
-		public function __construct() {
+		public function __construct(string $base_datos) {
+	   	parent::__construct($base_datos);
 	   	$this->conectar();
 	  	}
 		// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES cat_lista_precios++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		public function obtiene_lista_precios() {
 			$res = [];
 			try {
-				$sql = $this->dbh->prepare("SELECT id, nom_precio, descripcion FROM cat_listas_precios WHERE activo = 1 ORDER BY nom_precio");
+				$sql = $this->dbh->prepare("SELECT id, nombre, descripcion, es_defecto FROM cat_listas_precios WHERE activo = 1 ORDER BY nombre");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {

@@ -27,7 +27,7 @@
       private $host = 'localhost';
       private $us   = 'root';
       private $pw   = '';
-      public $key   = 'l1s26G3neAkur1s'; // Si necesitas usarla fuera, se queda pública
+      public $key   = 'l1s26G3neN0v4L1s'; // Si necesitas usarla fuera, se queda pública
       public $dbh;   
       
       // 2. Pasamos el nombre de la base de datos a través del constructor

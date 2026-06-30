@@ -1,4 +1,4 @@
-import { guardar_usuario, obtiene_usuarios, eliminar_usuario, actualizar_llave, consulta_log } from "./UsuariosServices.js";
+import { guardar_usuario, obtiene_usuarios, eliminar_usuario } from "./UsuariosServices.js";
 
 let arrUsuarios = [];
 
@@ -29,215 +29,26 @@ const TabUsuarios = () => {
    listar_usuarios();
 }
 
-const ModalLogsMovimientos = () => {
-
-   let html = `
-   <div class="modal fade modal-superior-blur" id="modalLogMovimientos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-fullscreen-md-down">
-         <div class="modal-content sombra-modal">
-            <div class="modal-header modal-head-per">
-               <h1 class="modal-title fs-5">Log de movimientos</h1>
-               <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal" aria-label="Close">
-                  <i class="bi bi-x-lg"></i>
-               </button>
-            </div>
-            <div class="modal-body">
-               <div class="row">
-                  <div class="col-lg-3 col-md-3 col-sm-3 col-6 mt-3">
-                     <b>Desde *</b>
-                     <input type="date" name="fecIniLog" id="fecIniLog" class="form-control"/>
-                  </div>
-                  <div class="col-lg-3 col-md-3 col-sm-3 col-6 mt-3">
-                     <b>Hasta *</b>
-                     <input type="date" name="fecFinLog" id="fecFinLog" class="form-control"/>
-                  </div>
-                  <div class="col-lg-3 col-md-3 col-sm-4 col-6 mt-3">
-                     <b>Usuario *</b>
-                     <select name="userLog" id="userLog" class="form-select">
-                        <option value="0">Seleccionar</option>
-                     </select>
-                  </div>
-                  <div class="col-lg-3 col-md-3 col-sm-2 col-6 mt-3">
-                     <br>
-                     <button type="button" class="btn btn-secondary btn-elao btn-redondo" id="btnConsultaLog" onclick="fn_consultar_log();">
-                        Consultar
-                     </button>
-                  </div>
-               </div>
-               <div class="row mt-4">
-                  <div class="col-12">
-                     <div id="listado_log">
-                        <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center justify-content-center p-4" role="alert">
-                           <i class="bi bi-calendar-range fs-3 me-3 text-muted"></i>
-                           <div>
-                              <h6 class="mb-1 fw-bold">Consulta de Log de movimientos</h6>
-                              <span class="text-muted small">
-                                 Selecciona un rango de fechas y a un operativo y presiona el botón <strong>Consultar</strong> para visualizar el listado.
-                              </span>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="modal-footer" align="right">
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-            </div>
-         </div>
-      </div>
-   </div>`;
-   setTimeout(() => {
-      fn_combo_usuarios('userLog');
-   }, 500);
-   $('#modalAdmin').html(html);
-   $('#modalLogMovimientos').modal('show');
-}
-
-const fn_consultar_log = async () => {  
-   
-   let fecIni    = $('#fecIniLog').val().trim();
-   let fecFin    = $('#fecFinLog').val().trim();
-   let idUsuario = $('#userLog').val();
-
-   if(fecIni == '' || fecFin == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el rango de fechas',
-         icon: 'warning',
-         position: 'top',
-         timerProgressBar: false
-      });
-      $('#fecIniLog').focus()
-      return;
-   }
-   else if(fecIni > fecFin) {
-      ToastColor.fire({
-         text: '¡Atención! La fecha inicial no puede ser mayor a la fecha final',
-         icon: 'warning',
-         position: 'top',
-         timerProgressBar: false
-      });
-      $('#fecIniLog').focus()
-      return;
-   }
-   else {
-      let fechaInicio = new Date(fecIni);
-      let fechaFin    = new Date(fecFin);
-
-      // Diferencia en milisegundos → convertir a días
-      let diffMs   = fechaFin - fechaInicio;
-      let diffDias = diffMs / (1000 * 60 * 60 * 24);
-
-      if (diffDias > 30) {
-         ToastColor.fire({
-            text: '¡Atención! El rango de fechas no puede ser mayor a 30 días',
-            icon: 'warning',
-            position: 'top',
-            timerProgressBar: false
-         });
-         $('#fecIniLog').focus();
-         return;
-      }
-   }
-
-   $('#btnConsultaLog').prop('disabled', true);
-
-   $('#listado_log').html('<div class="text-center mt-5"><span class="loader_bar_2"></span><div class="text-secondary fs-7">Cargando...</div></div>');
-
-   let respuesta = await consulta_log(fecIni, fecFin, idUsuario);
-   if(respuesta.estatus == 403) {
-      fnNoSesion();
-   }
-   else if(respuesta.estatus != 200) {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#btnConsultaLog').prop('disabled', false);
-      $('#listado_log').html(`
-         <div class="text-center py-5">
-            <img src="assets/images/no_encontrado.png" class="img-fluid mb-3">
-            <p class="text-muted">Hubo problemas</p>
-         </div>
-      `);
-      return;
-   }
-   else {
-      let arrListado = await respuesta.data;
-      pinta_listado_log(arrListado);
-   }
-}
-
-const pinta_listado_log = (data) => {
-   let html     = '';
-   if(data.length > 0) {
-      html += `
-      <div class="row mt-3">
-         <div class="col-12">
-            <table id="tableLogMovimientos" class="table dataTable table-striped table-hover">
-               <thead>
-               <tr align="center">
-                  <th width="5%"></th>
-                  <th width="20%">Fecha</th>
-                  <th width="40%">Acción</th>
-                  <th width="10%">ID Tracking</th>
-                  <th width="30%">Usuario</th>
-               </tr>
-               </thead>
-               <tbody>`;
-               data.map(row => {
-                  html+=`
-                  <tr>
-                     <td>${row.fecha}</td>
-                     <td>${row.fecha_format}</td>
-                     <td>${row.accion}</td>
-                     <td class="text-center">${row.id_tracking}</td>
-                     <td class="text-center">${row.usuario}</td>
-                  </tr>`;
-               });              
-               html+=`
-               </tbody>
-            </table>
-         </div>
-      </div>`;
-
-      $('#listado_log').html(html);
-      $('#btnConsultaLog').prop('disabled', false);
-
-      setTimeout(() => {
-      initDataTableExport({
-         tableId: '#tableLogMovimientos',
-         titulo: 'Log de movimientos',
-         alignment: ['20%', '40%', '10%', '30%'],
-         exportColumns: [1, 2, 3, 4],
-         posicionOrden: 0,
-         order: 'desc'
-      }); 
-      closeLoad();
-      }, 300);
-   }
-   else {
-      $('#listado_log').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron movimientos</div>');
-      $('#btnConsultaLog').prop('disabled', false);
-   }  
-}
-
 const ModalFormUsuario = (idUsuario, nomUsuario) => {
 
-   let usuarioSeleccionado = arrUsuarios.filter(usuario => usuario.id == idUsuario);
+   let usuarioSeleccionado = arrUsuarios.filter(usuario => usuario.id_usuario == idUsuario);
 
    let titulo;
-   let nombre      = "";
-   let usuario     = "";
-   let celular     = "";
-   let correo      = "";
-   let perfil      = 0;
+   let nombre   = '';
+   let usuario  = '';
+   let correo   = '';
+   let perfil   = 'NA';
+   let sucursal = 0;
+   let disabled = '';
 
    if(idUsuario > 0) {
       titulo      = 'Editar Usuario: '+ nomUsuario;
       nombre      = usuarioSeleccionado[0].nombre;
       usuario     = usuarioSeleccionado[0].usuario;
-      celular     = usuarioSeleccionado[0].celular;
       correo      = usuarioSeleccionado[0].correo;
       perfil      = usuarioSeleccionado[0].perfil;
+      sucursal    = usuarioSeleccionado[0].id_sucursal_fk;
+      disabled    = 'disabled';
    }
    else {
       titulo = 'Registrar Nuevo Usuario';
@@ -261,15 +72,11 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                   </div>
                   <div class="col-12 mt-3">
                      <b>Usuario *</b>
-                     <input type="text" name="usuario" id="usuario" class="form-control" maxlength="50" value="${usuario}"/>
+                     <input type="text" name="usuario" id="usuario" class="form-control" maxlength="50" ${disabled} value="${usuario}"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Contraseña *</b>
                      <input type="text" name="contrasenia" id="contrasenia" class="form-control" maxlength="50" />
-                  </div>
-                  <div class="col-12 mt-3">
-                     <b>Celular</b>
-                     <input type="tel" name="celUsuario" id="celUsuario" class="form-control" maxlength="10" value="${celular}"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Correo</b>
@@ -278,10 +85,19 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                   <div class="col-12 mt-3">
                      <b>Perfil *</b>
                      <select name="perfilUsuario" id="perfilUsuario" class="form-select">
+                        <option value="NA">Seleccionar</option>
+                        <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+                        <option value="GERENTE">GERENTE</option>
+                        <option value="QUIMICO">QUIMICO</option>
+                        <option value="RECEPCION">RECEPCION</option>
+                        <option value="VALIDADOR">VALIDADOR</option>
+                     </select>
+                  </div>
+                  <div class="col-12 mt-3">
+                     <b>Sucursal *</b>
+                     <select name="sucursalUsuario" id="sucursalUsuario" class="form-select">
                         <option value="0">Seleccionar</option>
-                        <option value="1">Administrador</option>
-                        <option value="2">Equipo</option>
-                        <option value="3">Cliente</option>
+                        <option value="1">Matriz</option>
                      </select>
                   </div>
                </div>
@@ -299,6 +115,7 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
    </div>`;
    setTimeout(() => {
       $('#perfilUsuario').val(perfil);
+      $('#sucursalUsuario').val(sucursal);
    }, 500);
    $('#modalAdmin').html(html);
    $('#modalFormUsuarios').modal('show');
@@ -329,27 +146,28 @@ const pinta_listado_usuario = (data) => {
    let html = `<div class="row">`;
    data.map((row, i) => {
       html+=`
-      <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12 mt-2" id="cardUsuario${row.id}">
-         <div class="card mb-3 shadow mh-card-usuarios">
+      <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardUsuario${row.id_usuario}">
+         <div class="card mb-3 shadow">
             <div class="card-body">
                <div class="row fs-8">
-                  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-3 mt-2" align="center">
-                     <img src="assets/images/usuarios/${row.foto}" class="img img-fluid img-thumbnail">
+                  <div class="col-12 col-sm-2 mt-2 text-center">
+                     <i class="bi bi-person-circle fs-4"></i>
                   </div>
-                  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-9 mt-2" align="center">
+                  <div class="col-12 col-sm-10 mt-2">
                      <div class="mt-1"><b>${row.nombre}</b></div>
-                     <div class="mt-1">${row.celular ? '<i class="bi bi-phone"></i>'+ row.celular : ''}</div>
-                     <div class="mt-1">${row.correo}</div>
+                     <div class="mt-1"><i class="bi bi-at fs-6"></i>${row.correo}</div>
                   </div>
                </div>
             </div>
-            <div class="card-footer" align="right">
-               <button class="btn btn-outline-secondary btn-redondo" type="button" onclick="ModalFormUsuario(${row.id},'${row.nombre}');" title="Editar">
-                  <i class="bi bi-pencil"></i>
-               </button>
-               <button class="btn btn-outline-danger btn-redondo btnUsuariosDel ms-1" type="button" onclick="fn_eliminar_usuario(${i}, '${row.id}','${row.nombre}');" title="Eliminar">
-                  <i class="bi bi-trash3"></i>
-               </button>
+            <div class="card-footer bg-white border-top-0 pb-2">
+               <div class="d-flex justify-content-end gap-2">
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormUsuario(${row.id_usuario},'${row.nombre}');">
+                     <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarCliente" title="Eliminar" onclick="fn_eliminar_usuario(${row.id_usuario},'${row.nombre}');">
+                     <i class="bi bi-trash"></i>
+                  </button>               
+               </div>
             </div>
          </div>
       </div>`;
@@ -362,12 +180,13 @@ const pinta_listado_usuario = (data) => {
 
 const fn_guardar_usuario = async (idUsuario) => {
 
-   let nomUsuario    = $('#nomUsuario').val().trim();
-   let usuario       = $('#usuario').val().trim();
-   let contrasenia   = $('#contrasenia').val().trim();
-   let celUsuario    = $('#celUsuario').val().trim();
-   let mailUsuario   = $('#mailUsuario').val().trim();
-   let perfilUsuario = $('#perfilUsuario').val().trim();
+   let nomUsuario      = $('#nomUsuario').val().trim();
+   let usuario         = $('#usuario').val().trim();
+   let contrasenia     = $('#contrasenia').val().trim();
+   let mailUsuario     = $('#mailUsuario').val().trim();
+   let perfilUsuario   = $('#perfilUsuario').val().trim();
+   let sucursalUsuario = $('#sucursalUsuario').val().trim();
+   let msjAccion       = '';
 
    if (nomUsuario == '') {
       ToastColor.fire({
@@ -403,7 +222,7 @@ const fn_guardar_usuario = async (idUsuario) => {
       return;
       }
    }
-   else if (perfilUsuario == '0') {
+   else if (perfilUsuario == 'NA') {
       ToastColor.fire({
          text: '¡Atención! Debes seleccionar un perfil',
          icon: 'warning'
@@ -411,8 +230,16 @@ const fn_guardar_usuario = async (idUsuario) => {
       $('#perfilUsuario').focus();
       return;
    }
+   else if (parseInt(sucursalUsuario) == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar una sucursal',
+         icon: 'warning'
+      });
+      $('#sucursalUsuario').focus();
+      return;
+   }
 
-   const objUser = { func: 'guardar', idUsuario, nomUsuario, usuario, contrasenia, celUsuario, mailUsuario, perfilUsuario };
+   const objUser = { func: 'guardar', idUsuario, nomUsuario, usuario, contrasenia, mailUsuario, perfilUsuario, sucursalUsuario };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'El usuario ' + nomUsuario + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -426,7 +253,10 @@ const fn_guardar_usuario = async (idUsuario) => {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('Usuario guardado correctamente', '', 'success', 2500);
+      
+      idUsuario > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Usuario guardado correctamente';
+
+      showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormUsuarios').modal('hide');
       listar_usuarios();
       $('#btnSaveUser').prop('disabled', false);
@@ -438,7 +268,7 @@ const fn_guardar_usuario = async (idUsuario) => {
 
 }
 
-const fn_eliminar_usuario = async (indice, idUsuario, nomUsuario) => {
+const fn_eliminar_usuario = async (idUsuario, nomUsuario) => {
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'El usuario: ' + nomUsuario + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
@@ -454,7 +284,7 @@ const fn_eliminar_usuario = async (indice, idUsuario, nomUsuario) => {
    else if(respuesta.estatus == 200) {
       showMessageSwalTimer('Usuario eliminado correctamente', '', 'success', 2500);
       $('#cardUsuario'+idUsuario).remove();
-      arrUsuarios = arrUsuarios.filter(usuario => usuario.id != idUsuario);
+      arrUsuarios = arrUsuarios.filter(usuario => usuario.id_usuario != idUsuario);
       $('.btnUsuariosDel').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
@@ -475,9 +305,8 @@ const fn_buscar_usuario = () => {
 // Interfaces
 window.TabUsuarios          = TabUsuarios;
 window.ModalFormUsuario     = ModalFormUsuario;
-window.ModalLogsMovimientos = ModalLogsMovimientos;
+
 // Funciones
 window.fn_eliminar_usuario  = fn_eliminar_usuario;
 window.fn_guardar_usuario   = fn_guardar_usuario;
 window.fn_buscar_usuario    = fn_buscar_usuario;
-window.fn_consultar_log     = fn_consultar_log;

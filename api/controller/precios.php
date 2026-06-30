@@ -1,8 +1,9 @@
 <?php
    require_once('../model/Precios.php');
    require_once('../model/Globales.php');
-   $p = new Precios();
-   $g = new Globales();
+   /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
+   $v = new Precios($bd_cliente);
+   $g = new Globales($bd_cliente);
 
    $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
    if (strpos($contentType, "application/json") !== false) {
@@ -15,7 +16,7 @@
 
          // ********************************************************** Funciones de CRUD cat_lista_precios **********************************************************************
          case 'obtiene_lista_precios':
-            $res = $p->obtiene_lista_precios();          
+            $res = $v->obtiene_lista_precios();          
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
@@ -27,7 +28,7 @@
                break;
             }
 
-            $res = $p->guardar_lista_precios($_POST, $_SESSION["nombre"]);
+            $res = $v->guardar_lista_precios($_POST, $_SESSION["nombre"]);
             $mensaje_bitacora = 'Lista de precios registrada: '.$_POST["nomListaPrecios"];
             $id_lista_precio = $res["data"][0]; 
             if($res["estatus"] == 200) {
@@ -47,7 +48,7 @@
                break;
             }
             
-            $res = $p->generar_lista_precios_base($_POST["idListaPrecios"], $_SESSION["nombre"]);
+            $res = $v->generar_lista_precios_base($_POST["idListaPrecios"], $_SESSION["nombre"]);
             if($res["estatus"] == 200) {
                $g->bitacora('Precios base importados '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
@@ -62,7 +63,7 @@
                break;
             }
 
-            $res = $p->vaciar_lista_precios($_POST["idListaPrecios"]);
+            $res = $v->vaciar_lista_precios($_POST["idListaPrecios"]);
             if($res["estatus"] == 200) {
                $g->bitacora('Lista de precios vaciada '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
@@ -77,7 +78,7 @@
                break;
             }
             
-            $res = $p->actualizar_generales_lista_precios($_POST, $_SESSION["nombre"]);
+            $res = $v->actualizar_generales_lista_precios($_POST, $_SESSION["nombre"]);
             $mensaje_bitacora = 'Actualización de generales de la lista de precios: '.$_POST["nomListaPrecios"];
             if($res["estatus"] == 200) {
                $g->bitacora($mensaje_bitacora, $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
@@ -93,7 +94,7 @@
                break;
             }
 
-            $response = $p->eliminar_lista_precios($_POST["idListaPrecios"]);
+            $response = $v->eliminar_lista_precios($_POST["idListaPrecios"]);
             if($response) {
                $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
                $g->bitacora('Lista de precios eliminada: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
@@ -107,7 +108,7 @@
 
          // ********************************************************** Funciones de CRUD cat_precios **********************************************************************
          case 'obtiene_precios_lista':
-            $res = $p->obtiene_precios_lista($_POST["idListaPrecios"]);          
+            $res = $v->obtiene_precios_lista($_POST["idListaPrecios"]);          
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
@@ -119,7 +120,7 @@
                break;
             }
 
-            $res = $p->agregar_producto_lista($_POST, $_SESSION["nombre"]);
+            $res = $v->agregar_producto_lista($_POST, $_SESSION["nombre"]);
             if($res["estatus"] == 200) {
                $g->bitacora('Prodcuto agregado: '.$_POST["nomProducto"].' con precio $'.$_POST["nuevoPrecio"]. ' a la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
@@ -134,7 +135,7 @@
                break;
             }
 
-            $response = $p->actualizar_precio_especifico($_POST["idPrecio"], $_POST["nuevoPrecio"]);
+            $response = $v->actualizar_precio_especifico($_POST["idPrecio"], $_POST["nuevoPrecio"]);
             if($response) {
                $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
                $g->bitacora('Precio actualizado a $'.$_POST["nuevoPrecio"].' del producto: '.$_POST["nomProducto"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
@@ -154,7 +155,7 @@
                break;
             }
 
-            $response = $p->eliminar_precio_especifico($_POST["idPrecio"]);
+            $response = $v->eliminar_precio_especifico($_POST["idPrecio"]);
             if($response) {
                $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
                $g->bitacora('Precio eliminado: $'.$_POST["precio"].' del producto: '.$_POST["nomProducto"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
@@ -175,7 +176,7 @@
             }
 
             if($_POST["subirBajar"] === 'Subir' || $_POST["subirBajar"] === 'Bajar') {
-               $response = $p->actualizacion_masiva_precios($_POST["idListaPrecios"], $_POST["subirBajar"], $_POST["porcentaje"]);
+               $response = $v->actualizacion_masiva_precios($_POST["idListaPrecios"], $_POST["subirBajar"], $_POST["porcentaje"]);
                if($response) {
                   $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
                   $g->bitacora('Actualización masiva de la lista de precios: '.$_POST["nomListaPrecios"]. ', '.$_POST["subirBajar"].': %'.$_POST["porcentaje"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);

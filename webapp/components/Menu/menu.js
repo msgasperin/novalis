@@ -12,7 +12,7 @@ const submenus = {
 
   configuracion: `
     <div onclick="fnEstudios()"><i class="bi bi-shop-window"></i> Sucursales</div>
-    <div onclick="fnAreas()"><i class="bi bi-person-gear"></i> Personal</div>
+    <div onclick="TabUsuarios()"><i class="bi bi-person-gear"></i> Personal</div>
     <div onclick="fnEquipos()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>`
 };
 
@@ -26,14 +26,11 @@ document.addEventListener("click", function(e) {
 function mostrarSubmenu(event, menu){
 
     let submenu = document.getElementById("globalSubmenu");
-
     // si está abierto con el mismo menú → cerrar
-    if(submenu.dataset.menu === menu &&
-       submenu.style.display === "block"){
-
-        submenu.style.display = "none";
-        submenu.dataset.menu = "";
-        return;
+    if(submenu.dataset.menu === menu && submenu.style.display === "block") {
+      submenu.style.display = "none";
+      submenu.dataset.menu = "";
+      return;
     }
 
     // cargar contenido
@@ -42,15 +39,13 @@ function mostrarSubmenu(event, menu){
 
     let rect = event.currentTarget.getBoundingClientRect();
 
-    if(window.innerWidth <= 768){
-
-        submenu.style.left = rect.left + "px";
-        submenu.style.top = (rect.bottom + 5) + "px";
-
-    }else{
-
-        submenu.style.left = (rect.right + 5) + "px";
-        submenu.style.top = rect.top + "px";
+    if(window.innerWidth <= 768) {
+      submenu.style.left = rect.left + "px";
+      submenu.style.top = (rect.bottom + 5) + "px";
+    }
+    else {
+      submenu.style.left = (rect.right + 5) + "px";
+      submenu.style.top = rect.top + "px";
     }
 
     submenu.style.display = "block";

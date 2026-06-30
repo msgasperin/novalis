@@ -60,18 +60,12 @@
           <?php } ?>
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionEmpresas" onclick="opcionActive('opcionEmpresas'), TabEmpresas(), cerrarMenu();">
+            <div class="opciones_menu align-menu" id="opcionClientes" onclick="opcionActive('opcionClientes'), TabClientes(), cerrarMenu();">
               <i class="bi bi-building-gear icon-menu"></i>
-              <div>Empresas</div>
+              <div>Clientes</div>
             </div>
           <?php } ?>
 
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionConvenios" onclick="opcionActive('opcionConvenios'), TabClientes(), cerrarMenu();">
-              <i class="bi bi-person-square icon-menu"></i>
-              <div>Doctores</div>
-            </div>
-          <?php } ?>
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
             <div class="opciones_menu align-menu" id="opcionConvenios" onclick="opcionActive('opcionConvenios'), TabClientes(), cerrarMenu();">
