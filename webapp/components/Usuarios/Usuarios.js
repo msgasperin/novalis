@@ -151,11 +151,12 @@ const pinta_listado_usuario = (data) => {
             <div class="card-body">
                <div class="row fs-8">
                   <div class="col-12 col-sm-2 mt-2 text-center">
-                     <i class="bi bi-person-circle fs-4"></i>
+                     <i class="bi bi-person-circle fs-4 text-secondary"></i>
                   </div>
                   <div class="col-12 col-sm-10 mt-2">
                      <div class="mt-1"><b>${row.nombre}</b></div>
-                     <div class="mt-1"><i class="bi bi-at fs-6"></i>${row.correo}</div>
+                     <div><i class="bi bi-at fs-6"></i>${row.correo}</div>
+                     <div class="text-muted fs-8">${row.perfil}</div>
                   </div>
                </div>
             </div>
@@ -241,7 +242,7 @@ const fn_guardar_usuario = async (idUsuario) => {
 
    const objUser = { func: 'guardar', idUsuario, nomUsuario, usuario, contrasenia, mailUsuario, perfilUsuario, sucursalUsuario };
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El usuario ' + nomUsuario + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del usuario ' + nomUsuario + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
       $('#btnSaveUser').prop('disabled', false);
       return;

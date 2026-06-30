@@ -11,7 +11,7 @@ const submenus = {
     <div onclick="fnPersonal()"> <i class="bi bi-person-bounding-box"></i> Personal</div>`,
 
   configuracion: `
-    <div onclick="fnEstudios()"><i class="bi bi-shop-window"></i> Sucursales</div>
+    <div onclick="TabSucursales()"><i class="bi bi-shop-window"></i> Sucursales</div>
     <div onclick="TabUsuarios()"><i class="bi bi-person-gear"></i> Personal</div>
     <div onclick="fnEquipos()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>`
 };
@@ -92,6 +92,8 @@ const closeLoad = (mensajeFinal) => {
   setTimeout(() => {
     $('#modalLoading').modal('hide');
   }, 500);
+  let submenu = document.getElementById("globalSubmenu");
+  submenu.style.display = "none";
 }
 
 const isMobile = () => {
