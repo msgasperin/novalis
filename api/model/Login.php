@@ -8,7 +8,7 @@
 		//Objeto principal del constructor de la clase
 		public function __construct(string $base_datos) {
          parent::__construct($base_datos);
-	   	$this->conectar();         
+	   	$this->conectar();
 	  	}
 
 		public function generarToken(int $length) { 

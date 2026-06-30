@@ -14,7 +14,7 @@
   
   --success: #4CAF50;             
   --warning: #F59E0B;             
-  --danger: #EF4444;              
+  --danger: #ce3232;              
   --info: #3B82F6;                
 
   /* --- ALERTAS PREMIUM (SweetAlert personalizado para Akuris) --- */
@@ -24,7 +24,7 @@
   --sweetAlert-color-icon: #009688;      /* Iconos informativos usando el teal de la marca */
   --sweetAlert-color-btn-aceptar: #004080;
   --sweetAlert-color-btn-cancelar: #94A3B8;
-  --sweetAlert-color-btn-denegar: #EF4444;
+  --sweetAlert-color-btn-denegar: #ce3232;
 }
 
 @font-face {
@@ -157,8 +157,8 @@
 }
 
 .btn-salmon {
-  background-color: #F26B7C;
-  border-color: #F26B7C;
+  background-color: var(--danger);
+  border-color: var(--danger);
   color: var(--blanco);
   border-radius: 2px;
 }
@@ -237,6 +237,25 @@
 
 .border-primary-dark-lib {
   border-color: var(--primary-dark);
+}
+
+.circle-card-avatar {
+  width:46px; 
+  height:46px; 
+  background-color: var(--primary);
+  color: var(--blanco);
+  font-size:0.9rem;
+}
+
+.title-rfc {
+  font-size:0.7rem; 
+  text-transform:uppercase; 
+  letter-spacing:.5px;
+}
+
+.text-rfc {
+  font-size:0.82rem; 
+  letter-spacing:1px;
 }
 
 /* Adecuación de estilos datatable */
@@ -423,7 +442,7 @@ tool-tip {
   background-color: var(--primary);
   color: var(--blanco);
   border: solid 1px var(--primary-dark);
-  border-bottom: solid 2px #F26B7C;
+  border-bottom: solid 3px var(--secondary-light);
 
 }
 

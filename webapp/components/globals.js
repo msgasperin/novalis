@@ -1,39 +1,5 @@
 const arrayMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-const estadosMexico = `
-<option value="Aguascalientes">Aguascalientes</option>
-<option value="Baja California">Baja California</option>
-<option value="Baja California Sur">Baja California Sur</option>
-<option value="Campeche">Campeche</option>
-<option value="Chiapas">Chiapas</option>
-<option value="Chihuahua">Chihuahua</option>
-<option value="Ciudad de México">Ciudad de México</option>
-<option value="Coahuila">Coahuila</option>
-<option value="Colima">Colima</option>
-<option value="Durango">Durango</option>
-<option value="Estado de México">Estado de México</option>
-<option value="Guanajuato">Guanajuato</option>
-<option value="Guerrero">Guerrero</option>
-<option value="Hidalgo">Hidalgo</option>
-<option value="Jalisco">Jalisco</option>
-<option value="Michoacán">Michoacán</option>
-<option value="Morelos">Morelos</option>
-<option value="Nayarit">Nayarit</option>
-<option value="Nuevo León">Nuevo León</option>
-<option value="Oaxaca">Oaxaca</option>
-<option value="Puebla">Puebla</option>
-<option value="Querétaro">Querétaro</option>
-<option value="Quintana Roo">Quintana Roo</option>
-<option value="San Luis Potosí">San Luis Potosí</option>
-<option value="Sinaloa">Sinaloa</option>
-<option value="Sonora">Sonora</option>
-<option value="Tabasco">Tabasco</option>
-<option value="Tamaulipas">Tamaulipas</option>
-<option value="Tlaxcala">Tlaxcala</option>
-<option value="Veracruz">Veracruz</option>
-<option value="Yucatan">Yucatán</option>
-<option value="Zacatecas">Zacatecas</option>`;
-
 const hoy = new Date();
 const fecActual = hoy.toISOString().split('T')[0];
 
@@ -62,8 +28,7 @@ export const postJSON = async (url, datos = {}) => {
     return await res.json();  // ← devuelve directamente el json del servidor
 
   } catch (err) {
-    console.error("postJSON error:", err);
-    throw err; // lo dejamos subir para que el que llame decida qué hacer
+    return manejarErrorRequest(err);
   }
 };
 
@@ -81,9 +46,43 @@ export const postFormData = async (url, formData) => {
     return await res.json();
 
   } catch (err) {
-    console.error("postFormData error:", err);
-    throw err;
+    return manejarErrorRequest(err);
   }
+};
+
+export const iniciales = (nombre) => {
+  const palabras = nombre.trim().split(' ');
+  return (palabras[0][0] + (palabras[1] ? palabras[1][0] : '')).toUpperCase();
+};
+
+export const manejarErrorRequest = (error) => {
+    // Sin internet
+    if (!navigator.onLine) {
+      return {
+          estatus: 0,
+          mensaje: "No tienes conexión a internet.",
+          data: []
+      };
+    }
+
+    // Safari / fallo fetch / red caída
+    if (
+      error.name === 'TypeError' ||
+      error.message?.includes('Load failed')
+    ) {
+      return {
+          estatus: 0,
+          mensaje: "Error de conexión: No se pudo conectar con el servidor.",
+          data: []
+      };
+    }
+
+    // Servidor caído
+    return {
+      estatus: 500,
+      mensaje: "El servidor no respondió. Intenta de nuevo.",
+      data: []
+    };
 };
 
 const reducirImagen = (file, maxWidth = 1200, quality = 0.7) => {
@@ -507,5 +506,6 @@ window.fechaRangoAdelante      = fechaRangoAdelante;
 window.fechaRangoAtras         = fechaRangoAtras;
 window.reducirImagen           = reducirImagen;
 window.formatoMoneda           = formatoMoneda;
-window.estadosMexico           = estadosMexico;
+window.iniciales               = iniciales;
+
 
