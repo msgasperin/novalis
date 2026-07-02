@@ -13,7 +13,7 @@ const submenus = {
   configuracion: `
     <div onclick="TabSucursales()"><i class="bi bi-shop-window"></i> Sucursales</div>
     <div onclick="TabUsuarios()"><i class="bi bi-person-gear"></i> Personal</div>
-    <div onclick="fnEquipos()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>`
+    <div onclick="TabPrecios()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>`
 };
 
 document.addEventListener("click", function(e) {

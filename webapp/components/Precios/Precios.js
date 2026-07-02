@@ -1,19 +1,19 @@
-import { obtiene_lista_precios, guardar_lista_precio, eliminar_lista_precios, obtiene_precios_lista, actualizar_precio_especifico, eliminar_precio_especifico, agregar_producto_lista, actualizacion_masiva_precios, generar_lista_precios_base, vaciar_lista_precios } from "./PreciosServices.js";
-import { obtiene_productos } from "../Productos/ProductosServices.js";
+import { obtiene_lista_precios, guardar_lista_precio, eliminar_lista_precios, obtiene_precios_lista, actualizar_precio_especifico, eliminar_precio_especifico, agregar_estudio_lista, actualizacion_masiva_precios, generar_lista_precios_base, vaciar_lista_precios, marcar_precio_defecto } from "./PreciosServices.js";
+import { obtiene_estudios } from "../Estudios/EstudiosServices.js"; 
 
 let arrListaPrecios = [];
 let arrPreciosLista = [];
-let comboProductos  = '';
+let comboEstudios   = '';
 
-const TabListaPrecios = () => {
+const TabPrecios = () => {
    activarLoad('Cargando listas de precios...');
    let html =
    `<div class="row">
-      <div class="col-xl-4 col-lg-4 col-md-8 col-sm-8 col-7 mt-2">
+      <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2">
          <div class="fs-4"> <i class="bi bi-coin"></i> Listas de Precios</div>
       </div>
-      <div class="col-xl-8 col-lg-8 col-md-4 col-sm-4 col-5 mt-2" align="right">
-         <button class="btn btn-secondary btn-elao btn-redondo" type="button" id="btnNuevaListaPrecios" onclick="ModalFormListaPrecios(0, '', '');">
+      <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2">
+         <button class="btn btn-dark btn-lib btn-redondo w-100 fs-6" type="button" id="btnNuevaListaPrecios" onclick="ModalFormListaPrecios(0, '', '');">
             <i class="bi bi-plus-lg"></i> Nueva lista
          </button>
       </div>
@@ -25,9 +25,6 @@ const TabListaPrecios = () => {
    $('#containerMain').html(html);
 
    listar_listas_precios();
-   setTimeout(() => {      
-      cargar_productos();
-   }, 500);
 }
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES cat_lista_precios+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -60,7 +57,7 @@ const ModalFormListaPrecios = (idListaPrecios, nomListaPrecios, descListaPrecios
                </div>                  
             </div>
             <div class="modal-footer" align="right">
-               <button type="buttton" class="btn btn-secondary btn-elao btn-redondo" id="btnGuardarListaPrecios" onclick="fn_guardar_lista_precios('${idListaPrecios}');">
+               <button type="buttton" class="btn btn-dark btn-redondo btn-lib" id="btnGuardarListaPrecios" onclick="fn_guardar_lista_precios('${idListaPrecios}');">
                   Guardar
                </button>
                <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
@@ -93,7 +90,7 @@ const fn_guardar_lista_precios = async (idListaPrecios) => {
 
    let objListaPrecios = { func, idListaPrecios, nomListaPrecios, descripcion }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La lista de precios: ' + nomListaPrecios + ' será registrada', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de lista de precios: ' + nomListaPrecios + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    
    if (!res.result) {
       $('#btnGuardarListaPrecios').prop('disabled', false);
@@ -154,24 +151,54 @@ const fn_eliminar_lista_precios = async (idListaPrecios, nomListaPrecios) => {
    }
 }
 
+const fn_marcar_precio_defecto = async (idListaPrecios, nomListaPrecios) => {
+   if (idListaPrecios == '') {
+      ToastColor.fire({
+      text: '¡Atención! No se obtuvo un parámetro necesario, actualiza y vuelve a intentarlo',
+         icon: 'warning'
+      });
+      return;
+   }
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La lista de precios: ' + nomListaPrecios + ' será marcada como por defecto', 'question', 'Sí, marcar', 'Cancelar');
+
+   if (!res.result) {
+      return;
+   }
+
+   let respuesta = await marcar_precio_defecto(idListaPrecios, nomListaPrecios);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Precio marcado por defecto!', '', 'success', 2500);
+      $('.checkDefecto').prop('checked', false);
+      $('#esDefecto'+idListaPrecios).prop('checked', true);
+   }
+   else {
+      showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');      
+      return;
+   }
+}
+
 const listar_listas_precios = async () => {
-  arrListaPrecios = [];
-  let respuesta = await obtiene_lista_precios();
-  if(respuesta.estatus == 403) {
-    fnNoSesion();
-  }
-  else if(respuesta.estatus != 200) {
-    showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-    return;
-  }
-  else {
-    arrListaPrecios = await respuesta.data;
-    pinta_listas_precios(arrListaPrecios);
-  }
+   arrListaPrecios = [];
+   let respuesta = await obtiene_lista_precios();
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      arrListaPrecios = await respuesta.data;
+      pinta_listas_precios(arrListaPrecios);
+   }
 }
 
 const pinta_listas_precios = (data) => {  
-   let html = '';
+   let checked = '';
+   let html    = '';
    if(data.length == 0) {
       html+='<div align="center" class="mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron listas de precios registradas</div>';
       $('#listado_litas_precios').html(html);
@@ -181,26 +208,37 @@ const pinta_listas_precios = (data) => {
       html += 
       `<div class="row">`;
          data.map(row => {
+            row.es_defecto == 1 ? checked = 'checked' : checked = '';
             html += `
             <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2" id="cardListaPrecios${row.id}">
                <div class="card mb-3 shadow mh-card-pedidos border-0">
                   <div class="card-body">
                      <div class="row">
                         <div class="col-12">
-                           <i class="bi bi-wallet fs-2"></i>
-                           <div class="card-text mt-1"><strong>${row.nom_precio}</strong></div>
+                           <i class="bi bi-card-list fs-2"></i>
+                        </div>
+                        <!--
+                        <div class="col-8 text-end">
+                           <div class="form-switch">
+                              <label class="form-check-label" for="esDefecto${row.id}">¿Precio por defecto?</label><br>
+                              <input class="form-check-input checkDefecto" type="checkbox" role="switch" id="esDefecto${row.id}" ${checked} onclick="fn_marcar_precio_defecto(${row.id}, '${row.nombre}');">
+                           </div>
+                        </div>
+                        -->
+                        <div class="col-12">
+                           <div class="card-text mt-1"><strong>${row.nombre}</strong></div>
                            <div class="card-text mt-2">${row.descripcion}</div>
                         </div>
                      </div>
                   </div>
-                  <div class="card-footer" align="right">
-                     <button type="buttton" class="btn btn-secondary btn-elao btn-redondo" onclick="ModalGestionarPrecios('${row.id}', '${row.nom_precio}');" title="Gestionar precios">
+                  <div class="card-footer text-end">
+                     <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalGestionarPrecios('${row.id}', '${row.nombre}');" title="Gestionar precios">
                         <i class="bi bi-list-check"></i>
                      </button>
-                     <button type="buttton" class="btn btn-outline-dark btn-redondo" onclick="ModalFormListaPrecios('${row.id}', '${row.nom_precio}', '${row.descripcion}');" title="Editar lista de precios">
+                     <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormListaPrecios('${row.id}', '${row.nombre}', '${row.descripcion}');" title="Editar lista de precios">
                         <i class="bi bi-pencil"></i>
                      </button>
-                     <button type="buttton" class="btn btn-outline-danger btn-redondo btnEliminarListaPrecios" onclick="fn_eliminar_lista_precios('${row.id}', '${row.nom_precio}');" title="Eliminar lista de precios">
+                     <button type="buttton" class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarListaPrecios" onclick="fn_eliminar_lista_precios('${row.id}', '${row.nombre}');" title="Eliminar lista de precios">
                         <i class="bi bi-trash"></i>
                      </button>
                   </div>
@@ -223,7 +261,7 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">Gestión lista de precios: ${nomListaPrecios}</h1>
-               <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal" aria-label="Close">
+               <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
             </div>
@@ -232,13 +270,12 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
                   <div class="card-body">
                      <div class="row">
                         <div class="col-12">
-                           <h6><strong>Agregar producto a la lista</strong></h6>
+                           <h6><strong>Agregar estudio a la lista</strong></h6>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12 mt-2">
-                           <strong>Producto</strong>
-                           <select name="productoPrecios" id="productoPrecios" class="form-select select2" onchange="fn_pintar_precio_base();">
-                              <option value="0" data-sku="0", data-precio-base="0">Seleccionar</option>
-                              ${comboProductos}
+                           <strong>Estudio</strong>
+                           <select name="estudioPrecios" id="estudioPrecios" class="form-select select2" onchange="fn_pintar_precio_base();">
+                              <option value="0" data-precio-publico="0">Seleccionar</option>
                            </select>
                         </div>
                         <div class="col-xl-2 col-lg-3 col-md-2 col-sm-4 col-6 mt-2">
@@ -257,7 +294,7 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
                         </div>
                         <div class="col-xl-2 col-lg-3 col-md-2 col-sm-4 col-12 mt-2">
                            <br>
-                           <button type="button" id="btnAddProdListaPrecio" class="btn btn-secondary btn-elao w-100 btn-redondo" onclick="fn_agregar_producto_lista(${idListaPrecios}, '${nomListaPrecios}');">
+                           <button type="button" id="btnAddEstudioListaPrecio" class="btn btn-secondary btn-elao w-100 btn-redondo" onclick="fn_agregar_estudio_lista(${idListaPrecios}, '${nomListaPrecios}');">
                               Agregar
                            </button>
                         </div>
@@ -310,6 +347,7 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
       theme: 'bootstrap-5'
    });
    listar_precios_lista(idListaPrecios, nomListaPrecios);
+   cargar_estudios('estudioPrecios');
    $('.select2').on('select2:open', function () {
       setTimeout(() => {
          let input = document.querySelector('.select2-container--open .select2-search__field');
@@ -319,25 +357,25 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
 }
 
 const listar_precios_lista = async (idListaPrecios, nomListaPrecios) => {
-  arrPreciosLista = [];
-  let respuesta = await obtiene_precios_lista(idListaPrecios);
-  if(respuesta.estatus == 403) {
-    fnNoSesion();
-  }
-  else if(respuesta.estatus != 200) {
-    showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-    return;
-  }
-  else {
-    arrPreciosLista = await respuesta.data;
-    pinta_precios_lista(arrPreciosLista, idListaPrecios, nomListaPrecios);
-  }
+   arrPreciosLista = [];
+   let respuesta = await obtiene_precios_lista(idListaPrecios);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      arrPreciosLista = await respuesta.data;
+      pinta_precios_lista(arrPreciosLista, idListaPrecios, nomListaPrecios);
+   }
 }
 
 const pinta_precios_lista = (data, idListaPrecios, nomListaPrecios) => {
    let html = '';
    if(data.length == 0) {
-      html+='<div align="center" class="mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron productos en esta lista</div>';
+      html+='<div align="center" class="mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron estudios en esta lista</div>';
       $('#listado_precios_lista').html(html);
    }
    else {
@@ -346,10 +384,9 @@ const pinta_precios_lista = (data, idListaPrecios, nomListaPrecios) => {
          <table id="tablePreciosLista" class="table dataTable table-striped table-hover">
             <thead>
             <tr align="center">
-               <th width="10%">SKU</th>
-               <th width="45%">Producto</th>
-               <th width="15%">Precio base</th>
-               <th width="15%">Precio ajustado</th>
+               <th width="10%">ID</th>
+               <th width="55%">Estudio</th>
+               <th width="15%">Precio</th>
                <th width="15%">Acciones</th>
             </tr>
             </thead>
@@ -357,17 +394,16 @@ const pinta_precios_lista = (data, idListaPrecios, nomListaPrecios) => {
             data.map((row, i) => {
                   html+=`
                   <tr id="trPreciosLista${row.id}">
-                     <td class="text-center">${row.sku}</td>
-                     <td>${row.nom_producto}</td>
-                     <td class="text-end">${row.precio_base_ref}</td>
+                     <td class="text-center">${row.id}</td>
+                     <td>${row.nombre_estudio}</td>
                      <td>
-                        <input type="text" inputmode="decimal" name="precioAjustado${row.id}" id="precioAjustado${row.id}" class="form-control text-end" value="${row.precio_venta}" onkeypress="return fnValidaNumeros(event);">
+                        <input type="text" inputmode="decimal" name="precioAjustado${row.id}" id="precioAjustado${row.id}" class="form-control form-control-sm text-end" value="${row.precio}" onkeypress="return fnValidaNumeros(event);">
                      </td>
                      <td class="text-center">
-                        <button class="btn btn-secondary btn-elao btnActualizarPrecioEspecifico" type="button" title="Actualizar precio" onclick="fn_actualizar_precio_especifico(${row.id}, '${row.nom_producto}', ${idListaPrecios}, '${nomListaPrecios}');">
+                        <button class="btn btn-secondary btn-lib btn-sm fs-6 btnActualizarPrecioEspecifico" type="button" title="Actualizar precio" onclick="fn_actualizar_precio_especifico(${row.id}, '${row.nombre_estudio}', ${idListaPrecios}, '${nomListaPrecios}');">
                            <i class="bi bi-floppy"></i>
                         </button>
-                        <button type="button" class="btn btn-danger btnEliminarPrecioEspecifico" title="Eliminar precio" onclick="fn_eliminar_precio_especifico(${row.id}, '${row.nom_producto}', ${idListaPrecios}, '${nomListaPrecios}', '${row.precio_venta}');">  
+                        <button type="button" class="btn btn-danger btn-sm fs-6 btnEliminarPrecioEspecifico" title="Eliminar precio" onclick="fn_eliminar_precio_especifico(${row.id}, '${row.nombre_estudio}', ${idListaPrecios}, '${nomListaPrecios}', '${row.precio}');">  
                            <i class="bi bi-trash"></i>
                         </button>
                      </td>
@@ -391,7 +427,7 @@ const pinta_precios_lista = (data, idListaPrecios, nomListaPrecios) => {
    }
 }
 
-const fn_agregar_producto_lista = async (idListaPrecios, nomListaPrecios) => {
+const fn_agregar_estudio_lista = async (idListaPrecios, nomListaPrecios) => {
    if (idListaPrecios == '') {
       ToastColor.fire({
       text: '¡Atención! No se obtuvo un parámetro necesario, actualiza y vuelve a intentarlo',
@@ -400,24 +436,23 @@ const fn_agregar_producto_lista = async (idListaPrecios, nomListaPrecios) => {
       return;
    }
 
-   let selectProd  = document.getElementById("productoPrecios");
-   let idProducto  = selectProd.value;
-   let sku         = $('option:selected', selectProd).attr('data-sku');
-   let precioBase  = $('option:selected', selectProd).attr('data-precio-base');
-   let nomProducto = selectProd.options[selectProd.selectedIndex].text;
-   let nuevoPrecio = $('#precioAjustado').val().trim();
+   let selectEstudio = document.getElementById("estudioPrecios");
+   let idEstudio     = selectEstudio.value;
+   let precioBase    = $('option:selected', selectEstudio).attr('data-precio-publico');
+   let nomEstudio    = selectEstudio.options[selectEstudio.selectedIndex].text;
+   let nuevoPrecio   = $('#precioAjustado').val().trim();
 
-   if(idProducto == 0) {
+   if(idEstudio == 0) {
       ToastColor.fire({
-      text: '¡Atención! Debes seleccionar un producto',
+      text: '¡Atención! Debes seleccionar un estudio',
          icon: 'warning'
       });
-      $('#productoPrecios').focus();
+      $('#estudioPrecios').focus();
       return;
    }
    else if(precioBase == '' || parseFloat(precioBase) <= 0) {
       ToastColor.fire({
-      text: '¡Atención! Hubo un problema para cargar el precio base, actualiza e inténtalo de nuevo',
+      text: '¡Atención! Hubo un problema para cargar el precio base / público, actualiza e inténtalo de nuevo',
          icon: 'warning'
       });
       return;
@@ -431,7 +466,7 @@ const fn_agregar_producto_lista = async (idListaPrecios, nomListaPrecios) => {
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se agregará el producto: ' + nomProducto + ' con precio $'+ nuevoPrecio +' a la lista de precios: ' + nomListaPrecios, 'question', 'Sí, actualizar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se agregará el estudio: ' + nomEstudio + ' con precio $'+ nuevoPrecio +' a la lista de precios: ' + nomListaPrecios, 'question', 'Sí, agregar', 'Cancelar');
    
    if (!res.result) {
       $('#btnAddProdListaPrecio').prop('disabled', false);
@@ -440,17 +475,17 @@ const fn_agregar_producto_lista = async (idListaPrecios, nomListaPrecios) => {
 
    $('#btnAddProdListaPrecio').prop('disabled', true);
 
-   let objProducto = { func: 'agregar_producto_lista', idListaPrecios, nomListaPrecios, idProducto, nomProducto, sku, precioBase, nuevoPrecio };
+   let objEstudio = { func: 'agregar_estudio_lista', idListaPrecios, nomListaPrecios, idEstudio, nomEstudio, precioBase, nuevoPrecio };
 
-   let respuesta = await agregar_producto_lista(objProducto);
+   let respuesta = await agregar_estudio_lista(objEstudio);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('Producto agregado correctamente', '', 'success', 2500);
+      showMessageSwalTimer('¡Estudio agregado correctamente!', '', 'success', 2500);
       listar_precios_lista(idListaPrecios, nomListaPrecios);
-      $('#productoPrecios').val(0);
-      $('#productoPrecios').trigger('change');
+      $('#estudioPrecios').val(0);
+      $('#estudioPrecios').trigger('change');
       $('#inpPrecioBasePrecios').val('');
       $('#precioAjustado').val('');
       $('#btnAddProdListaPrecio').prop('disabled', false);
@@ -462,7 +497,7 @@ const fn_agregar_producto_lista = async (idListaPrecios, nomListaPrecios) => {
    }
 }
 
-const fn_actualizar_precio_especifico = async (idPrecio, nomProducto, idListaPrecios, nomListaPrecios) => {
+const fn_actualizar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios) => {
    if (idPrecio == '') {
       ToastColor.fire({
       text: '¡Atención! No se obtuvo un parámetro necesario, actualiza y vuelve a intentarlo',
@@ -482,7 +517,7 @@ const fn_actualizar_precio_especifico = async (idPrecio, nomProducto, idListaPre
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El precio para el producto: ' + nomProducto + ' será actualizado', 'question', 'Sí, actualizar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El precio para el estudio: ' + nomEstudio + ' será actualizado', 'question', 'Sí, actualizar', 'Cancelar');
 
    if (!res.result) {
       $('.btnActualizarPrecioEspecifico').prop('disabled', false);
@@ -490,7 +525,7 @@ const fn_actualizar_precio_especifico = async (idPrecio, nomProducto, idListaPre
    }
 
    $('.btnActualizarPrecioEspecifico').prop('disabled', true);
-   let respuesta = await actualizar_precio_especifico(idPrecio, nomProducto, idListaPrecios, nomListaPrecios, nuevoPrecio);
+   let respuesta = await actualizar_precio_especifico(idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
@@ -505,7 +540,7 @@ const fn_actualizar_precio_especifico = async (idPrecio, nomProducto, idListaPre
    }
 }
 
-const fn_eliminar_precio_especifico = async (idPrecio, nomProducto, idListaPrecios, nomListaPrecios, precio) => {
+const fn_eliminar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio) => {
    if (idPrecio == '') {
       ToastColor.fire({
       text: '¡Atención! No se obtuvo un parámetro necesario, actualiza y vuelve a intentarlo',
@@ -514,7 +549,7 @@ const fn_eliminar_precio_especifico = async (idPrecio, nomProducto, idListaPreci
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El precio para el producto: ' + nomProducto + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El precio para el estudio: ' + nomEstudio + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
 
    if (!res.result) {
       $('.btnEliminarPrecioEspecifico').prop('disabled', false);
@@ -523,7 +558,7 @@ const fn_eliminar_precio_especifico = async (idPrecio, nomProducto, idListaPreci
 
    $('.btnEliminarPrecioEspecifico').prop('disabled', true);
 
-   let respuesta = await eliminar_precio_especifico(idPrecio, nomProducto, idListaPrecios, nomListaPrecios, precio);
+   let respuesta = await eliminar_precio_especifico(idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
@@ -606,7 +641,7 @@ const fn_vaciar_lista_precios = async (idListaPrecios, nomListaPrecios) => {
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Los productos de la lista '+nomListaPrecios+' serán eliminados', 'question', 'Sí, eliminar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Los estudios de la lista '+nomListaPrecios+' serán eliminados', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
       $('#btnVaciarPreciosLista').prop('disabled', false);
@@ -620,7 +655,7 @@ const fn_vaciar_lista_precios = async (idListaPrecios, nomListaPrecios) => {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Productos eliminados correctamente!', '', 'success', 2500);
+      showMessageSwalTimer('¡Estudios eliminados correctamente!', '', 'success', 2500);
       listar_precios_lista(idListaPrecios, nomListaPrecios);
       $('#btnVaciarPreciosLista').prop('disabled',false);
       return;
@@ -641,7 +676,7 @@ const fn_generar_lista_precios_base = async (idListaPrecios, nomListaPrecios) =>
       return;
    }
   
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se borrará la lista y se importarán a esta lista todos los productos del catálogo con su precio base', 'question', 'Sí, importar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se borrará la lista y se importarán a esta lista todos los estudios del catálogo con su precio base', 'question', 'Sí, importar', 'Cancelar');
    
    if (!res.result) {
       $('#btnImportarPreciosBase').prop('disabled', false);
@@ -669,35 +704,35 @@ const fn_generar_lista_precios_base = async (idListaPrecios, nomListaPrecios) =>
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES genéricas+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const cargar_productos = async () => {  
-  comboProductos = '';
-  let respuesta = await obtiene_productos();
-  if(respuesta.estatus == 403) {
-    fnNoSesion();
-  }
-  else if(respuesta.estatus != 200) {
-    showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-    return;
-  }
-  else {
-    if(respuesta.data.length > 0) {
-      respuesta.data.map(producto => {
-        comboProductos+=`<option value="${producto.id}" data-sku="${producto.sku}" data-precio-base="${producto.precio_base}">${producto.nom_producto}</option>`;
-      });
-    }
-  }  
+const cargar_estudios = async (containerId) => {  
+   comboEstudios = '<option value="0" data-precio-publico="0">Seleccionar</option>';
+   let respuesta = await obtiene_estudios();
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      if(respuesta.data.length > 0) {
+         respuesta.data.map(estudio => {
+            comboEstudios+=`<option value="${estudio.id}" data-precio-publico="${estudio.precio_publico}">${estudio.nombre}</option>`;
+         });
+         $('#'+containerId).html(comboEstudios);
+      }
+   }  
 }
 
 const fn_pintar_precio_base = () => {
    
-   let selectProd  = document.getElementById("productoPrecios");
-   let precioBase  = $('option:selected', selectProd).attr('data-precio-base');
-   //let nomProducto = selectProd.options[selectProd.selectedIndex].text;
+   let selectEstudio = document.getElementById("estudioPrecios");
+   let precioBase    = $('option:selected', selectEstudio).attr('data-precio-publico');
 
    $('#precioBasePrecios').val(precioBase);
 }
 
-window.TabListaPrecios                 = TabListaPrecios;
+window.TabPrecios                      = TabPrecios;
 window.ModalFormListaPrecios           = ModalFormListaPrecios;
 window.ModalGestionarPrecios           = ModalGestionarPrecios;
 
@@ -709,9 +744,10 @@ window.listar_precios_lista            = listar_precios_lista;
 window.fn_actualizar_precio_especifico = fn_actualizar_precio_especifico;
 window.fn_eliminar_precio_especifico   = fn_eliminar_precio_especifico;
 
-window.cargar_productos                = cargar_productos;
+window.cargar_estudios                 = cargar_estudios;
 window.fn_pintar_precio_base           = fn_pintar_precio_base;
-window.fn_agregar_producto_lista       = fn_agregar_producto_lista;
+window.fn_agregar_estudio_lista        = fn_agregar_estudio_lista;
 window.fn_actualizacion_masiva_precios = fn_actualizacion_masiva_precios;
 window.fn_generar_lista_precios_base   = fn_generar_lista_precios_base;
 window.fn_vaciar_lista_precios         = fn_vaciar_lista_precios;
+window.fn_marcar_precio_defecto        = fn_marcar_precio_defecto;

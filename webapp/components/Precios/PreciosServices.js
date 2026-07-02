@@ -31,26 +31,28 @@ export const obtiene_precios_lista = async (idListaPrecios) => {
    return await postJSON('../api/controller/precios.php', datos);
 }
 
-export const agregar_producto_lista = async (objProducto) => {
-   return await postJSON('../api/controller/precios.php', objProducto);
+export const agregar_estudio_lista = async (objEstudio) => {
+   return await postJSON('../api/controller/precios.php', objEstudio);
 };
 
-export const actualizar_precio_especifico = async (idPrecio, nomProducto, idListaPrecios, nomListaPrecios, nuevoPrecio) => {
-   const datos = { func: 'actualizar_precio_especifico', idPrecio, nomProducto, idListaPrecios, nomListaPrecios, nuevoPrecio };     
+export const actualizar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio) => {
+   const datos = { func: 'actualizar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio };     
    return await postJSON('../api/controller/precios.php', datos);
 }
 
-export const eliminar_precio_especifico = async (idPrecio, nomProducto, idListaPrecios, nomListaPrecios, precio) => {
-   const datos = { func: 'eliminar_precio_especifico', idPrecio, nomProducto, idListaPrecios, nomListaPrecios, precio };     
-   try {
-      const respuesta = await postJSON('../api/controller/precios.php', datos);
-      return respuesta;
-   } catch (err) {
-      respuesta = {estatus: 500, "mensaje": "Error del servidor", data: []};
-   }
+export const eliminar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio) => {
+   const datos = { func: 'eliminar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio };     
+   let respuesta = await postJSON('../api/controller/precios.php', datos);
+   return respuesta;
 }
 
 export const actualizacion_masiva_precios = async (idListaPrecios, nomListaPrecios, subirBajar, porcentaje) => {
    const datos = { func: 'actualizacion_masiva_precios', idListaPrecios, nomListaPrecios, subirBajar, porcentaje };     
    return await postJSON('../api/controller/precios.php', datos);
+}
+
+export const marcar_precio_defecto = async (idListaPrecios, nomListaPrecios) => {
+   const datos = { func: 'marcar_precio_defecto', idListaPrecios, nomListaPrecios };     
+   let respuesta = await postJSON('../api/controller/precios.php', datos);
+   return respuesta;
 }

@@ -106,30 +106,46 @@
             echo json_encode($res);
          break;
 
+         case 'marcar_precio_defecto':
+
+            if(empty($_POST["idListaPrecios"]) || empty($_POST["nomListaPrecios"])) {
+               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+               echo json_encode($res);
+               break;
+            }
+
+            $res = $v->marcar_precio_defecto($_POST["idListaPrecios"]);
+            if($res["estatus"]) {
+               $g->bitacora('Precio marcado por defecto: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+            }
+
+            echo json_encode($res);
+         break;
+
          // ********************************************************** Funciones de CRUD cat_precios **********************************************************************
          case 'obtiene_precios_lista':
             $res = $v->obtiene_precios_lista($_POST["idListaPrecios"]);          
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
-         case 'agregar_producto_lista':
+         case 'agregar_estudio_lista':
 
-            if(empty($_POST["idListaPrecios"]) || empty($_POST["idProducto"]) || empty($_POST["sku"]) || empty($_POST["nomProducto"]) || empty($_POST["precioBase"]) || empty($_POST["nuevoPrecio"])) {
+            if(empty($_POST["idListaPrecios"]) || empty($_POST["idEstudio"]) || empty($_POST["nomEstudio"]) || empty($_POST["nuevoPrecio"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
                echo json_encode($res);
                break;
             }
 
-            $res = $v->agregar_producto_lista($_POST, $_SESSION["nombre"]);
+            $res = $v->agregar_estudio_lista($_POST, $_SESSION["nombre"]);
             if($res["estatus"] == 200) {
-               $g->bitacora('Prodcuto agregado: '.$_POST["nomProducto"].' con precio $'.$_POST["nuevoPrecio"]. ' a la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora('Estudio agregado: '.$_POST["nomEstudio"].' con precio $'.$_POST["nuevoPrecio"]. ' a la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
             echo json_encode($res);
          break;
 
          case 'actualizar_precio_especifico':
 
-            if(empty($_POST["idPrecio"]) || empty($_POST["nuevoPrecio"]) || empty($_POST["nomProducto"]) || empty($_POST["nomListaPrecios"])) {
+            if(empty($_POST["idPrecio"]) || empty($_POST["nuevoPrecio"]) || empty($_POST["nomEstudio"]) || empty($_POST["nomListaPrecios"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
                echo json_encode($res);
                break;
@@ -138,7 +154,7 @@
             $response = $v->actualizar_precio_especifico($_POST["idPrecio"], $_POST["nuevoPrecio"]);
             if($response) {
                $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
-               $g->bitacora('Precio actualizado a $'.$_POST["nuevoPrecio"].' del producto: '.$_POST["nomProducto"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora('Precio actualizado a $'.$_POST["nuevoPrecio"].' del estudio: '.$_POST["nomEstudio"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }
             else {
                $res = array('estatus' => 500, 'mensaje' => 'error al intentar actualizar el precio específico', 'data'=>[]);
@@ -149,7 +165,7 @@
 
          case 'eliminar_precio_especifico':
 
-            if(empty($_POST["idPrecio"]) || empty($_POST["precio"]) || empty($_POST["nomProducto"]) || empty($_POST["nomListaPrecios"]) || empty($_POST["idListaPrecios"])) {
+            if(empty($_POST["idPrecio"]) || empty($_POST["precio"]) || empty($_POST["nomEstudio"]) || empty($_POST["nomListaPrecios"]) || empty($_POST["idListaPrecios"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
                echo json_encode($res);
                break;
@@ -158,7 +174,7 @@
             $response = $v->eliminar_precio_especifico($_POST["idPrecio"]);
             if($response) {
                $res = array('estatus' => 200, 'mensaje' => 'ok', 'data'=>[]);
-               $g->bitacora('Precio eliminado: $'.$_POST["precio"].' del producto: '.$_POST["nomProducto"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora('Precio eliminado: $'.$_POST["precio"].' del estudio: '.$_POST["nomEstudio"]. ' de la lista: '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }
             else {
                $res = array('estatus' => 500, 'mensaje' => 'error al intentar eliminar el precio específico', 'data'=>[]);

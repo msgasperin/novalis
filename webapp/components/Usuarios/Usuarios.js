@@ -1,4 +1,5 @@
 import { guardar_usuario, obtiene_usuarios, eliminar_usuario } from "./UsuariosServices.js";
+import { obtiene_sucursales } from "../Sucursales/SucursalesServices.js";
 
 let arrUsuarios = [];
 
@@ -97,7 +98,6 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                      <b>Sucursal *</b>
                      <select name="sucursalUsuario" id="sucursalUsuario" class="form-select">
                         <option value="0">Seleccionar</option>
-                        <option value="1">Matriz</option>
                      </select>
                   </div>
                </div>
@@ -113,12 +113,38 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
          </div>
       </div>
    </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#modalFormUsuarios').modal('show');
+
    setTimeout(() => {
       $('#perfilUsuario').val(perfil);
       $('#sucursalUsuario').val(sucursal);
-   }, 500);
-   $('#modalAdmin').html(html);
-   $('#modalFormUsuarios').modal('show');
+   }, 700);
+
+   combo_listas_sucursales('sucursalUsuario');
+   
+}
+
+const combo_listas_sucursales = async (containerId) => {
+   let comboListaSucursales = '<option value="0">Seleccionar</option>';
+   let respuesta = await obtiene_sucursales();
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      if(res.length > 0) {
+         res.map((sucursal) => {
+            comboListaSucursales +=`<option value="${sucursal.id}">${sucursal.nombre}</option>`;
+         });
+         $('#'+containerId).html(comboListaSucursales);
+      }      
+   }
 }
 
 const listar_usuarios = async () => {
