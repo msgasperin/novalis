@@ -10,7 +10,7 @@
 		public function obtiene_lista_estudios() {
 			$res = [];
 			try {
-				$sql = $this->dbh->prepare("SELECT id, codigo_interno, nombre, tipo, precio_publico FROM cat_estudios WHERE activo = 1 ORDER BY id");
+				$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, indicaciones_toma, descripcion_estudio FROM cat_estudios WHERE activo = 1 ORDER BY id");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
@@ -23,13 +23,15 @@
 		public function guardar_estudio(array $post, string $user_cap) {
       	$estatus = 500;
       	$data    = [0];
-			$mensaje = 'Error al guardar la lista de precios';
+			$mensaje = 'Error al guardar el estudio';
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO cat_listas_precios (nombre, descripcion, user_cap) VALUES (?,?,?)");
-				if($sql->execute(array($post["nomListaPrecios"], $post["descripcion"], $user_cap))) {
-					$idLista = $this->dbh->lastInsertId();
+				$sql = $this->dbh->prepare("INSERT INTO cat_estudios (nombre, tipo, precio_publico, descripcion_estudio, indicaciones_toma, user_cap) VALUES (?,?,?,?,?,?)");
+				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $post["descripcionEstudio"], $post["indicacionesToma"], $user_cap));
+
+				if($ok) {
+					$idEstudio = $this->dbh->lastInsertId();
 					$estatus = 200;
-					$data    = [$idLista];
+					$data    = [$idEstudio];
 					$mensaje = 'ok';	
         		}
 			} 
@@ -44,12 +46,13 @@
 		public function actualizar_estudio(array $post, string $user_cap) {
 			$estatus = 500;
 			$data    = [];
-			$message = 'Error al actualizar generales lista de precios';
+			$message = 'Error al actualizar datos del estudio';
 			try {
-				$sql = $this->dbh->prepare("UPDATE cat_listas_precios SET nombre = ?, descripcion = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
-				if($sql->execute(array($post["nomListaPrecios"], $post["descripcion"], $user_cap, date('Y-m-d H:i:s'), $post["idListaPrecios"]))) {
+				$sql = $this->dbh->prepare("UPDATE cat_estudios SET nombre = ?, tipo = ?, precio_publico = ?, descripcion_estudio = ?, indicaciones_toma = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
+				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $post["descripcionEstudio"], $post["indicacionesToma"], $user_cap, date('Y-m-d H:i:s'), $post["idEstudio"]));
+				if($ok) {
 					$estatus = 200;
-					$data    = [$post["idListaPrecios"]];
+					$data    = [$post["idEstudio"]];
 					$message = 'ok';
         		}
 			} 
@@ -61,27 +64,20 @@
 			return $res;
 		}
 
-		public function eliminar_estudio(int $id_lista_precios) {
+		public function eliminar_estudio(int $id_estudio) {
       	$estatus = 500;
 			$mensaje = 'Error al eliminar el estudio';
 			$data    = [0];
 			try {
-				$this->dbh->beginTransaction();
-
-				$sql = $this->dbh->prepare("UPDATE cat_listas_precios SET activo = ? WHERE id = ?");
-				$sql->execute(array(0, $id_lista_precios));
+				$sql = $this->dbh->prepare("UPDATE cat_estudios SET activo = ? WHERE id = ?");
+				$ok  = $sql->execute(array(0, $id_estudio));
 				
-				$sqlDel = $this->dbh->prepare("DELETE FROM lista_precio_estudios WHERE lista_precio_id_fk = ?");
-				$sqlDel->execute(array($id_lista_precios));
-
-				$this->dbh->commit();
-          	$estatus = 200;
-				$mensaje = 'ok';
+				if($ok) {
+					$estatus = 200;
+					$mensaje = 'ok';
+				}
 			} 
 			catch (Exception $error) {
-				if ($this->dbh->inTransaction()) {
-					$this->dbh->rollBack();
-				}
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 

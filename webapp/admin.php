@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionConfiguracion'); TabPrecios(); /* obtiene_alerta_pagos(); */">
+	<body onload="opcionActive('opcionEstudios'); TabEstudios(); /* obtiene_alerta_pagos(); */">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>

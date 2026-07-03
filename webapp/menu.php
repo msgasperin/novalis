@@ -68,7 +68,7 @@
 
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionConvenios" onclick="opcionActive('opcionConvenios'), TabClientes(), cerrarMenu();">
+            <div class="opciones_menu align-menu" id="opcionEstudios" onclick="opcionActive('opcionEstudios'), TabEstudios(), cerrarMenu();">
               <i class="bi bi-list-columns icon-menu"></i>
               <div>Paquetes  Estudios</div>
             </div>

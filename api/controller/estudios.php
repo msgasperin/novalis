@@ -22,45 +22,38 @@
 
          case 'guardar_estudio':   
             
-            if(empty($_POST["idListaPrecios"]) || empty($_POST["nomListaPrecios"])) {
+            if(!isset($_POST["idEstudio"]) || empty($_POST["nomEstudio"]) || empty($_POST["tipoEstudio"]) || empty($_POST["precioPublico"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
                echo json_encode($res);
                break;
             }
             
-            $res = $v->guardar_estudio($_POST["idListaPrecios"], $_SESSION["nombre"]);
-            if($res["estatus"] == 200) {
-               $g->bitacora('Precios base importados '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
-            }            
-            echo json_encode($res);
-         break;
+            if(intval($_POST["idEstudio"]) == 0) {
+               $res         = $v->guardar_estudio($_POST, $_SESSION["nombre"]);
+               $msjBitacora = 'Estudio registrado: ';
+            }
+            else {
+               $res = $v->actualizar_estudio($_POST, $_SESSION["nombre"]);
+               $msjBitacora = 'Estudio modificado: ';
+            }
 
-         case 'actualizar_estudio':   
-            
-            if(empty($_POST["idListaPrecios"]) || empty($_POST["nomListaPrecios"])) {
-               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
-               echo json_encode($res);
-               break;
-            }
-            
-            $res = $v->actualizar_estudio($_POST["idListaPrecios"], $_SESSION["nombre"]);
             if($res["estatus"] == 200) {
-               $g->bitacora('Precios base importados '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora($msjBitacora.$_POST["nomEstudio"], $res["data"][0], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
             echo json_encode($res);
          break;
 
          case 'eliminar_estudio':
 
-            if(empty($_POST["idListaPrecios"]) || empty($_POST["nomListaPrecios"])) {
+            if(empty($_POST["idEstudio"]) || empty($_POST["nomEstudio"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
                echo json_encode($res);
                break;
             }
 
-            $res = $v->eliminar_estudio($_POST["idListaPrecios"]);
+            $res = $v->eliminar_estudio($_POST["idEstudio"]);
             if($res["estatus"] == 200) {
-               $g->bitacora('Lista de precios vaciada '.$_POST["nomListaPrecios"], $_POST["idListaPrecios"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora('Estudio eliminado: '.$_POST["nomEstudio"], $_POST["idEstudio"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            
             echo json_encode($res);
          break;

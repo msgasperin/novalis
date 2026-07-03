@@ -1,56 +1,52 @@
 import { obtiene_estudios, guardar_estudio, eliminar_estudio } from "./EstudiosServices.js";
 
-let arrSucursales = [];
+let arrEstudios = [];
 
 const TabEstudios = () => {
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2">
-         <div class="fs-4"> <i class="bi bi-shop-window"></i> Sucursales</div>
+         <div class="fs-4"> <i class="bi bi-list-columns"></i> Paquetes / Estudios</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaSucursal" onclick="ModalFormSucursal(0,'');"><i class="bi bi-plus-lg"></i> Nueva Sucursal</button>
-      </div>
-   </div>
-   <div class="row mt-3">
-      <div class="col-12 col-md-3" align="right">
-         <div class="input-group">
-            <input type="text" name="inpBusquedaSucursal" id="inpBusquedaSucursal" class="form-control border-end-0" placeholder="Buscar sucursal" onkeyUp="fn_buscar_sucursal();">
-            <span class="input-group-text border-start-0 bg-white"><i class="bi bi-search"></i></span>
-         </div>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoEstudio" onclick="ModalFormEstudio(0,'');"><i class="bi bi-plus-lg"></i> Nuev Estudio</button>
       </div>
    </div>
    <div class="mt-4">
-      <div id="listar_sucursales"></div>      
+      <div id="listar_estudios"></div>      
    </div>`;
 
    $('#containerMain').html(html);
    
-   listar_sucursales('listar_sucursales');
+   listar_estudios('listar_estudios');
 }
 
-const ModalFormEstudio = (idSucursal, nomSucursal) => {
+const ModalFormEstudio = (idEstudio, nomEstudio) => {
 
-   let sucursalSeleccionada = arrSucursales.filter(sucursal => sucursal.id == idSucursal);
+   let estudioSeleccionado = arrEstudios.filter(estudio => estudio.id == idEstudio);
 
    let titulo;
-   let nombre    = '';
-   let direccion = '';
-   let telefono  = '';
+   let nombre              = '';
+   let tipo                = 'NA';
+   let precio_publico      = '';
+   let indicaciones_toma   = '';
+   let descripcion_estudio = '';
 
-   if(idSucursal > 0) {
-      titulo    = 'Editar Sucursal: '+ nomSucursal;
-      nombre    = sucursalSeleccionada[0].nombre;
-      direccion = sucursalSeleccionada[0].direccion;
-      telefono  = sucursalSeleccionada[0].telefono;
+   if(idEstudio > 0) {
+      titulo              = 'Editar Estudio: '+ nomEstudio;
+      nombre              = estudioSeleccionado[0].nombre;
+      tipo                = estudioSeleccionado[0].tipo;
+      precio_publico      = estudioSeleccionado[0].precio_publico;
+      indicaciones_toma   = estudioSeleccionado[0].indicaciones_toma;
+      descripcion_estudio = estudioSeleccionado[0].descripcion_estudio;
    }
    else {
-      titulo = 'Registrar Nueva Sucursal';
+      titulo = 'Registrar Nuevo Estudio';
    }   
 
    let html = `
-   <div class="modal fade modal-superior-blur" id="modalFormSucursal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-fullscreen-md-down">
+   <div class="modal fade modal-superior-blur" id="modalFormEstudio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-fullscreen-md-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">${titulo}</h1>
@@ -61,21 +57,33 @@ const ModalFormEstudio = (idSucursal, nomSucursal) => {
             <div class="modal-body">
                <div class="row">
                   <div class="col-12 mt-3">
-                     <b>Nombre de la sucursal *</b>
-                     <input type="text" name="nomSucursal" id="nomSucursal" class="form-control" maxlength="250" value="${nombre}"/>
+                     <b>Nombre del estudio / paquete *</b>
+                     <input type="text" name="nomEstudio" id="nomEstudio" class="form-control" maxlength="150" value="${nombre}"/>
                   </div>
                   <div class="col-12 mt-3">
-                     <b>Dirección *</b>
-                     <textarea name="direccionSucursal" id="direccionSucursal" class="form-control" rows="3" maxlength="400">${direccion}</textarea>
+                     <b>Descripción estudio / paquete</b>
+                     <textarea name="descripcionEstudio" id="descripcionEstudio" class="form-control" rows="3" maxlength="250">${descripcion_estudio}</textarea>
+                  </div>
+                  <div class="col-12 col-sm-6 mt-3">
+                     <b>Tipo *</b>
+                     <select name="tipoEstudio" id="tipoEstudio" class="form-select">
+                        <option value="NA">Seleccionar</option>
+                        <option value="ESTUDIO">ESTUDIO</option>
+                        <option value="PAQUETE">PAQUETE</option>
+                     </select>
+                  </div>
+                  <div class="col-12 col-sm-6 mt-3">
+                     <b>Precio Público *</b>
+                     <input type="number" inputmode="numeric" name="precioPublico" id="precioPublico" class="form-control" maxlength="10" value="${precio_publico}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-12 mt-3">
-                     <b>Teléfono</b>
-                     <input type="tel" name="telSucursal" id="telSucursal" class="form-control" maxlength="10" value="${telefono}" onkeypress="return fnValidaNumeros(event);"/>
+                     <b>Indicaciones toma de muestra</b>
+                     <textarea name="indicacionesToma" id="indicacionesToma" class="form-control" rows="3" maxlength="400">${indicaciones_toma}</textarea>
                   </div>
                </div>
             </div>
-            <div class="modal-footer" align="right">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarSucursal" onclick="fn_guardar_sucursal('${idSucursal}');">
+            <div class="modal-footer border-0 text-end">
+              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarEstudio" onclick="fn_guardar_estudio('${idEstudio}');">
                 <i class="bi bi-save"></i> Guardar
               </button> 
               <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
@@ -87,12 +95,15 @@ const ModalFormEstudio = (idSucursal, nomSucursal) => {
    </div>`;
 
    $('#modalAdmin').html(html);
-   $('#modalFormSucursal').modal('show');
+   $('#modalFormEstudio').modal('show');
+   setTimeout(() => {
+      $('#tipoEstudio').val(tipo);
+   }, 200);
 }
 
 const listar_estudios = async (containerId) => {
-   activarLoad('Cargando sucursales...');
-   let respuesta = await obtiene_sucursales();
+   activarLoad('Cargando estudios...');
+   let respuesta = await obtiene_estudios();
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
@@ -101,139 +112,148 @@ const listar_estudios = async (containerId) => {
       return;
    }
    else {
-      arrSucursales = respuesta.data;
-      pinta_listado_sucursales(containerId, respuesta.data);
+      arrEstudios = respuesta.data;
+      pinta_listado_estudios(containerId, respuesta.data);
    }
 }
 
 const pinta_listado_estudios = (containerId, data) => {
    if(data.length == 0) {
-      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron sucursales registradas</div>');
+      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron estudios registrados</div>');
       closeLoad();
       return;
    }
    
-   let html = `<div class="row">`;
-   data.map((row, i) => {
-      html+=`
-      <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardSucursal${row.id}">
-         <div class="card mb-3 shadow">
-            <div class="card-body">
-               <div class="row fs-8">
-                  <div class="col-12 col-sm-2 mt-2 text-center">
-                     <i class="bi bi-shop fs-4 text-secondary"></i>
-                  </div>
-                  <div class="col-12 col-sm-10 mt-2">
-                     <div class="mt-1"><b>${row.nombre}</b></div>
-                     <div class="mt-1"><b>${row.direccion}</b></div>
-                     <div class="text-muted fs-8">${row.telefono}</div>
-                  </div>
-               </div>
-            </div>
-            <div class="card-footer bg-white border-top-0 pb-2">
-               <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormSucursal(${row.id},'${row.nombre}');">
+   let html = 
+   `<table class="table table-striped table-bordered dataTable" id="tableEstudios">
+      <thead>
+         <tr>
+            <th width="5%">ID</th>
+            <th width="65%">Estudio</th>
+            <th width="10%">Tipo</th>
+            <th width="10%">Precio Público</th>
+            <th width="10%">Acciones</th>
+         </tr>
+      </thead>
+      <tbody>`;
+         data.map(row => {
+            html+=
+            `<tr id="trEstudios${row.id}">
+               <td class="text-center">${row.id}</td>
+               <td>${row.nombre}</td>
+               <td class="text-center">${row.tipo}</td>
+               <td>$ ${row.precio_publico}</td>
+               <td class="text-center">
+                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormEstudio('${row.id}', '${row.nombre}');" title="Editar estudio">
                      <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarSucursal" title="Eliminar" onclick="fn_eliminar_sucursal(${row.id},'${row.nombre}');">
+                  <button type="buttton" class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarEstudio" onclick="fn_eliminar_estudio('${row.id}', '${row.nombre}');" title="Eliminar estudio">
                      <i class="bi bi-trash"></i>
-                  </button>               
-               </div>
-            </div>
-         </div>
-      </div>`;
-   });
-
-   html+=`</div>`;
+                  </button>
+               </td>
+            </tr>`;
+         });
+         html+=
+      `</tbody>
+   </table>`;
    $('#'+containerId).html(html);
+
+   setTimeout(() => {
+      new DataTable('#tableEstudios', {   
+         language: {
+            url: "assets/lib/DataTables/es-ES.json",
+         },
+         responsive: true
+      });
+   }, 200);
    closeLoad();
 }
 
-const fn_guardar_estudio = async (idSucursal) => {
+const fn_guardar_estudio = async (idEstudio) => {
 
-   let nomSucursal       = $('#nomSucursal').val().trim();
-   let direccionSucursal = $('#direccionSucursal').val().trim();
-   let telSucursal       = $('#telSucursal').val().trim();
-   let msjAccion       = '';
+   let nomEstudio         = $('#nomEstudio').val().trim();
+   let tipoEstudio        = $('#tipoEstudio').val();
+   let precioPublico      = $('#precioPublico').val().trim();
+   let descripcionEstudio = $('#descripcionEstudio').val().trim();
+   let indicacionesToma   = $('#indicacionesToma').val().trim();
+   let msjAccion          = '';
 
-   if (nomSucursal == '') {
+   if (nomEstudio == '') {
       ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre de la sucursal',
+         text: '¡Atención! Debes ingresar el nombre del estudio',
          icon: 'warning'
       });
-      $('#nomSucursal').focus();
+      $('#nomEstudio').focus();
       return;
    }
-   else if (direccionSucursal == '') {
+   else if (tipoEstudio == 'NA') {
       ToastColor.fire({
-         text: '¡Atención! Debes ingresar la dirección de la sucursal',
+         text: '¡Atención! Debes seleccionar el tipo de estudio',
          icon: 'warning'
       });
-      $('#direccionSucursal').focus();
+      $('#tipoEstudio').focus();
+      return;
+   }
+   else if (parseFloat(precioPublico) == 0 || precioPublico == '') {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar el precio público y debe ser mayor a 0',
+         icon: 'warning'
+      });
+      $('#precioPublico').focus();
       return;
    }
   
+   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, descripcionEstudio, indicacionesToma };
 
-   const objSucursal = { func: 'guardar', idSucursal, nomSucursal, direccionSucursal, telSucursal };
-
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la sucursal ' + nomSucursal + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + nomEstudio + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
-      $('#btnGuardarSucursal').prop('disabled', false);
+      $('#btnGuardarEstudio').prop('disabled', false);
       return;
    }
 
-   $('#btnGuardarSucursal').prop('disabled', true);
-   let respuesta = await guardar_sucursal(objSucursal);
+   $('#btnGuardarEstudio').prop('disabled', true);
+   let respuesta = await guardar_estudio(objEstudio);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
       
-      idSucursal > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Sucursal guardada correctamente';
+      idEstudio > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Estudio guardado correctamente';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
-      $('#modalFormSucursal').modal('hide');
-      $('#btnGuardarSucursal').prop('disabled', false);
-      listar_sucursales('listar_sucursales');
+      $('#modalFormEstudio').modal('hide');
+      $('#btnGuardarEstudio').prop('disabled', false);
+      listar_estudios('listar_estudios');
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#btnGuardarSucursal').prop('disabled', false);
+      $('#btnGuardarEstudio').prop('disabled', false);
       return;
    }
 }
 
-const fn_eliminar_estudio = async (idSucursal, nomSucursal) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La sucursal: ' + nomSucursal + ' será eliminada', 'question', 'Sí, eliminar', 'Cancelar');
+const fn_eliminar_estudio = async (idEstudio, nomEstudio) => {
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El estudio: ' + nomEstudio + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
-    $('.btnEliminarSucursal').prop('disabled', false);
+    $('.btnEliminarEstudio').prop('disabled', false);
     return;
   }
 
-   $('.btnEliminarSucursal').prop('disabled', true);
-   let respuesta = await eliminar_sucursal(idSucursal, nomSucursal);
+   $('.btnEliminarEstudio').prop('disabled', true);
+   let respuesta = await eliminar_estudio(idEstudio, nomEstudio);
       if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('Sucursal eliminada correctamente', '', 'success', 2500);
-      $('#cardSucursal'+idSucursal).remove();
-      arrSucursales = arrSucursales.filter(sucursal => sucursal.id != idSucursal);
-      $('.btnEliminarSucursal').prop('disabled', false);
+      showMessageSwalTimer('Estudio eliminado correctamente', '', 'success', 2500);
+      let tabla = $('#tableEstudios').DataTable();
+      tabla.row($('#trEstudios' + idEstudio)).remove().draw();
+      $('.btnEliminarEstudio').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnEliminarSucursal').prop('disabled', false);
+      $('.btnEliminarEstudio').prop('disabled', false);
       return;
    }
-}
-
-const fn_buscar_estudio = () => {
-   let busqueda = $('#inpBusquedaSucursal').val().trim().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-   const filtrado = arrSucursales.filter(sucursal => {
-      const tituloSinAcentos = sucursal.nombre.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");      
-      return tituloSinAcentos.includes(busqueda);
-   });
-   pinta_listado_sucursales('listar_sucursales', filtrado);
 }
 
 // Interfaces
@@ -242,4 +262,3 @@ window.ModalFormEstudio    = ModalFormEstudio;
 // Funciones
 window.fn_eliminar_estudio = fn_eliminar_estudio;
 window.fn_guardar_estudio  = fn_guardar_estudio;
-window.fn_buscar_estudio   = fn_buscar_estudio;

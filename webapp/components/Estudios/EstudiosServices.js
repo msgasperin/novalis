@@ -12,7 +12,7 @@ export const guardar_estudio = async (objEstudio) => {
 };
 
 export const eliminar_estudio = async (idEstudio, nomEstudio) => {
-   const datos = { func: 'eliminar', idEstudio, nomEstudio };
+   const datos = { func: 'eliminar_estudio', idEstudio, nomEstudio };
    let respuesta = await postJSON('../api/controller/estudios.php', datos);
    return respuesta;
 }
