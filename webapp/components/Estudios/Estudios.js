@@ -9,7 +9,7 @@ const TabEstudios = () => {
          <div class="fs-4"> <i class="bi bi-list-columns"></i> Paquetes / Estudios</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoEstudio" onclick="ModalFormEstudio(0,'');"><i class="bi bi-plus-lg"></i> Nuev Estudio</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoEstudio" onclick="ModalFormEstudio(0,'');"><i class="bi bi-plus-lg"></i> Nuevo Estudio</button>
       </div>
    </div>
    <div class="mt-4">

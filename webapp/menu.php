@@ -53,7 +53,7 @@
           <?php } ?>
           
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionPacientes" onclick="opcionActive('opcionPacientes'), TabClientes(), cerrarMenu();">
+            <div class="opciones_menu align-menu" id="opcionPacientes" onclick="opcionActive('opcionPacientes'), TabPacientes(), cerrarMenu();">
               <i class="bi bi-people icon-menu"></i>
               <div>Pacientes</div>
             </div>

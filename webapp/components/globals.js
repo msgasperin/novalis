@@ -202,6 +202,13 @@ const fnObtieneEdad = (dateString) => {
   return edad
 }
 
+const quitarAcentos = (texto) => {
+  return texto
+    .trim()
+    .normalize("NFD") // Separa la letra del acento (ej: 'á' se vuelve 'a' + '´')
+    .replace(/[\u0300-\u036f]/g, ""); // Borra todos los acentos combinados
+}
+
 const fnReglaEscritura = () => {
   jQuery('.reglaEscritura').keypress(function (tecla) {
     // Bloqueo de caracteres acento(243)
@@ -507,5 +514,6 @@ window.fechaRangoAtras         = fechaRangoAtras;
 window.reducirImagen           = reducirImagen;
 window.formatoMoneda           = formatoMoneda;
 window.iniciales               = iniciales;
+window.quitarAcentos           = quitarAcentos;
 
 
