@@ -9,7 +9,7 @@ const TabPacientes = () => {
          <div class="fs-4"> <i class="bi bi-people"></i> Pacientes</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoPaciente" onclick="ModalFormPaciente(0,'');"><i class="bi bi-plus-lg"></i> Nuevo Paciente</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoPaciente" onclick="ModalFormPaciente(0, '', 1);"><i class="bi bi-plus-lg"></i> Nuevo Paciente</button>
       </div>
    </div>
    <div class="mt-4">
@@ -21,7 +21,7 @@ const TabPacientes = () => {
    listar_pacientes('listar_pacientes');
 }
 
-const ModalFormPaciente = (idPaciente, nomPaciente) => {
+const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
 
    let pacienteSeleccionado = arrPacientes.filter(paciente => paciente.id == idPaciente);
 
@@ -52,7 +52,7 @@ const ModalFormPaciente = (idPaciente, nomPaciente) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalFormPaciente" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-lg modal-fullscreen-md-down">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">${titulo}</h1>
@@ -87,8 +87,8 @@ const ModalFormPaciente = (idPaciente, nomPaciente) => {
                      </select>
                   </div>
                   <div class="col-12 col-sm-4 mt-3">
-                     <b>Telefono *</b>
-                     <input type="number" inputmode="numeric" name="telefonoPaciente" id="telefonoPaciente" class="form-control" maxlength="10" value="${telefono}" onkeypress="return fnValidaNumeros(event);"/>
+                     <b>Teléfono *</b>
+                     <input type="tel" inputmode="numeric" name="telefonoPaciente" id="telefonoPaciente" class="form-control" maxlength="10" value="${telefono}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Correo</b>
@@ -97,7 +97,7 @@ const ModalFormPaciente = (idPaciente, nomPaciente) => {
                </div>
             </div>
             <div class="modal-footer border-0 text-end">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarPaciente" onclick="fn_guardar_paciente('${idPaciente}');">
+              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarPaciente" onclick="fn_guardar_paciente('${idPaciente}', ${origen});">
                 <i class="bi bi-save"></i> Guardar
               </button> 
               <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
@@ -108,11 +108,15 @@ const ModalFormPaciente = (idPaciente, nomPaciente) => {
       </div>
    </div>`;
 
-   $('#modalAdmin').html(html);
+   $('#modalAdminExt').html(html);
    $('#modalFormPaciente').modal('show');
    setTimeout(() => {
       $('#sexoBiologico').val(sexo_biologico);
    }, 200);
+
+   if(origen == 2) {
+      $('#modalPacientesEncontrados').modal('hide');
+   }
 }
 
 const listar_pacientes = async (containerId) => {
@@ -169,7 +173,7 @@ const pinta_listado_pacientes = (containerId, data) => {
                <td class="text-center">${row.telefono ?? ''}</td>
                <td class="text-center">${row.correo ?? ''}</td>
                <td class="text-center">
-                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormPaciente('${row.id}', '${row.nombreCompleto}');" title="Editar paciente">
+                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormPaciente('${row.id}', '${row.nombreCompleto}', 1);" title="Editar paciente">
                      <i class="bi bi-pencil"></i>
                   </button>
                   <button type="buttton" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesPaciente('${row.id}', '${row.nombre}', '${row.apellido_paterno}');" title="Ver credenciales de acceso">
@@ -223,7 +227,7 @@ const ModalCredencialesPaciente = (idPaciente, nomPaciente, apPaterno) => {
    fn_ver_credenciales_paciente(idPaciente, nomPaciente, apPaterno);
 }
 
-const fn_guardar_paciente = async (idPaciente) => {
+const fn_guardar_paciente = async (idPaciente, origen) => {
 
    let nomPaciente      = $('#nomPaciente').val().trim();
    let apPaterno        = $('#apPaterno').val();
@@ -284,8 +288,7 @@ const fn_guardar_paciente = async (idPaciente) => {
       return;
       }
    }
-   
-  
+     
    const objPaciente = { func: 'guardar_paciente', idPaciente, nomPaciente, apPaterno, apMaterno, sexoBiologico, fechaNacimiento, telefonoPaciente, correoPaciente };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del paciente ' + nomPaciente + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
@@ -306,7 +309,13 @@ const fn_guardar_paciente = async (idPaciente) => {
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormPaciente').modal('hide');
       $('#btnGuardarPaciente').prop('disabled', false);
-      listar_pacientes('listar_pacientes');
+      if(origen == 1) {
+         listar_pacientes('listar_pacientes');
+      }
+      else {
+         let objetoPac = { id: respuesta.data[0], nombre: nomPaciente, apellido_paterno: apPaterno, apellido_materno: apMaterno, fecha_nacimiento: fechaNacimiento, sexo_biologico: sexoBiologico, telefono: telefonoPaciente, correo: correoPaciente };
+         window.paciente_seleccionado(0, objetoPac, 2);
+      }
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('#btnGuardarPaciente').prop('disabled', false);

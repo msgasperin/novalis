@@ -35,6 +35,61 @@
 			return $res;
 		}
 
+		public function busca_pacientes_coincidencia(string $parametro) {
+			
+			$res = [];
+
+			// Limpiamos espacios duplicados y dividimos por palabras
+			$terminos = array_filter(explode(' ', preg_replace('/\s+/', ' ', trim($parametro))));
+
+			// Construimos la parte dinámica del SQL para el nombre
+			$condicionesNombre = [];
+			$paramsSQL = [1]; // El primer parámetro es 'activo'
+
+			foreach ($terminos as $termino) {
+				$condicionesNombre[] = "(apellido_paterno LIKE ? OR apellido_materno LIKE ? OR nombre LIKE ?)";
+				// Agregamos el término con sus comodines para cada campo
+				$likeTerm = "%{$termino}%";
+				$paramsSQL[] = $likeTerm;
+				$paramsSQL[] = $likeTerm;
+				$paramsSQL[] = $likeTerm;
+			}
+
+			// Unimos las condiciones del nombre con AND (para que deban coincidir todos los términos introducidos)
+			$stringCondicionesNombre = implode(' AND ', $condicionesNombre);
+
+			try {
+				
+				// Agregamos el correo y la fecha de nacimiento al final
+				$sqlTexto = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format,  sexo_biologico, telefono, correo FROM cat_pacientes WHERE activo = ? AND (($stringCondicionesNombre) OR correo LIKE ?)";
+
+				// Añadimos el parámetro del correo
+				$paramsSQL[] = "%" . trim($parametro) . "%";
+
+				$sql = $this->dbh->prepare($sqlTexto);
+				$sql->execute($paramsSQL);
+
+				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+						
+			return $res;
+		}
+
+		public function busca_pacientes_fecha_nac(string $fecha) {
+			$res = [];
+			try {
+				$sql = $this->dbh->prepare("SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, sexo_biologico, telefono, correo FROM cat_pacientes WHERE activo = ? AND fecha_nacimiento = ?");
+				$sql->execute([1, $fecha]);
+				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+						
+			return $res;
+		}
+
 		public function obtiene_credenciales_pacientes(int $id_paciente) {
 			$res = [];
 			try {

@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionPaciente'); TabPacientes(); /* obtiene_alerta_pagos(); */">
+	<body onload="opcionActive('opcionRecepcion'); TabRecepcion(); /* obtiene_alerta_pagos(); */">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>
@@ -76,6 +76,7 @@
 		<script type="module" src="components/Precios/Precios.js?<?=time()?>"></script>
 		<script type="module" src="components/Estudios/Estudios.js?<?=time()?>"></script>
 		<script type="module" src="components/Pacientes/Pacientes.js?<?=time()?>"></script>
+		<script type="module" src="components/Ordenes/Ordenes.js?<?=time()?>"></script>
 
 		<script>
 			$(document).on('select2:open', function() {

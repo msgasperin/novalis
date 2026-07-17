@@ -25,6 +25,16 @@
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
+         case 'busca_paciente_coincidencia':
+            $res = $v->busca_pacientes_coincidencia($_POST["parametro"]); 
+            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+         break;
+
+         case 'busca_paciente_fecha_nac':
+            $res = $v->busca_pacientes_fecha_nac($_POST["fecha"]); 
+            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+         break;
+
          case 'guardar_paciente':   
             
             if(!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {

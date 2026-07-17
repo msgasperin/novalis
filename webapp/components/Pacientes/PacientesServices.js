@@ -28,3 +28,15 @@ export const cambiar_credenciales = async (idPaciente, nomPaciente, apPaterno) =
    let respuesta = await postJSON('../api/controller/pacientes.php', datos);
    return respuesta;
 }
+
+export const busca_paciente_coincidencia = async (parametro) => {
+   const datos = { func: 'busca_paciente_coincidencia', parametro };
+   let respuesta = await postJSON('../api/controller/pacientes.php', datos);
+   return respuesta;
+}
+
+export const busca_paciente_fecha_nac = async (fecha) => {
+   const datos = { func: 'busca_paciente_fecha_nac', fecha };
+   let respuesta = await postJSON('../api/controller/pacientes.php', datos);
+   return respuesta;
+}
