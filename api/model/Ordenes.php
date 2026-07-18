@@ -1,17 +1,29 @@
 <?php
 	require_once('../config/class.pdo.php');
-	class Sucursales extends Conexion {
+	class Ordenes extends Conexion {
 		//Objeto principal del constructor de la clase
 		public function __construct(string $base_datos) {
 	   	parent::__construct($base_datos);
 	   	$this->conectar();
 	  	}
 	
-		public function obtiene_sucursales() {
+		public function obtiene_estudios_recepcion($tipo_solicitante, $id_precio) {
 			$res = [];
-			try {				
-				$sql = $this->dbh->prepare("SELECT id, nombre, direccion, telefono FROM cat_sucursales WHERE activo = 1");
-				$sql->execute();				
+			try {
+
+				if($tipo_solicitante == 'particular') {
+					$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, descripcion_estudio, indicaciones_toma FROM cat_estudios WHERE activo = 1");
+					$sql->execute();
+				}
+				else {
+					$sql = $this->dbh->prepare("SELECT E.id, nombre, tipo, precio_publico AS precio_estudio, precio AS precio_publico, descripcion_estudio, indicaciones_toma 
+						FROM cat_estudios AS E 
+						INNER JOIN lista_precio_estudios AS P ON P.id_estudio_fk = E.id
+						WHERE activo = 1 AND id_lista_precio_fk = ?"
+					);
+					$sql->execute([$id_precio]);
+				}
+				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());

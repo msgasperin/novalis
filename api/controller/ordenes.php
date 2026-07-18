@@ -1,8 +1,8 @@
 <?php
-  require_once('../model/Sucursales.php');
+  require_once('../model/Ordenes.php');
   require_once('../model/Globales.php');
   /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-   $v = new Sucursales($bd_cliente);
+   $v = new Ordenes($bd_cliente);
    $g = new Globales($bd_cliente);
   $_POST = json_decode(file_get_contents("php://input"), true);
   
@@ -10,11 +10,90 @@
     if(isset($_POST['func'])) {
       switch ($_POST['func']) {
 
-        // Funciones de CRUD de usuarios
-        case 'obtiene_sucursales':
-          $res = $v->obtiene_sucursales();          
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++ CARRITO DE ESTUDIOS  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        case 'obtiene_estudios_recepcion':
+          $estudiosIndexados = [];
+          $res = $v->obtiene_estudios_recepcion($_POST["tipoSolicitante"], $_POST["idListaPrecio"]);
+          foreach ($res as $estudio) {
+              $estudiosIndexados[$estudio["id"]] = $estudio;
+          }
+          $_SESSION["estudios_orden"] = $estudiosIndexados;
           echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
         break;
+
+        case 'agregar_carrito_pedido':
+          $producto  = $_SESSION["productos_pedido"][$_POST["idProducto"]] ?? null;
+
+          if(empty($_POST["precio"])) {
+              $res = ['estatus' => 406, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
+              echo json_encode($res);
+              break;
+          }
+
+          if($producto) {
+              $id_producto   = $_POST["idProducto"];
+              $id            = $id_producto.'_'.rand(0,200);
+              $cantidad      = (float)$_POST["cantidad"];
+              $por_descuento = (float)$_POST["porDescuento"];
+              //$precio        = (float)$producto["precio_venta"]; // Comentado temporalmente por temas de precio manual
+              $precio        = (float)$_POST["precio"];
+              $costo         = (float)$producto["costo"];
+              $costo_total   = $costo * $cantidad;
+
+              $subtotal      = $cantidad * $precio;
+              $descuento     = ($subtotal * $por_descuento) / 100;
+              $total         = $subtotal - $descuento;
+              $utilidad      = $total - $costo_total;
+              
+              $_SESSION["carrito_pedido"][$id] = [
+                'id'               => $id,
+                'id_producto'      => $id_producto,
+                'sku'              => $producto["sku"],
+                'nom_producto'     => $producto["nom_producto"],
+                'nom_presentacion' => $producto["nom_presentacion"],
+                'cantidad'         => $cantidad,
+                'por_descuento'    => $por_descuento,
+                'precio'           => $precio,
+                'costo'            => $costo,
+                'costo_total'      => $costo_total,
+                'subtotal'         => $subtotal,
+                'descuento'        => $descuento,
+                'total'            => $total,
+                'utilidad'         => $utilidad
+              ];
+
+              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_pedido"]];
+          }
+          else {               
+              $res = ['estatus' => 400, 'mensaje' => 'error', 'data' => $_SESSION["carrito_pedido"]];
+          }
+
+          echo json_encode($res);
+        break;
+
+        case 'borrar_carrito_pedido':
+          if(isset($_SESSION["carrito_pedido"])) {
+              unset($_SESSION["carrito_pedido"]);  
+          }
+          
+          $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => []];
+
+          echo json_encode($res);
+        break;
+
+        case 'borrar_producto_carrito':
+          if(isset($_SESSION["carrito_pedido"][$_POST["idCarrito"]])) {
+              unset($_SESSION["carrito_pedido"][$_POST["idCarrito"]]);
+              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_pedido"]];
+          }
+          else {
+              $res = ['estatus' => 500, 'mensaje' => 'error', 'data' => $_SESSION["carrito_pedido"]];
+          }
+
+          echo json_encode($res);
+        break;
+
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GUARDADO ORDEN DE TRABAJO ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         case 'guardar':
 

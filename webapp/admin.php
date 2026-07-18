@@ -70,7 +70,7 @@
 		<script type="module" src="components/globals.js?<?=time()?>"></script>
 		<script type="module" src="components/Login/Login.js?<?=time()?>"></script>
 		<script type="module" src="components/Menu/Menu.js?<?=time()?>"></script>
-		<script type="module" src="components/Clientes/Clientes.js?<?=time()?>"></script>
+		<script type="module" src="components/Convenios/Convenios.js?<?=time()?>"></script>
 		<script type="module" src="components/Usuarios/Usuarios.js?<?=time()?>"></script>
 		<script type="module" src="components/Sucursales/Sucursales.js?<?=time()?>"></script>
 		<script type="module" src="components/Precios/Precios.js?<?=time()?>"></script>

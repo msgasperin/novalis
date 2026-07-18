@@ -60,9 +60,9 @@
           <?php } ?>
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionClientes" onclick="opcionActive('opcionClientes'), TabClientes(), cerrarMenu();">
+            <div class="opciones_menu align-menu" id="opcionConvenio" onclick="opcionActive('opcionConvenio'), TabConvenios(), cerrarMenu();">
               <i class="bi bi-building-gear icon-menu"></i>
-              <div>Clientes</div>
+              <div>Convenios</div>
             </div>
           <?php } ?>
 

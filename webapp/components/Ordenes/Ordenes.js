@@ -1,7 +1,11 @@
+import { obtiene_estudios_recepcion } from "./OrdenesServices.js";
 import { busca_paciente_coincidencia } from "../Pacientes/PacientesServices.js";
+import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 
 let arrOredenes          = [];
 let arrPacientesBusqueda = [];
+let comboConvenios       = '';
+let pacienteOrden;
 
 const TabRecepcion = () => {
    let html =
@@ -188,54 +192,7 @@ const pinta_ordenes_del_dia = (containerId) => {
    $('#' + containerId).html(html);
 }
 
-const form_carga_estudios = (containerId) => {
-   let html =
-   `
-   <div class="card mt-3">
-      <div class="card-body">
-         <div class="row">
-            <div class="col-12">
-               <h5 class="fw-bold text-secondary"><span class="badge rounded-pill bg-success">2</span> Selección de estudios</h5>
-            </div>   
-            <div class="col-12">
-               <div class="card">
-                  <div class="card-body">
-                     <div class="row">
-                        <div class="col-12">
-                           <h5>Estudios de la orden</h5>
-                        </div>
-                        <div class="col-12 mt-2">
-                           <label for="browser">Elige un estudio</label>
-                           <div class="input-group mb-3">
-                              <input class="form-control" list="estudios_recepcion" name="estudio_recepcion" id="estudio_recepcion">
-                              <datalist id="estudios_recepcion">
-                              <option value="Chrome">
-                              <option value="Firefox">
-                              <option value="Safari">
-                              <option value="Edge">
-                              <option value="Opera">
-                              </datalist>
-                              <button class="btn btn-dark btn-lib" type="button" id="btnAgregarEstudio">
-                                 <i class="bi bi-plus-circle"></i>
-                              </button>
-                              <button class="btn btn-danger" type="button" id="btnAgregarBorrarEstudios">
-                                 <i class="bi bi-trash"></i>
-                              </button>
-                           </div>
-                        </div>
-                        <div class="col-12 mt-2">
-                           <div id="busqueda_paciente_recepcion"></div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </div>
-   </div>`;
-
-   $('#' + containerId).html(html);
-}
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE PACIENTE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const busca_paciente_fecha_nac = async () => {
    
@@ -271,6 +228,14 @@ const buscar_paciente_recepcion = async () => {
    if (parametroBusqueda == '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar el nombre del paciente o su correo electrónico',
+         icon: 'warning'
+      });
+      $('#busquedaPacienteRec').focus();
+      return;
+   }
+   else if (parametroBusqueda.length < 3) {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar una palabra más larga; al menos 3 letras',
          icon: 'warning'
       });
       $('#busquedaPacienteRec').focus();
@@ -320,23 +285,23 @@ const modalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
 
          filasPacientes += `
          <tr class="align-middle">
-            <td>
+            <td width="30%">
                <strong class="text-dark">${paciente.apellido_paterno} ${paciente.apellido_materno || ''}</strong>, ${paciente.nombre}
             </td>
-            <td class="text-nowrap">
+            <td width="15%" class="text-nowrap">
                <i class="bi bi-calendar3 text-muted me-1"></i> ${paciente.fecha_nacimiento_format || 'N/D'}
             </td>
-            <td>
+            <td width="20%">
                <span class="small text-muted d-block text-truncate" style="max-width: 180px;" title="${paciente.correo || ''}">
                   ${paciente.correo || '<em class="text-muted-light">Sin correo</em>'}
                </span>
             </td>
-            <td class="text-center">
+            <td width="15%" class="text-center">
                <span class="badge rounded-pill bg-light text-dark border">
                   ${paciente.sexo_biologico || '-'}
                </span>
             </td>
-            <td class="text-end">
+            <td width="20%" class="text-center">
                <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="paciente_seleccionado('${paciente.id}', '', 1);">
                   <i class="bi bi-check2-circle"></i> Seleccionar
                </button>
@@ -347,7 +312,7 @@ const modalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalPacientesEncontrados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
          <div class="modal-content sombra-modal border-0">
             <!-- Encabezado con estilo sutil y limpio -->
             <div class="modal-header border-0 pb-0">
@@ -400,6 +365,8 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
    if(origen == 1) {
       paciente = arrPacientesBusqueda.find(pac => parseInt(pac.id) == parseInt(idPaciente));
    }
+
+   pacienteOrden = paciente;
       
    let html = `
    <div class="card border-0 shadow-sm border-start border-4 border-secondary">
@@ -438,21 +405,18 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
          <div class="row align-items-center g-2">
             
             <div class="col-6 col-sm-3">
-               <input type="radio" class="btn-check" name="options-outlined" id="success-outlined" autocomplete="off" onclick="form_carga_estudios('container_form_carga_estudios');">
+               <input type="radio" class="btn-check" name="optionTipoCliente" id="success-outlined" autocomplete="off" value="particular" onclick="form_carga_estudios('container_form_carga_estudios'), ocultar_convenios();">
                <label class="btn btn-outline-dark btn-sm w-100 fw-bold" for="success-outlined">Particular</label>
             </div>
             
             <div class="col-6 col-sm-3">
-               <input type="radio" class="btn-check" name="options-outlined" id="danger-outlined" autocomplete="off" onclick="form_carga_estudios('container_form_carga_estudios');">
+               <input type="radio" class="btn-check" name="optionTipoCliente" id="danger-outlined" autocomplete="off" value="convenio" onclick="combo_listas_convenios('select_convenio_empresa');">
                <label class="btn btn-outline-dark btn-sm w-100 fw-bold" for="danger-outlined">Convenio</label>
             </div>
             
-            <div class="col-12 col-sm-6">
-               <select class="form-select form-select-sm" id="select_convenio_empresa">
-                  <option value="" selected disabled>Selecciona la Empresa / Tarifa...</option>
-                  <option value="1">Clínica Metabólica Xalapa</option>
-                  <option value="2">Convenio IMSS</option>
-                  <option value="3">Dr. Alejandro Ortega</option>
+            <div class="col-12 col-sm-6 no-display" id="comboConvenio">
+               <select class="form-select form-select-sm select2" id="select_convenio_empresa" onchange="form_carga_estudios('container_form_carga_estudios');">
+                  <option value="0" selected disabled>Selecciona el convenio</option>
                </select>
             </div>
 
@@ -465,11 +429,120 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
    $('#modalPacientesEncontrados').modal('hide');
 }
 
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE CONVENIO +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const ocultar_convenios = () => {
+   $('#comboConvenio').hide();
+}
+
+const combo_listas_convenios = async (containerId) => {
+
+   $('#comboConvenio').show();
+   $('#container_form_carga_estudios').html('');
+
+   if(comboConvenios.length == 0) {
+      comboConvenios = '<option value="0" selected disabled data-tipo="NA">Selecciona el convenio</option>';
+      let respuesta = await obtiene_convenios();
+      if(respuesta.estatus == 403) {
+         fnNoSesion();
+      }
+      else if(respuesta.estatus != 200) {
+         showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+         return;
+      }
+      else {
+         let res = await respuesta.data;
+         if(res.length > 0) {
+            res.map((convenio) => {
+               comboConvenios +=`<option value="${convenio.id}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}">${convenio.razon_social}</option>`;
+            });
+            $('#'+containerId).html(comboConvenios);
+         }      
+      }
+   }
+   else {
+      $('#'+containerId).html(comboConvenios);
+   }
+
+   $('.select2').select2({theme: 'bootstrap-5'});
+}
+
+const form_carga_estudios = (containerId) => {
+
+   $('#' + containerId).html('');
+   let idConvenio      = 0;
+   let idListaPrecio   = 0;
+   let tipoSolicitante = $('input[name="optionTipoCliente"]:checked').val();
+
+   if(tipoSolicitante == 'convenio') {
+      idConvenio      = $('#select_convenio_empresa').val();
+      idListaPrecio = $('#select_convenio_empresa option:selected').data('lista-precio');
+   }
+
+   let html =
+   `<div class="card mt-3">
+      <div class="card-body">
+         <div class="row">
+            <div class="col-12">
+               <h5 class="fw-bold text-secondary"><span class="badge rounded-pill bg-success">2</span> Selección de estudios</h5>
+            </div>
+            <div class="col-12 mt-2">
+               <div class="input-group mb-3">
+                  <select name="estudios_recepcion" id="estudios_recepcion" class="form-control select2">
+                     <option value="0" data-precio="0.00" data-estudio="NA">Selecciona un estudio</option>
+                  </select>
+                  <button class="btn btn-dark btn-lib" type="button" id="btnAgregarEstudio">
+                     <i class="bi bi-plus-circle"></i>
+                  </button>
+                  <button class="btn btn-danger" type="button" id="btnAgregarBorrarEstudios">
+                     <i class="bi bi-trash"></i>
+                  </button>
+               </div>
+            </div>
+            <div class="col-12 mt-2">
+               <div id="busqueda_paciente_recepcion"></div>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#' + containerId).html(html);
+
+   if(tipoSolicitante == 'particular' || (tipoSolicitante == 'convenio' && partinInt(idConvenio) > 0)) {
+      combo_listas_estudios(tipoSolicitante, idListaPrecio, 'estudios_recepcion');
+   }
+}
+
+const combo_listas_estudios = async (tipoSolicitante, idListaPrecio, containerId) => {
+
+   let comboEstudios = '<option value="0" data-precio="0.00" data-estudio="NA">Selecciona un estudio</option>';
+   let respuesta = await obtiene_estudios_recepcion(tipoSolicitante, idListaPrecio);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      if(res.length > 0) {
+         res.map((estudio) => {
+            comboEstudios +=`<option value="${estudio.id}" data-precio="${estudio.precio_publico}" data-estudio="${estudio.nombre}">${estudio.nombre}</option>`;
+         });
+         $('#'+containerId).html(comboEstudios);
+      }      
+   }
+
+   $('.select2').select2({theme: 'bootstrap-5'});
+}
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion              = TabRecepcion;
-window.modalPacientesEncontrados  = modalPacientesEncontrados;
+window.modalPacientesEncontrados = modalPacientesEncontrados;
 
 window.paciente_seleccionado     = paciente_seleccionado;
 window.form_carga_estudios       = form_carga_estudios;
 window.buscar_paciente_recepcion = buscar_paciente_recepcion;
 window.busca_paciente_fecha_nac  = busca_paciente_fecha_nac;
+window.combo_listas_convenios    = combo_listas_convenios;
+window.ocultar_convenios         = ocultar_convenios;

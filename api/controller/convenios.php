@@ -1,8 +1,8 @@
 <?php
-   require_once('../model/Clientes.php');
+   require_once('../model/Convenios.php');
    require_once('../model/Globales.php');
    /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-   $v = new Clientes($bd_cliente);
+   $v = new Convenios($bd_cliente);
    $g = new Globales($bd_cliente);
 
    $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
@@ -15,48 +15,48 @@
       switch ($_POST['func']) {
 
          // Funciones de CRUD de clientes
-         case 'obtiene_clientes':
-            $res = $v->obtiene_clientes();
+         case 'obtiene_convenios':
+            $res = $v->obtiene_convenios();
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
          case 'guardar':
 
-            if(!isset($_POST["idCliente"]) || empty($_POST["nomCliente"]) || empty($_POST["precioCliente"]) || empty($_POST["razonSocialCliente"]) || empty($_POST["rfcCliente"])  || empty($_POST["telCliente"]) || empty($_POST["tipoCliente"]) || $_POST["tipoCliente"] == 'NA') {
+            if(!isset($_POST["idConvenio"]) || empty($_POST["nomConvenio"]) || empty($_POST["precio"]) || empty($_POST["razonSocial"]) || empty($_POST["rfc"])  || empty($_POST["telefono"]) || empty($_POST["tipo"]) || $_POST["tipo"] == 'NA') {
                $res = ['estatus' => 500, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
                echo json_encode($res);
                break;
             }
 
-            if($_POST["idCliente"] == '0') {
-               $res = $v->guardar_cliente($_POST, $_SESSION["nombre"]);
-               $mensaje_bitacora = 'Cliente registrado: '.$_POST["nomCliente"];
-               $id_cliente = $res["data"][0];
+            if($_POST["idConvenio"] == '0') {
+               $res = $v->guardar_convenio($_POST, $_SESSION["nombre"]);
+               $mensaje_bitacora = 'Convenio registrado: '.$_POST["nomConvenio"];
+               $id_convenio = $res["data"][0];
             } 
             else {
-               $id_cliente = $_POST["idCliente"];
-               $res = $v->actualizar_cliente($_POST, $_SESSION["nombre"]);
-               $mensaje_bitacora = 'Cliente modificado: '.$_POST["nomCliente"];
+               $id_convenio = $_POST["idConvenio"];
+               $res = $v->actualizar_convenio($_POST, $_SESSION["nombre"]);
+               $mensaje_bitacora = 'Convenio modificado: '.$_POST["nomConvenio"];
             }
 
             if($res["estatus"] == 200) {
-               $g->bitacora($mensaje_bitacora, $id_cliente, $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora($mensaje_bitacora, $id_convenio, $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }
             echo json_encode($res);
          break;
 
          case 'eliminar':
 
-            if(empty($_POST["idCliente"]) || empty($_POST["nomCliente"])) {
+            if(empty($_POST["idConvenio"]) || empty($_POST["nomConvenio"])) {
                $res = ['estatus' => 500, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
                echo json_encode($res);
                break;
             }
 
-            $res = $v->eliminar_cliente($_POST["idCliente"]);
+            $res = $v->eliminar_convenio($_POST["idConvenio"]);
 
             if($res["estatus"] == 200) {
-               $g->bitacora('Cliente eliminado: '.$_POST["nomCliente"], $_POST["idCliente"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               $g->bitacora('Convenio eliminado: '.$_POST["nomConvenio"], $_POST["idConvenio"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }
                         
             echo json_encode($res);
