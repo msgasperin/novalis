@@ -5,11 +5,18 @@ export const obtiene_estudios_recepcion = async (tipoSolicitante, idListaPrecio)
    return await postJSON('../api/controller/ordenes.php', datos);
 }
 
-export const guardar_cliente = async (objCliente) => {
-   return await postJSON('../api/controller/clientes.php', objCliente);
-};
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CARRITO DE ESTUDIOS EN RECEPCIÓN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+export const agregar_estudio_carrito = async (idEstudio) => {
+   const datos = { func: 'agregar_estudio_carrito', idEstudio };
+   return await postJSON('../api/controller/ordenes.php', datos);
+}
 
-export const eliminar_cliente = async (idCliente, nomCliente) => {
-   const datos = { func: 'eliminar', idCliente, nomCliente };     
-   return await postJSON('../api/controller/clientes.php', datos);
+export const borrar_carrito_recepcion = async () => {
+   const datos = { func: 'borrar_carrito_recepcion' };
+   return await postJSON('../api/controller/ordenes.php', datos);
+}
+
+export const borrar_estudio_carrito = async (idCarrito) => {
+   const datos = { func: 'borrar_estudio_carrito', idCarrito };
+   return await postJSON('../api/controller/ordenes.php', datos);
 }

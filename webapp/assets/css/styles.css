@@ -356,7 +356,7 @@ body {
   margin: 0px;
   padding: 0px;
   overflow-x: hidden;
-  background-color: #F0F4F8 ;
+  background-color: var(--primary);
   color: var(--negro);
 }
 

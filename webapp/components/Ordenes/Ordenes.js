@@ -1,5 +1,5 @@
-import { obtiene_estudios_recepcion } from "./OrdenesServices.js";
-import { busca_paciente_coincidencia } from "../Pacientes/PacientesServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito } from "./OrdenesServices.js";
+import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 
 let arrOredenes          = [];
@@ -31,7 +31,7 @@ const TabRecepcion = () => {
                   <div class="col-12 col-sm-8 mt-2">
                      <b>Búsqueda de paciente por nombre o correo electrónico</b>
                      <div class="input-group mb-3">
-                        <input type="text" class="form-control form-control-lg fs-6" id="busquedaPacienteRec" placeholder="Ingresa el nombre del paciente o su correo electrónico">
+                        <input type="text" class="form-control form-control-lg fs-6" id="busquedaPacienteRec" placeholder="Ingresa el nombre del paciente o su correo electrónico" value="sainz">
                         <button class="btn btn-dark btn-lib" type="button" id="btnBusquedaPacienteRecepcion" onclick="buscar_paciente_recepcion('container_busqueda_paciente_recepcion');">
                            <i class="bi bi-search"></i>
                         </button>
@@ -42,7 +42,7 @@ const TabRecepcion = () => {
                      <b>Búsqueda por fecha de nacimiento</b>
                      <div class="input-group mb-3">
                         <input type="date" class="form-control form-control-lg fs-6" id="busFecNacPac">
-                        <button class="btn btn-dark btn-lib" type="button" id="btnBusquedaPacFecNac" onclick="busca_paciente_fecha_nac('container_busqueda_paciente_recepcion');">
+                        <button class="btn btn-dark btn-lib" type="button" id="btnBusquedaPacFecNac" onclick="busca_paciente_fecha_nacimiento('container_busqueda_paciente_recepcion');">
                            <i class="bi bi-search"></i>
                         </button>
                      </div>
@@ -194,7 +194,7 @@ const pinta_ordenes_del_dia = (containerId) => {
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE PACIENTE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const busca_paciente_fecha_nac = async () => {
+const busca_paciente_fecha_nacimiento = async () => {
    
    let fecha = $('#busFecNacPac').val().trim();
 
@@ -410,12 +410,12 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
             </div>
             
             <div class="col-6 col-sm-3">
-               <input type="radio" class="btn-check" name="optionTipoCliente" id="danger-outlined" autocomplete="off" value="convenio" onclick="combo_listas_convenios('select_convenio_empresa');">
+               <input type="radio" class="btn-check" name="optionTipoCliente" id="danger-outlined" autocomplete="off" value="convenio" onclick="combo_listas_convenios('selectConvenioEmpresa');">
                <label class="btn btn-outline-dark btn-sm w-100 fw-bold" for="danger-outlined">Convenio</label>
             </div>
             
             <div class="col-12 col-sm-6 no-display" id="comboConvenio">
-               <select class="form-select form-select-sm select2" id="select_convenio_empresa" onchange="form_carga_estudios('container_form_carga_estudios');">
+               <select name="selectConvenioEmpresa" id="selectConvenioEmpresa" class="form-control form-control-sm select2" onchange="form_carga_estudios('container_form_carga_estudios');">
                   <option value="0" selected disabled>Selecciona el convenio</option>
                </select>
             </div>
@@ -429,7 +429,7 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
    $('#modalPacientesEncontrados').modal('hide');
 }
 
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE CONVENIO +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE CONVENIO LISTADO DE ESTUDIOS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const ocultar_convenios = () => {
    $('#comboConvenio').hide();
@@ -454,7 +454,7 @@ const combo_listas_convenios = async (containerId) => {
          let res = await respuesta.data;
          if(res.length > 0) {
             res.map((convenio) => {
-               comboConvenios +=`<option value="${convenio.id}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}">${convenio.razon_social}</option>`;
+               comboConvenios +=`<option value="${convenio.id_convenio}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}">${convenio.razon_social}</option>`;
             });
             $('#'+containerId).html(comboConvenios);
          }      
@@ -475,8 +475,8 @@ const form_carga_estudios = (containerId) => {
    let tipoSolicitante = $('input[name="optionTipoCliente"]:checked').val();
 
    if(tipoSolicitante == 'convenio') {
-      idConvenio      = $('#select_convenio_empresa').val();
-      idListaPrecio = $('#select_convenio_empresa option:selected').data('lista-precio');
+      idConvenio      = $('#selectConvenioEmpresa').val();
+      idListaPrecio   = $('#selectConvenioEmpresa option:selected').data('lista-precio');
    }
 
    let html =
@@ -488,19 +488,19 @@ const form_carga_estudios = (containerId) => {
             </div>
             <div class="col-12 mt-2">
                <div class="input-group mb-3">
-                  <select name="estudios_recepcion" id="estudios_recepcion" class="form-control select2">
+                  <select name="estudiosRecepcion" id="estudiosRecepcion" class="form-control select2">
                      <option value="0" data-precio="0.00" data-estudio="NA">Selecciona un estudio</option>
                   </select>
-                  <button class="btn btn-dark btn-lib" type="button" id="btnAgregarEstudio">
+                  <button class="btn btn-dark btn-lib" type="button" id="btnAgregarEstudio" onclick="agrega_estudio_carrito();">
                      <i class="bi bi-plus-circle"></i>
                   </button>
-                  <button class="btn btn-danger" type="button" id="btnAgregarBorrarEstudios">
+                  <button class="btn btn-danger" type="button" id="btnAgregarBorrarEstudios" onclick="borra_carrito_recepcion();">
                      <i class="bi bi-trash"></i>
                   </button>
                </div>
             </div>
             <div class="col-12 mt-2">
-               <div id="busqueda_paciente_recepcion"></div>
+               <div id="estudios_agregados_recepcion"></div>
             </div>
          </div>
       </div>
@@ -508,9 +508,10 @@ const form_carga_estudios = (containerId) => {
 
    $('#' + containerId).html(html);
 
-   if(tipoSolicitante == 'particular' || (tipoSolicitante == 'convenio' && partinInt(idConvenio) > 0)) {
-      combo_listas_estudios(tipoSolicitante, idListaPrecio, 'estudios_recepcion');
+   if(tipoSolicitante == 'particular' || (tipoSolicitante == 'convenio' && parseInt(idConvenio) > 0)) {
+      combo_listas_estudios(tipoSolicitante, idListaPrecio, 'estudiosRecepcion');
    }
+   vaciar_carrito_recepcion();
 }
 
 const combo_listas_estudios = async (tipoSolicitante, idListaPrecio, containerId) => {
@@ -536,13 +537,175 @@ const combo_listas_estudios = async (tipoSolicitante, idListaPrecio, containerId
 
    $('.select2').select2({theme: 'bootstrap-5'});
 }
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-window.TabRecepcion              = TabRecepcion;
-window.modalPacientesEncontrados = modalPacientesEncontrados;
 
-window.paciente_seleccionado     = paciente_seleccionado;
-window.form_carga_estudios       = form_carga_estudios;
-window.buscar_paciente_recepcion = buscar_paciente_recepcion;
-window.busca_paciente_fecha_nac  = busca_paciente_fecha_nac;
-window.combo_listas_convenios    = combo_listas_convenios;
-window.ocultar_convenios         = ocultar_convenios;
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CARRITO DE ESTUDIOS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const agrega_estudio_carrito =  async () => {
+   
+   let idEstudio    = $('#estudiosRecepcion').val().trim();
+
+   if(idEstudio <= 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar un estudio',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#estudiosRecepcion').focus();
+      return;
+   }
+      
+   let res = await agregar_estudio_carrito(idEstudio)
+   if(res.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(res.estatus == 200) {
+      $('#estudiosRecepcion').val(0);
+      $('#estudiosRecepcion').trigger('change');
+      pintado_carrito(res.data, 'estudios_agregados_recepcion');
+   }
+   else {
+      ToastColor.fire({
+         text: '¡Atención! Hubo un problema para agregar el estudio, actualiza e inténtalo de nuevo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+}
+
+const borra_estudio_carrito = async (idCarrito, estudio) => {   
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El estudio: '+ estudio +' será eliminado', 'question', 'Sí, borrar', 'Cancelar');
+   
+   if (!res.result) {
+      return;
+   }
+
+   let respuesta = await borrar_estudio_carrito(idCarrito);
+
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Estudio eliminado correctamente!', '', 'success', 2500);
+      $('#cardEstudioCarrito'+idCarrito).remove();
+      pintado_carrito(respuesta.data);
+
+      if (!document.querySelector('.validaHayCarrito')) {
+         pintado_carrito([], 'estudios_agregados_recepcion');
+      }
+   }
+   else {
+      showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
+      return;
+   }
+}
+
+const pintado_carrito = (data, containerId) => {
+
+   let html      = '';
+   let descuento = '';
+   let total     = 0;
+   
+   if (data && Object.keys(data).length > 0) {
+      Object.values(data).forEach(row => {
+
+         total += parseFloat(row.precio || 0);
+
+         html += 
+         `<div class="card mb-2 rounded-2 border-0 shadow-sm validaHayCarrito" id="cardEstudioCarrito${row.id}">
+            <div class="card-body p-3">
+               <div class="row align-items-center g-2">
+                  <div class="col-12 col-md-7 col-lg-8">
+                     <h6 class="fw-bold mb-1 text-primary-emphasis">${row.nom_estudio ?? ''}</h6>
+                     <div class="small text-secondary lh-sm mb-1">${row.descripcion_estudio ?? ''}</div>
+                     ${row.indicaciones_toma ? `<div class="small text-muted fst-italic"><i class="bi bi-info-circle me-1"></i>${row.indicaciones_toma}</div>` : ''}
+                  </div>
+                  
+                  <div class="col-6 col-md-3 col-lg-2 text-start text-md-center">
+                     <span class="d-block small text-uppercase fw-semibold text-muted">Precio</span>
+                     <span class="badge bg-light text-dark border fs-6 fw-bold px-2 py-1">$${row.precio}</span>
+                  </div>
+
+                  <div class="col-6 col-md-2 col-lg-2 text-end">
+                     <button type="button" class="btn btn-outline-danger btn-sm btn-redondo px-2 py-1" title="Eliminar estudio" onclick="borra_estudio_carrito('${row.id}', '${row.nom_estudio}');">
+                        <i class="bi bi-trash3"></i>
+                     </button>
+                  </div>
+               </div>
+            </div>
+         </div>`;
+      });
+
+      html +=
+      `<div class="card border-0 bg-light rounded-2 mt-3 p-3">
+         <div class="row align-items-center g-3">
+            <div class="col-12 col-sm-6 text-start text-sm-start">
+               <span class="text-uppercase small fw-bold text-secondary d-block">Resumen de Orden</span>
+               <span class="fs-4 fw-bold text-dark" id="totalVentaOrden">Total: $${total.toFixed(2)}</span>
+            </div>
+            <div class="col-12 col-sm-6 text-end text-sm-end">
+               <button type="button" class="btn btn-dark btn-lib btn-redondo px-4 py-2 fw-semibold w-100 w-sm-auto" id="btnRegistrarPedido" onclick="ModalRegistrarPedido('${total}');">
+                  <i class="bi bi-save me-1"></i> Registrar orden
+               </button>
+            </div>
+         </div>
+      </div>`;
+   }
+   else {
+      html = 
+      `<div class="text-center py-5">
+         <img src="assets/images/no_encontrado.png" class="img-fluid mb-3" alt="Sin estudios">
+         <p class="text-muted fw-semibold mb-0">No se encontraron estudios agregados a la orden</p>
+      </div>`;
+   }
+
+   $('#' + containerId).html(html);
+}
+
+const borra_carrito_recepcion = async () => {
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Los estudios agregados serán eliminados', 'question', 'Sí, borrar', 'Cancelar');
+   
+   if (!res.result) {
+      return;
+   }
+
+   let respuesta = await borrar_carrito_recepcion();
+
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('Estudios eliminados correctamente', '', 'success', 2500);
+      $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
+      $('#estudiosRecepcion').val(0);
+      $('#estudiosRecepcion').trigger('change');
+   }
+   else {
+      showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
+      return;
+   }
+}
+
+const vaciar_carrito_recepcion = async () => {
+   
+   let respuesta = await borrar_carrito_recepcion();
+   $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+window.TabRecepcion                    = TabRecepcion;
+window.modalPacientesEncontrados       = modalPacientesEncontrados;
+
+window.paciente_seleccionado           = paciente_seleccionado;
+window.form_carga_estudios             = form_carga_estudios;
+window.buscar_paciente_recepcion       = buscar_paciente_recepcion;
+window.busca_paciente_fecha_nacimiento = busca_paciente_fecha_nacimiento;
+window.combo_listas_convenios          = combo_listas_convenios;
+window.ocultar_convenios               = ocultar_convenios;
+
+window.agrega_estudio_carrito          = agrega_estudio_carrito;
+window.borra_estudio_carrito           = borra_estudio_carrito;
+window.pintado_carrito                 = pintado_carrito;
+window.borra_carrito_recepcion         = borra_carrito_recepcion;

@@ -222,6 +222,8 @@
   .container-main {
     margin-left: 5%;
     padding: 20px;
+    background-color: #F0F4F8;
+    min-height: 1000px;
   }
 
   .mt-cel {
@@ -271,6 +273,8 @@
   .container-main {
     margin-left: 6%;
     padding: 20px;
+    background-color: #F0F4F8;
+    min-height: 1000px;
   }
 
   .mt-cel {
@@ -348,6 +352,8 @@
     margin-left: 0;
     padding: 20px;
     margin-top: 80px;
+    background-color: #F0F4F8;
+    min-height: 1000px;
   }
 
   .mt-cel {
@@ -421,6 +427,8 @@
     margin-left: 0;
     padding: 20px;
     margin-top: 80px;
+    background-color: #F0F4F8;
+    min-height: 1000px;
   }
 
   .mt-cel {

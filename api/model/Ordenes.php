@@ -7,16 +7,16 @@
 	   	$this->conectar();
 	  	}
 	
-		public function obtiene_estudios_recepcion($tipo_solicitante, $id_precio) {
+		public function obtiene_estudios_recepcion(string $tipo_solicitante, int $id_precio) {
 			$res = [];
 			try {
 
 				if($tipo_solicitante == 'particular') {
-					$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, descripcion_estudio, indicaciones_toma FROM cat_estudios WHERE activo = 1");
+					$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, costo, descripcion_estudio, indicaciones_toma FROM cat_estudios WHERE activo = 1");
 					$sql->execute();
 				}
 				else {
-					$sql = $this->dbh->prepare("SELECT E.id, nombre, tipo, precio_publico AS precio_estudio, precio AS precio_publico, descripcion_estudio, indicaciones_toma 
+					$sql = $this->dbh->prepare("SELECT E.id, nombre, tipo, precio_publico AS precio_estudio, precio AS precio_publico, costo, descripcion_estudio, indicaciones_toma 
 						FROM cat_estudios AS E 
 						INNER JOIN lista_precio_estudios AS P ON P.id_estudio_fk = E.id
 						WHERE activo = 1 AND id_lista_precio_fk = ?"

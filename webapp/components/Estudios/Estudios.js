@@ -29,6 +29,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    let nombre              = '';
    let tipo                = 'NA';
    let precio_publico      = '';
+   let costo               = '';
    let indicaciones_toma   = '';
    let descripcion_estudio = '';
 
@@ -37,6 +38,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
       nombre              = estudioSeleccionado[0].nombre;
       tipo                = estudioSeleccionado[0].tipo;
       precio_publico      = estudioSeleccionado[0].precio_publico;
+      costo               = estudioSeleccionado[0].costo;
       indicaciones_toma   = estudioSeleccionado[0].indicaciones_toma;
       descripcion_estudio = estudioSeleccionado[0].descripcion_estudio;
    }
@@ -64,7 +66,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                      <b>Descripción estudio / paquete</b>
                      <textarea name="descripcionEstudio" id="descripcionEstudio" class="form-control" rows="3" maxlength="250">${descripcion_estudio}</textarea>
                   </div>
-                  <div class="col-12 col-sm-6 mt-3">
+                  <div class="col-12 col-sm-4 mt-3">
                      <b>Tipo *</b>
                      <select name="tipoEstudio" id="tipoEstudio" class="form-select">
                         <option value="NA">Seleccionar</option>
@@ -72,9 +74,13 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                         <option value="PAQUETE">PAQUETE</option>
                      </select>
                   </div>
-                  <div class="col-12 col-sm-6 mt-3">
+                  <div class="col-12 col-sm-4 mt-3">
                      <b>Precio Público *</b>
                      <input type="number" inputmode="numeric" name="precioPublico" id="precioPublico" class="form-control" maxlength="10" value="${precio_publico}" onkeypress="return fnValidaNumeros(event);"/>
+                  </div>
+                  <div class="col-12 col-sm-4 mt-3">
+                     <b>Costo *</b>
+                     <input type="number" inputmode="numeric" name="costoEstudio" id="costoEstudio" class="form-control" maxlength="10" value="${costo}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Indicaciones toma de muestra</b>
@@ -129,8 +135,9 @@ const pinta_listado_estudios = (containerId, data) => {
       <thead>
          <tr>
             <th width="5%">ID</th>
-            <th width="65%">Estudio</th>
+            <th width="55%">Estudio</th>
             <th width="10%">Tipo</th>
+            <th width="10%">Costo</th>
             <th width="10%">Precio Público</th>
             <th width="10%">Acciones</th>
          </tr>
@@ -142,6 +149,7 @@ const pinta_listado_estudios = (containerId, data) => {
                <td class="text-center">${row.id}</td>
                <td>${row.nombre}</td>
                <td class="text-center">${row.tipo}</td>
+               <td>$ ${row.costo}</td>
                <td>$ ${row.precio_publico}</td>
                <td class="text-center">
                   <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormEstudio('${row.id}', '${row.nombre}');" title="Editar estudio">
@@ -174,6 +182,7 @@ const fn_guardar_estudio = async (idEstudio) => {
    let nomEstudio         = $('#nomEstudio').val().trim();
    let tipoEstudio        = $('#tipoEstudio').val();
    let precioPublico      = $('#precioPublico').val().trim();
+   let costo              = $('#costoEstudio').val().trim();
    let descripcionEstudio = $('#descripcionEstudio').val().trim();
    let indicacionesToma   = $('#indicacionesToma').val().trim();
    let msjAccion          = '';
@@ -203,7 +212,10 @@ const fn_guardar_estudio = async (idEstudio) => {
       return;
    }
   
-   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, descripcionEstudio, indicacionesToma };
+
+   costo == '' ? costo = 0 : costo;
+
+   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + nomEstudio + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {

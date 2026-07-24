@@ -15,65 +15,52 @@
           $estudiosIndexados = [];
           $res = $v->obtiene_estudios_recepcion($_POST["tipoSolicitante"], $_POST["idListaPrecio"]);
           foreach ($res as $estudio) {
-              $estudiosIndexados[$estudio["id"]] = $estudio;
+            $estudiosIndexados[$estudio["id"]] = $estudio;
           }
           $_SESSION["estudios_orden"] = $estudiosIndexados;
           echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
         break;
 
-        case 'agregar_carrito_pedido':
-          $producto  = $_SESSION["productos_pedido"][$_POST["idProducto"]] ?? null;
+        case 'agregar_estudio_carrito':
+          $estudio = $_SESSION["estudios_orden"][$_POST["idEstudio"]] ?? null;
 
-          if(empty($_POST["precio"])) {
-              $res = ['estatus' => 406, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
-              echo json_encode($res);
-              break;
+          if(empty($_POST["idEstudio"])) {
+            $res = ['estatus' => 406, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
+            echo json_encode($res);
+            break;
           }
 
-          if($producto) {
-              $id_producto   = $_POST["idProducto"];
-              $id            = $id_producto.'_'.rand(0,200);
-              $cantidad      = (float)$_POST["cantidad"];
-              $por_descuento = (float)$_POST["porDescuento"];
-              //$precio        = (float)$producto["precio_venta"]; // Comentado temporalmente por temas de precio manual
-              $precio        = (float)$_POST["precio"];
-              $costo         = (float)$producto["costo"];
-              $costo_total   = $costo * $cantidad;
-
-              $subtotal      = $cantidad * $precio;
-              $descuento     = ($subtotal * $por_descuento) / 100;
-              $total         = $subtotal - $descuento;
-              $utilidad      = $total - $costo_total;
+          if($estudio) {
+              $id_estudio = $_POST["idEstudio"];
+              $id         = $id_estudio.'_'.rand(0,200);
               
-              $_SESSION["carrito_pedido"][$id] = [
-                'id'               => $id,
-                'id_producto'      => $id_producto,
-                'sku'              => $producto["sku"],
-                'nom_producto'     => $producto["nom_producto"],
-                'nom_presentacion' => $producto["nom_presentacion"],
-                'cantidad'         => $cantidad,
-                'por_descuento'    => $por_descuento,
-                'precio'           => $precio,
-                'costo'            => $costo,
-                'costo_total'      => $costo_total,
-                'subtotal'         => $subtotal,
-                'descuento'        => $descuento,
-                'total'            => $total,
-                'utilidad'         => $utilidad
+              $precio     = (float)$estudio["precio_publico"];
+              $costo      = (float)$estudio["costo"];
+              $utilidad   = $precio - $costo;
+              
+              $_SESSION["carrito_orden"][$id] = [
+                'id'                  => $id,
+                'id_estudio'          => $id_estudio,
+                'nom_estudio'         => $estudio["nombre"],
+                'precio'              => $precio,
+                'costo'               => $costo,
+                'utilidad'            => $utilidad,
+                'descripcion_estudio' => $estudio["descripcion_estudio"],
+                'indicaciones_toma'   => $estudio["indicaciones_toma"]
               ];
 
-              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_pedido"]];
+              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_orden"]];
           }
           else {               
-              $res = ['estatus' => 400, 'mensaje' => 'error', 'data' => $_SESSION["carrito_pedido"]];
+              $res = ['estatus' => 400, 'mensaje' => 'error', 'data' => $_SESSION["carrito_orden"]];
           }
 
           echo json_encode($res);
         break;
 
-        case 'borrar_carrito_pedido':
-          if(isset($_SESSION["carrito_pedido"])) {
-              unset($_SESSION["carrito_pedido"]);  
+        case 'borrar_carrito_recepcion':
+          if(isset($_SESSION["carrito_orden"])) {
+            unset($_SESSION["carrito_orden"]);
           }
           
           $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => []];
@@ -81,13 +68,13 @@
           echo json_encode($res);
         break;
 
-        case 'borrar_producto_carrito':
-          if(isset($_SESSION["carrito_pedido"][$_POST["idCarrito"]])) {
-              unset($_SESSION["carrito_pedido"][$_POST["idCarrito"]]);
-              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_pedido"]];
+        case 'borrar_estudio_carrito':
+          if(isset($_SESSION["carrito_orden"][$_POST["idCarrito"]])) {
+              unset($_SESSION["carrito_orden"][$_POST["idCarrito"]]);
+              $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_orden"]];
           }
           else {
-              $res = ['estatus' => 500, 'mensaje' => 'error', 'data' => $_SESSION["carrito_pedido"]];
+              $res = ['estatus' => 500, 'mensaje' => 'error', 'data' => $_SESSION["carrito_orden"]];
           }
 
           echo json_encode($res);
