@@ -166,6 +166,7 @@ const listar_usuarios = async () => {
 const pinta_listado_usuario = (data) => {
    if(data.length == 0) {
       $('#containerListUsuarios').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron usuarios registrados</div>');
+      closeLoad();
       return;
    }
    

@@ -10,7 +10,7 @@
 		public function obtiene_lista_estudios() {
 			$res = [];
 			try {
-				$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, costo, indicaciones_toma, descripcion_estudio FROM cat_estudios WHERE activo = 1 ORDER BY id");
+				$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, costo, indicaciones_toma, descripcion_estudio, aplica_desc FROM cat_estudios WHERE activo = 1 ORDER BY id");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
@@ -25,8 +25,8 @@
       	$data    = [0];
 			$mensaje = 'Error al guardar el estudio';
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO cat_estudios (nombre, tipo, precio_publico, costo, descripcion_estudio, indicaciones_toma, user_cap) VALUES (?,?,?,?,?,?,?)");
-				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $post["costo"], $post["descripcionEstudio"], $post["indicacionesToma"], $user_cap));
+				$sql = $this->dbh->prepare("INSERT INTO cat_estudios (nombre, tipo, precio_publico, costo, descripcion_estudio, indicaciones_toma, aplica_desc, user_cap) VALUES (?,?,?,?,?,?,?,?)");
+				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $post["costo"], $post["descripcionEstudio"], $post["indicacionesToma"], $post["estudioAplicaDesc"], $user_cap));
 
 				if($ok) {
 					$idEstudio = $this->dbh->lastInsertId();
@@ -48,8 +48,8 @@
 			$data    = [];
 			$message = 'Error al actualizar datos del estudio';
 			try {
-				$sql = $this->dbh->prepare("UPDATE cat_estudios SET nombre = ?, tipo = ?, precio_publico = ?, costo = ?, descripcion_estudio = ?, indicaciones_toma = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
-				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $_POST["costo"], $post["descripcionEstudio"], $post["indicacionesToma"], $user_cap, date('Y-m-d H:i:s'), $post["idEstudio"]));
+				$sql = $this->dbh->prepare("UPDATE cat_estudios SET nombre = ?, tipo = ?, precio_publico = ?, costo = ?, descripcion_estudio = ?, indicaciones_toma = ?, aplica_desc = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
+				$ok = $sql->execute(array($post["nomEstudio"], $post["tipoEstudio"], $post["precioPublico"], $_POST["costo"], $post["descripcionEstudio"], $post["indicacionesToma"], $post["estudioAplicaDesc"], $user_cap, date('Y-m-d H:i:s'), $post["idEstudio"]));
 				if($ok) {
 					$estatus = 200;
 					$data    = [$post["idEstudio"]];

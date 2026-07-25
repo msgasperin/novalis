@@ -32,6 +32,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    let costo               = '';
    let indicaciones_toma   = '';
    let descripcion_estudio = '';
+   let aplicaDescuento     = 'NO';
 
    if(idEstudio > 0) {
       titulo              = 'Editar Estudio: '+ nomEstudio;
@@ -41,6 +42,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
       costo               = estudioSeleccionado[0].costo;
       indicaciones_toma   = estudioSeleccionado[0].indicaciones_toma;
       descripcion_estudio = estudioSeleccionado[0].descripcion_estudio;
+      aplicaDescuento     = estudioSeleccionado[0].aplica_desc;
    }
    else {
       titulo = 'Registrar Nuevo Estudio';
@@ -82,6 +84,13 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                      <b>Costo *</b>
                      <input type="number" inputmode="numeric" name="costoEstudio" id="costoEstudio" class="form-control" maxlength="10" value="${costo}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
+                  <div class="col-12 col-sm-4 mt-3">
+                     <b>¿Aplica descuento?</b>
+                     <select name="estudioAplicaDesc" id="estudioAplicaDesc" class="form-select">
+                        <option value="NO">NO</option>
+                        <option value="SI">SI</option>
+                     </select>
+                  </div>
                   <div class="col-12 mt-3">
                      <b>Indicaciones toma de muestra</b>
                      <textarea name="indicacionesToma" id="indicacionesToma" class="form-control" rows="3" maxlength="400">${indicaciones_toma}</textarea>
@@ -104,6 +113,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    $('#modalFormEstudio').modal('show');
    setTimeout(() => {
       $('#tipoEstudio').val(tipo);
+      $('#estudioAplicaDesc').val(aplicaDescuento);
    }, 200);
 }
 
@@ -135,10 +145,11 @@ const pinta_listado_estudios = (containerId, data) => {
       <thead>
          <tr>
             <th width="5%">ID</th>
-            <th width="55%">Estudio</th>
+            <th width="45%">Estudio</th>
             <th width="10%">Tipo</th>
             <th width="10%">Costo</th>
             <th width="10%">Precio Público</th>
+            <th width="10%">Aplica Descuento</th>
             <th width="10%">Acciones</th>
          </tr>
       </thead>
@@ -151,6 +162,7 @@ const pinta_listado_estudios = (containerId, data) => {
                <td class="text-center">${row.tipo}</td>
                <td>$ ${row.costo}</td>
                <td>$ ${row.precio_publico}</td>
+               <td class="text-center">${row.aplica_desc}</td>
                <td class="text-center">
                   <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormEstudio('${row.id}', '${row.nombre}');" title="Editar estudio">
                      <i class="bi bi-pencil"></i>
@@ -185,6 +197,7 @@ const fn_guardar_estudio = async (idEstudio) => {
    let costo              = $('#costoEstudio').val().trim();
    let descripcionEstudio = $('#descripcionEstudio').val().trim();
    let indicacionesToma   = $('#indicacionesToma').val().trim();
+   let estudioAplicaDesc  = $('#estudioAplicaDesc').val();
    let msjAccion          = '';
 
    if (nomEstudio == '') {
@@ -215,7 +228,7 @@ const fn_guardar_estudio = async (idEstudio) => {
 
    costo == '' ? costo = 0 : costo;
 
-   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma };
+   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma, estudioAplicaDesc };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + nomEstudio + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {

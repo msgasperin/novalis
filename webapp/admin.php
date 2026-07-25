@@ -77,6 +77,7 @@
 		<script type="module" src="components/Estudios/Estudios.js?<?=time()?>"></script>
 		<script type="module" src="components/Pacientes/Pacientes.js?<?=time()?>"></script>
 		<script type="module" src="components/Ordenes/Ordenes.js?<?=time()?>"></script>
+		<script type="module" src="components/Descuentos/Descuentos.js?<?=time()?>"></script>
 
 		<script>
 			$(document).on('select2:open', function() {
