@@ -21,6 +21,11 @@
           echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
         break;
 
+        case 'obtiene_ordenes_hoy':
+          $res = $v->obtiene_ordenes_hoy($_SESSION["id_sucursal"]);
+          echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+        break;
+
         case 'agregar_estudio_carrito':
           $estudio = $_SESSION["estudios_orden"][$_POST["idEstudio"]] ?? null;
 
@@ -46,7 +51,8 @@
                 'costo'               => $costo,
                 'utilidad'            => $utilidad,
                 'descripcion_estudio' => $estudio["descripcion_estudio"],
-                'indicaciones_toma'   => $estudio["indicaciones_toma"]
+                'indicaciones_toma'   => $estudio["indicaciones_toma"],
+                'aplica_desc'         => $estudio["aplica_desc"]
               ];
 
               $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $_SESSION["carrito_orden"]];
@@ -81,64 +87,58 @@
         break;
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GUARDADO ORDEN DE TRABAJO ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        
+        case 'registrar_orden':
 
-        case 'guardar':
+            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["sexo"]) || empty($_POST["tipoCliente"]) || !isset($_POST["idPrecio"]) || !isset($_POST["abonoOrden"]) || !isset($_POST["metodoPagoOrden"])) {
+              $res = ['estatus' => 406, 'mensaje' => 'Faltan parámetros necesarios y obligatorios', 'data' => []];
+              echo json_encode($res);
+              break;
+            }
 
-          if($_SESSION["perfil"] != 'ADMINISTRADOR') {
-            $res = ['estatus' => 402, 'mensaje' => 'Sin permisos para realizar esta acción', 'data' => []];
+            if(!isset($_SESSION["carrito_orden"]) || empty($_SESSION["carrito_orden"])) {
+              $res     = ['estatus' => 406, 'mensaje' => 'Hubo un problema para obtener el listado de productos', 'data' => []];
+              echo json_encode($res);
+              break;
+            }
+
+            $subtotal       = 0;
+            $montoDescuento = 0;
+            $porDescuento   = floatval($_POST["porDescuento"] ?? 0);
+            $cargoExtra     = floatval($_POST["cargoExtraOrden"] ?? 0);
+
+            foreach ($_SESSION["carrito_orden"] as $item) {
+              $precioItem = floatval($item["precio"]);
+              $subtotal  += $precioItem;
+
+              // Se aplica descuento si el porcentaje es mayor a 0 y el estudio lo permite
+              if ($porDescuento > 0 && !empty($item["aplica_desc"])) {
+                $montoDescuento += round(($precioItem * $porDescuento) / 100, 2);
+              }
+            }
+
+            $total_neto = ($subtotal - $montoDescuento) + $cargoExtra;
+            if ($total_neto < 0) {
+              $total_neto = 0;
+            }
+
+            if (!isset($_POST["objOrden"]) || !is_array($_POST["objOrden"])) {
+              $_POST["objOrden"] = [];
+            }
+
+            $_POST["subtotal"]        = $subtotal;
+            $_POST["montoDescuento"]  = $montoDescuento;
+            $_POST["total_neto"]      = $total_neto;
+            $_POST["cargoExtra"]      = $cargoExtra;
+            
+            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["nombre"], $_SESSION["id_sucursal"]);
+            if($res["estatus"] == 200) {
+              $g->bitacora('Orden registrada con folio: '.$res["data"][1], $res["data"][0] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+            }
+                        
             echo json_encode($res);
-            break;
-          }
-
-          if(!isset($_POST["idSucursal"]) || empty($_POST["nomSucursal"]) || empty($_POST["direccionSucursal"])) {
-            $res = array('estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data'=> []);
-            echo json_encode($res);
-            break;
-          }
-
-          if($_POST["idSucursal"] == '0') {
-            $res              = $v->guardar_sucursal($_POST, $_SESSION["nombre"]);
-            $id_usuario       = $res["data"][0];
-            $mensaje_bitacora = 'Sucursal registrada: '.$_POST["nomSucursal"];
-          } 
-          else {
-            $id_usuario       = $_POST["idSucursal"];
-            $res              = $v->actualizar_sucursal($_POST, $_SESSION["nombre"]);
-            $mensaje_bitacora = 'Sucursal modificada: '.$_POST["nomSucursal"];
-          }
-
-          if($res["estatus"] == 200) {
-            $g->bitacora($mensaje_bitacora, $id_usuario, $_SESSION["id_usuario"], $_SESSION["nombre"]);
-          }
-
-          echo json_encode($res);
-        break;
-
-        case 'eliminar':
-
-          if($_SESSION["perfil"] != 'ADMINISTRADOR') {
-            $res = ['estatus' => 402, 'mensaje' => 'Sin permisos para realizar esta acción', 'data' => []];
-            echo json_encode($res);
-            break;
-          }
-
-          if(empty($_POST["idSucursal"]) || empty($_POST["nomSucursal"])) {
-            $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
-            echo json_encode($res);
-            break;
-          }
-
-          $response = $v->eliminar_sucursal($_POST["idSucursal"]);
-          if($response) {
-            $res = array('estatus' => 200, 'data'=>[], 'mensaje' => 'ok');
-            $g->bitacora('Sucursal eliminada: '.$_POST["nomSucursal"], $_POST["idSucursal"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
-          }
-          else {
-            $res = array('estatus' => 500, 'data'=>[], 'mensaje' => 'error al intentar eliminar usuario');
-          }
-          
-          echo json_encode($res);
-        break;
+         break;
+       
 
         default:
           echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", "data" => []]);

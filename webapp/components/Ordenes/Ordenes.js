@@ -1,10 +1,13 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito } from "./OrdenesServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy } from "./OrdenesServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
+import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
 
-let arrOredenes          = [];
+let arrOrdenesHoy        = [];
+let arrEstudios          = [];
 let arrPacientesBusqueda = [];
 let comboConvenios       = '';
+let comboDescuentos      = '';
 let pacienteOrden;
 
 const TabRecepcion = () => {
@@ -73,6 +76,25 @@ const TabRecepcion = () => {
                      </div>
                   </div>
                   <div class="col-12 mt-2">
+                     <div class="row align-items-center mb-3 mt-2 px-1">
+                        <div class="col-8">
+                           <span class="fs-6 fw-bold text-secondary text-uppercase tracking-wider">Órdenes del Día</span>
+                        </div>
+                        <div class="col-4 text-end">
+                           <span class="badge bg-primary rounded-pill"><span id="totalHoy"></span></span>
+                        </div>
+                     </div>
+
+                     <div class="row mb-3 px-1">
+                        <div class="col-12">
+                           <div class="input-group input-group-sm shadow-sm">
+                              <span class="input-group-text bg-white border-end-0 text-muted">
+                                 <i class="bi bi-search"></i>
+                              </span>
+                              <input type="text" class="form-control border-start-0 ps-0" id="inpBusquedaOrdenHoy" placeholder="Buscar orden reciente..." onkeyUp="buscar_ordenes_hoy();">
+                           </div>
+                        </div>
+                     </div>
                      <div id="ordenes_del_dia"></div>
                   </div>
                </div>
@@ -84,112 +106,103 @@ const TabRecepcion = () => {
 
    $('#containerMain').html(html);
    setTimeout(() => {
-      pinta_ordenes_del_dia('ordenes_del_dia');
+      obtener_ordenes_hoy('ordenes_del_dia');
    }, 200);
 }
 
-const pinta_ordenes_del_dia = (containerId) => {
-   let html = `
-   <div class="row align-items-center mb-3 mt-2 px-1">
-      <div class="col-8">
-         <span class="fs-6 fw-bold text-secondary text-uppercase tracking-wider">Órdenes del Día</span>
-      </div>
-      <div class="col-4 text-end">
-         <span class="badge bg-primary rounded-pill">2 hoy</span>
-      </div>
-   </div>
+const obtener_ordenes_hoy = async (containerId) => {
 
-   <div class="row mb-3 px-1">
-      <div class="col-12">
-         <div class="input-group input-group-sm shadow-sm">
-            <span class="input-group-text bg-white border-end-0 text-muted">
-               <i class="bi bi-search"></i>
-            </span>
-            <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar orden reciente...">
-         </div>
-      </div>
-   </div>
+   $('#comboConvenio').show();
+   $('#'+containerId).html('<div class="text-center mt-5"><span class="loader_bar_2"></span><div class="text-secondary fs-7">Cargando...</div></div>');
+   
+   let respuesta = await obtiene_ordenes_hoy();
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else if(respuesta.data.length == 0) {
+      $('#'+containerId).html('No hay ordenes registradas el día de hoy');
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      arrOrdenesHoy = res;
+      pinta_ordenes_del_dia(arrOrdenesHoy, containerId);
+   }
+}
 
-   <div class="orders-log-container pe-1" style="max-height: 70vh; overflow-y: auto;">
-      
-      <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-success" style="cursor: pointer;">
-         <div class="card-body p-3">
-            
-            <div class="row align-items-center mb-2">
-               <div class="col-7">
-                  <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
-                     Particular
-                  </span>
+const pinta_ordenes_del_dia = (data, containerId) => {
+
+   let color   = '';
+   let cuantas = data.length;
+   $('#totalHoy').html(cuantas+' hoy');
+
+   let html = 
+   `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
+      data.forEach((row, index) => {
+
+         color = (row.tipo_cliente == 'particular') ? 'success' : 'primary';
+         
+         html+=`      
+         <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-${color} pointer">
+            <div class="card-body p-3">
+               
+               <div class="row align-items-center mb-2">
+                  <div class="col-7">
+                     <span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle rounded-pill small text-uppercase">
+                        ${row.tipo_cliente}
+                     </span>
+                  </div>
+                  <div class="col-5 text-end">
+                     <span class="fw-semibold text-primary small bg-light px-2 py-1 rounded">
+                        #${row.folio}
+                     </span>
+                  </div>
                </div>
-               <div class="col-5 text-end">
-                  <span class="fw-semibold text-primary small bg-light px-2 py-1 rounded">
-                     #0001
-                  </span>
+
+               <div class="row">
+                  <div class="col-12">
+                     <h6 class="card-title text-dark fw-bold mb-1 text-truncate">
+                        ${row.paciente_nombre_historico}
+                     </h6>
+                     <span class="text-muted small">${row.convenio_nombre_historico ?? ''}</span>
+                  </div>
                </div>
+
+               <div class="row align-items-center mt-2 pt-2 border-top border-light">
+                  <div class="col-6">
+                     <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
+                  </div>
+                  <div class="col-6 text-end">
+                     <span class="badge bg-light text-dark border small">${row.estatus}</span>
+                  </div>
+               </div>
+
             </div>
-
-            <div class="row">
-               <div class="col-12">
-                  <h6 class="card-title text-dark fw-bold mb-1 text-truncate">
-                     Romina López Rodríguez
-                  </h6>
-               </div>
-            </div>
-
-            <div class="row align-items-center mt-2 pt-2 border-top border-light">
-               <div class="col-6">
-                  <small class="text-muted"><i class="bi bi-clock me-1"></i> 08:20 AM</small>
-               </div>
-               <div class="col-6 text-end">
-                  <span class="badge bg-light text-dark border small">Recepcion</span>
-               </div>
-            </div>
-
-         </div>
-      </div>
-
-      <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-warning" style="cursor: pointer;">
-         <div class="card-body p-3">
-            
-            <div class="row align-items-center mb-2">
-               <div class="col-7">
-                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small">
-                     Convenio
-                  </span>
-               </div>
-               <div class="col-5 text-end">
-                  <span class="fw-semibold text-primary small bg-light px-2 py-1 rounded">
-                     #0002
-                  </span>
-               </div>
-            </div>
-
-            <div class="row">
-               <div class="col-12">
-                  <h6 class="card-title text-dark fw-bold mb-1 text-truncate" title="Miguel Ángel Sáinz Gasperín">
-                     Miguel Ángel Sáinz Gasperín
-                  </h6>
-                  <p class="text-muted small mb-0 text-truncate">
-                     <i class="bi bi-building me-1"></i> Clínica Metabólica Xalapa
-                  </p>
-               </div>
-            </div>
-
-            <div class="row align-items-center mt-2 pt-2 border-top border-light">
-               <div class="col-6">
-                  <small class="text-muted"><i class="bi bi-clock me-1"></i> 09:15 AM</small>
-               </div>
-               <div class="col-6 text-end">
-                  <span class="badge bg-light text-dark border small">Laboratorio</span>
-               </div>
-            </div>
-
-         </div>
-      </div>
-
+         </div>`;
+      });
+      html+=`
    </div>`;
 
    $('#' + containerId).html(html);
+}
+
+const buscar_ordenes_hoy = () => {
+   let busqueda = $('#inpBusquedaOrdenHoy').val().trim().toLowerCase();
+   
+   const filtrado = arrOrdenesHoy.filter(orden => {
+      const nombreCoincide = orden.paciente_nombre_historico.toLowerCase().includes(busqueda);
+      
+      const ultimoFolio   = orden.folio.split('-').pop();
+      const folioCoincide = ultimoFolio === busqueda;
+      
+      return nombreCoincide || folioCoincide;
+   });
+
+   pinta_ordenes_del_dia(filtrado, 'ordenes_del_dia');
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE PACIENTE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -217,7 +230,7 @@ const busca_paciente_fecha_nacimiento = async () => {
    }
    else {
       arrPacientesBusqueda = respuesta.data;
-      modalPacientesEncontrados(respuesta.data, fecha);
+      ModalPacientesEncontrados(respuesta.data, fecha);
    }
 }
 
@@ -252,11 +265,11 @@ const buscar_paciente_recepcion = async () => {
    }
    else {
       arrPacientesBusqueda = respuesta.data;
-      modalPacientesEncontrados(respuesta.data, parametroBusqueda);
+      ModalPacientesEncontrados(respuesta.data, parametroBusqueda);
    }
 }
 
-const modalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
+const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
    // Generamos las filas de los pacientes encontrados
    let filasPacientes = '';
 
@@ -311,7 +324,7 @@ const modalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
    }
 
    let html = `
-   <div class="modal fade modal-superior-blur" id="modalPacientesEncontrados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+   <div class="modal fade modal-superior-blur" id="ModalPacientesEncontrados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
          <div class="modal-content sombra-modal border-0">
             <!-- Encabezado con estilo sutil y limpio -->
@@ -357,7 +370,7 @@ const modalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
 
    // Inyectamos en tu contenedor común de modales de administración/procesos
    $('#modalAdmin').html(html);
-   $('#modalPacientesEncontrados').modal('show');
+   $('#ModalPacientesEncontrados').modal('show');
 }
 
 const paciente_seleccionado = (idPaciente, paciente, origen) => {  
@@ -416,7 +429,7 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
             
             <div class="col-12 col-sm-6 no-display" id="comboConvenio">
                <select name="selectConvenioEmpresa" id="selectConvenioEmpresa" class="form-control form-control-sm select2" onchange="form_carga_estudios('container_form_carga_estudios');">
-                  <option value="0" selected disabled>Selecciona el convenio</option>
+                  <option value="0" selected data-tipo="NA" data-lista-precio="0" data-nom-precio="NA">Selecciona el convenio</option>
                </select>
             </div>
 
@@ -426,7 +439,7 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
    </div>`;
 
    $('#container_busqueda_paciente_recepcion').html(html);
-   $('#modalPacientesEncontrados').modal('hide');
+   $('#ModalPacientesEncontrados').modal('hide');
 }
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++ SELECCIÓN DE CONVENIO LISTADO DE ESTUDIOS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -441,7 +454,7 @@ const combo_listas_convenios = async (containerId) => {
    $('#container_form_carga_estudios').html('');
 
    if(comboConvenios.length == 0) {
-      comboConvenios = '<option value="0" selected disabled data-tipo="NA">Selecciona el convenio</option>';
+      comboConvenios = '<option value="0" selected data-tipo="NA" data-lista-precio="0" data-nom-precio="NA">Selecciona el convenio</option>';
       let respuesta = await obtiene_convenios();
       if(respuesta.estatus == 403) {
          fnNoSesion();
@@ -454,7 +467,7 @@ const combo_listas_convenios = async (containerId) => {
          let res = await respuesta.data;
          if(res.length > 0) {
             res.map((convenio) => {
-               comboConvenios +=`<option value="${convenio.id_convenio}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}">${convenio.razon_social}</option>`;
+               comboConvenios +=`<option value="${convenio.id_convenio}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}" data-nom-precio="${convenio.nombre}">${convenio.razon_social}</option>`;
             });
             $('#'+containerId).html(comboConvenios);
          }      
@@ -543,6 +556,7 @@ const combo_listas_estudios = async (tipoSolicitante, idListaPrecio, containerId
 const agrega_estudio_carrito =  async () => {
    
    let idEstudio    = $('#estudiosRecepcion').val().trim();
+   arrEstudios      = [];
 
    if(idEstudio <= 0) {
       ToastColor.fire({
@@ -555,7 +569,8 @@ const agrega_estudio_carrito =  async () => {
       return;
    }
       
-   let res = await agregar_estudio_carrito(idEstudio)
+   let res = await agregar_estudio_carrito(idEstudio);
+   arrEstudios = res;
    if(res.estatus == 403) {
       fnNoSesion();
    }
@@ -582,7 +597,10 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
       return;
    }
 
+   arrEstudios   = [];
    let respuesta = await borrar_estudio_carrito(idCarrito);
+   
+   arrEstudios = respuesta;
 
    if(respuesta.estatus == 403) {
       fnNoSesion();
@@ -604,15 +622,18 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
 
 const pintado_carrito = (data, containerId) => {
 
-   let html      = '';
-   let descuento = '';
-   let total     = 0;
-   
+   let html         = '';
+   let descuento    = '';
+   let totalSinDesc = 0;
+   let totalConDesc = 0;
+   let total        = 0;
+      
    if (data && Object.keys(data).length > 0) {
       Object.values(data).forEach(row => {
 
-         total += parseFloat(row.precio || 0);
-
+         row.aplica_desc == 'SI' ? totalConDesc += parseFloat(row.precio || 0) : totalSinDesc += parseFloat(row.precio || 0);
+         total+= row.precio;
+         
          html += 
          `<div class="card mb-2 rounded-2 border-0 shadow-sm validaHayCarrito" id="cardEstudioCarrito${row.id}">
             <div class="card-body p-3">
@@ -646,7 +667,7 @@ const pintado_carrito = (data, containerId) => {
                <span class="fs-4 fw-bold text-dark" id="totalVentaOrden">Total: $${total.toFixed(2)}</span>
             </div>
             <div class="col-12 col-sm-6 text-end text-sm-end">
-               <button type="button" class="btn btn-dark btn-lib btn-redondo px-4 py-2 fw-semibold w-100 w-sm-auto" id="btnRegistrarPedido" onclick="ModalRegistrarPedido('${total}');">
+               <button type="button" class="btn btn-dark btn-lib btn-redondo px-4 py-2 fw-semibold w-100 w-sm-auto" id="btnRegistrarOrden" onclick="ModalRegistrarOrden('${total}', '${totalConDesc}', '${totalSinDesc}');">
                   <i class="bi bi-save me-1"></i> Registrar orden
                </button>
             </div>
@@ -681,6 +702,7 @@ const borra_carrito_recepcion = async () => {
       $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
       $('#estudiosRecepcion').val(0);
       $('#estudiosRecepcion').trigger('change');
+      arrEstudios = [];
    }
    else {
       showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
@@ -694,9 +716,543 @@ const vaciar_carrito_recepcion = async () => {
    $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
 }
 
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ REGISTRO DE ORDEN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
+
+   // Se obtienen los datos generales de la orden
+   let e    = fnObtieneEdad(pacienteOrden.fecha_nacimiento);
+   let edad = '';
+
+   e.anios > 0 ? edad = e.anios + ' años' : e.meses > 0 ? edad = e.meses + ' mes(es)' : edad = e.dias;
+
+   let idPaciente     = pacienteOrden.id;
+   let nomPaciente    = pacienteOrden.nombre + ' ' + pacienteOrden.apellido_paterno + ' ' +  pacienteOrden.apellido_materno;
+   let sexo           = pacienteOrden.sexo_biologico; 
+   let tipoCliente    = $('input[name="optionTipoCliente"]:checked').val();
+   let selectConvenio = document.getElementById("selectConvenioEmpresa");
+   let idConvenio     = selectConvenio.value;
+   let tipoConvenio   = $('option:selected', selectConvenio).attr('data-tipo');
+   let nomConvenio    = $('#selectConvenioEmpresa option:selected').text();
+   let idPrecio       = $('option:selected', selectConvenio).attr('data-lista-precio');
+   let nomPrecio      = $('option:selected', selectConvenio).attr('data-nom-precio');  
+   total              = parseFloat(total) || 0;
+
+   if(parseFloat(idPaciente) == 0 || nomPaciente == '' || sexo == '' || tipoCliente == '' || edad == '') {      
+      ToastColor.fire({
+         text: '¡Atención! Hubo parámetros que no pudieron cargarse, actualiza y vuelve a intentarlo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+   else if(tipoCliente == 'convenio' && idConvenio == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar a la empresa, laboratorio o doctor del convenio',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#selectConvenioEmpresa').focus();
+      return;
+   }
+   else if(arrEstudios.length == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes agregar al menos un estudio a la orden',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+
+   let html = `
+   <div class="modal fade shadow-lg modal-superior-blur" id="modalRegistrarOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+         <div class="modal-content sombra-modal border-0">
+            <div class="modal-body p-4">
+               
+               <!-- CABECERA ALINEADA A LA IZQUIERDA -->
+               <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                  <div class="rounded-circle bg-warning-subtle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; shrink: 0;">
+                     <i class="bi bi-receipt text-warning-emphasis fs-3"></i>
+                  </div>
+                  <div>
+                     <h4 class="fw-bold mb-1 text-dark">Confirmar Registro de Orden</h4>
+                     <p class="text-muted small mb-0">Ajusta descuentos, cargos adicionales y registra el pago inicial antes de generar la orden.</p>
+                  </div>
+               </div>
+
+               <div class="p-3 bg-light rounded border mb-4">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                     <span class="text-muted small">Subtotal estudios:</span>
+                     <span class="fw-semibold small" id="lblSubtotalOrden">$${total.toFixed(2)}</span>
+                  </div>
+
+                  <!-- Línea de Descuento -->
+                  <div class="d-flex justify-content-between align-items-center mb-1 text-success d-none" id="rowDescuentoAplicado">
+                     <span class="small" id="lblTextoDescuento"><i class="bi bi-tag-fill me-1"></i> Descuento:</span>
+                     <span class="fw-semibold small" id="lblMontoDescuento">-$0.00</span>
+                  </div>
+
+                  <!-- Línea de Cargo Extra -->
+                  <div class="d-flex justify-content-between align-items-center mb-2 text-danger d-none" id="rowCargoExtraAplicado">
+                     <span class="small" id="lblTextoCargoExtra"><i class="bi bi-plus-circle-fill me-1"></i> Cargo extra:</span>
+                     <span class="fw-semibold small" id="lblMontoCargoExtra">+$0.00</span>
+                  </div>
+
+                  <hr class="my-2 border-secondary opacity-25">
+
+                  <div class="d-flex justify-content-between align-items-center pt-1 mb-2">
+                     <div>
+                        <span class="text-uppercase fw-bold d-block lh-1">Total Final</span>
+                        <span class="text-muted fs-7 opacity-75">Monto neto a cobrar</span>
+                     </div>
+                     <h3 class="fw-bold text-dark mb-0" id="lblTotalNetoOrden">$${total.toFixed(2)}</h3>
+                  </div>
+
+                  <!-- Línea de Abono / Pago Inicial -->
+                  <div class="d-flex justify-content-between align-items-center border-top pt-2 mb-1 text-primary" id="rowAbonoAplicado">
+                     <span class="small fw-semibold"><i class="bi bi-wallet2 me-1"></i> Abono inicial:</span>
+                     <span class="fw-bold small" id="lblMontoAbonoResumen">-$${total.toFixed(2)}</span>
+                  </div>
+
+                  <!-- Línea de Saldo Pendiente -->
+                  <div class="d-flex justify-content-between align-items-center pt-1">
+                     <span class="fw-bold small text-muted">Saldo pendiente:</span>
+                     <span class="fw-bold text-success fs-6" id="lblSaldoPendienteOrden">$0.00 (Liquidado)</span>
+                  </div>
+               </div>
+
+               <!-- SECCIÓN AJUSTES DE ORDEN -->
+               <div class="row g-3">
+                  
+                  <!-- Bloque 1: Aplicar Descuento -->
+                  <div class="col-12">
+                     <div class="card border-0 bg-white shadow-sm rounded-3 border-start border-primary border-4">
+                        <div class="card-body p-3">
+                           <div class="d-flex align-items-center mb-2">
+                              <span class="badge bg-primary-subtle text-primary fw-bold me-2 px-2 py-1">
+                                 <i class="bi bi-percent"></i>
+                              </span>
+                              <h6 class="fw-bold mb-0 text-dark">Aplicar Descuento General</h6>
+                           </div>
+                           
+                           <div>
+                              <select name="descuentoGeneralOrden" id="descuentoGeneralOrden" class="form-select border-secondary-subtle" onchange="calcularTotalDinamico('${total}', '${totalConDesc}', '${totalSinDesc}');">
+                                 <option value="0" selected data-descuento="0">Selecciona un descuento</option>
+                              </select>
+                              <div class="form-text text-muted small mt-1">
+                                 <i class="bi bi-info-circle me-1"></i> El descuento solo se aplicará a los estudios que lo tengan autorizado.
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Bloque 2: Cargo Adicional -->
+                  <div class="col-12">
+                     <div class="card border-0 bg-white shadow-sm rounded-3 border-start border-warning border-4">
+                        <div class="card-body p-3">
+                           <div class="d-flex align-items-center mb-3">
+                              <span class="badge bg-warning-subtle text-warning-emphasis fw-bold me-2 px-2 py-1">
+                                 <i class="bi bi-cash-stack"></i>
+                              </span>
+                              <h6 class="fw-bold mb-0 text-dark">Cargo Adicional <span class="text-muted fw-normal fs-7">(Opcional)</span></h6>
+                           </div>
+
+                           <div class="row g-3">
+                              <div class="col-md-5">
+                                 <label for="cargoExtraOrden" class="form-label fw-semibold small text-secondary">Monto extra</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted">$</span>
+                                    <input type="number" inputmode="decimal" name="cargoExtraOrden" id="cargoExtraOrden" class="form-control" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico('${total}', '${totalConDesc}', '${totalSinDesc}');">
+                                 </div>
+                              </div>
+
+                              <div class="col-md-7">
+                                 <label for="motivoCargoExtraOrden" class="form-label fw-semibold small text-secondary">Motivo del cargo</label>
+                                 <input type="text" name="motivoCargoExtraOrden" id="motivoCargoExtraOrden" class="form-control" placeholder="Ej. Servicio a domicilio, urgencia..." maxlength="100" oninput="calcularTotalDinamico('${total}', '${totalConDesc}', '${totalSinDesc}');">
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Bloque 3: Registro de Pago / Abono -->
+                  <div class="col-12">
+                     <div class="card border-0 bg-white shadow-sm rounded-3 border-start border-success border-4">
+                        <div class="card-body p-3">
+                           <div class="d-flex align-items-center mb-3">
+                              <span class="badge bg-success-subtle text-success fw-bold me-2 px-2 py-1">
+                                 <i class="bi bi-credit-card"></i>
+                              </span>
+                              <h6 class="fw-bold mb-0 text-dark">Registrar Pago / Abono Inicial</h6>
+                           </div>
+
+                           <div class="row g-3">
+                              <div class="col-md-4">
+                                 <label for="abonoOrden" class="form-label fw-semibold small text-secondary">Monto a abonar</label>
+                                 <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted">$</span>
+                                    <input type="number" inputmode="decimal" name="abonoOrden" id="abonoOrden" class="form-control fw-bold" value="${total.toFixed(2)}" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico('${total}', '${totalConDesc}', '${totalSinDesc}');">
+                                 </div>
+                                 <div class="form-text text-muted fs-7 mt-1">Por defecto liquida el total. Puedes ajustarlo.</div>
+                              </div>
+
+                              <div class="col-md-8">
+                                 <label for="metodoPagoOrden" class="form-label fw-semibold small text-secondary">Método de pago del abono</label>
+                                 <select name="metodoPagoOrden" id="metodoPagoOrden" class="form-select">
+                                    <option value="0" selected>Selecciona un método de pago</option>
+                                    <option value="1">Efectivo</option>
+                                    <option value="2">Tarjeta de Débito</option>
+                                    <option value="3">Tarjeta de Crédito</option>
+                                    <option value="4">Transferencia (SPEI)</option>
+                                    <option value="5">Cheque</option>
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+               </div>
+
+               <!-- Acciones -->
+               <div class="text-center mt-4 pt-2">
+                  <button type="button" class="btn btn-dark btn-redondo px-4 me-2 shadow-sm" id="btnRegistrarOrden" onclick="registra_orden();">
+                     <i class="bi bi-check-lg me-1"></i> Registrar orden
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary btn-redondo px-4" data-bs-dismiss="modal">
+                     <i class="bi bi-x-lg me-1"></i> No, cancelar
+                  </button>
+               </div>
+
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#modalRegistrarOrden').modal('show');
+   
+   setTimeout(() => {
+      combo_descuentos_generales('descuentoGeneralOrden');
+   }, 200);
+}
+
+const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
+   
+   let montoDescuento         = 0;
+   let subTotalMenosDescuento = total;
+   
+   // 1. Obtenemos el subtotal base
+   let subtotalBase = parseFloat($('#lblSubtotalOrden').text().replace('$', '').trim()) || 0;
+
+   // 2. Obtener datos del Descuento seleccionado
+   let selectDescuento = $('#descuentoGeneralOrden option:selected');
+   let idDescuento     = parseFloat(selectDescuento.val()) || 0;
+   let porcentajeDesc  = selectDescuento.data('descuento') || 0;
+   let nombreDescuento = selectDescuento.text().trim();
+
+   // 3. Obtener datos del Cargo Extra
+   let cargoExtra  = parseFloat($('#cargoExtraOrden').val()) || 0;
+   let motivoCargo = $('#motivoCargoExtraOrden').val().trim();
+
+   // 4. Cálculo de descuento
+   if(porcentajeDesc > 0) {
+      montoDescuento         = Math.round((parseFloat(subtotalBase) * parseFloat(porcentajeDesc)) / 100);
+      subTotalMenosDescuento = Math.round(parseFloat(subtotalBase) - parseFloat(montoDescuento));
+   }
+
+   // 5. Actualizar vista: Descuento
+   if (montoDescuento > 0) {
+      $('#lblTextoDescuento').html(`<i class="bi bi-tag-fill me-1"></i> Descuento ${nombreDescuento}:`);
+      $('#lblMontoDescuento').text(`-$${montoDescuento.toFixed(2)}`);
+      $('#rowDescuentoAplicado').removeClass('d-none');
+   } else {
+      $('#rowDescuentoAplicado').addClass('d-none');
+   }
+
+   // 6. Actualizar vista: Cargo Extra
+   if (cargoExtra > 0) {
+      let textoMotivo = motivoCargo !== '' ? ` (${motivoCargo})` : '';
+      $('#lblTextoCargoExtra').html(`<i class="bi bi-plus-circle-fill me-1"></i> Cargo extra${textoMotivo}:`);
+      $('#lblMontoCargoExtra').text(`+$${cargoExtra.toFixed(2)}`);
+      $('#rowCargoExtraAplicado').removeClass('d-none');
+   } else {
+      $('#rowCargoExtraAplicado').addClass('d-none');
+   }
+
+   // 7. Cálculo del Total Neto Final
+   let totalNeto = (subtotalBase - montoDescuento) + cargoExtra;
+   if (totalNeto < 0) totalNeto = 0;
+
+   // 8. Obtener Abono ingresado
+   let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
+
+   // Si el abono excede el total neto (por ej. si aplicaron descuento posteriormente), ajustamos al máximo posible
+   if (abonoInput > totalNeto) {
+      abonoInput = totalNeto;
+      $('#abonoOrden').val(totalNeto.toFixed(2));
+   }
+
+   // 9. Actualizar vista: Abono en el resumen
+   if (abonoInput > 0) {
+      $('#lblMontoAbonoResumen').text(`-$${abonoInput.toFixed(2)}`);
+      $('#rowAbonoAplicado').removeClass('d-none');
+   } else {
+      $('#rowAbonoAplicado').addClass('d-none');
+   }
+
+   // 10. Cálculo de Saldo Pendiente
+   let saldoPendiente = totalNeto - abonoInput;
+
+   // 11. Renderizar Total Neto, Saldo e Hidden
+   $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
+   
+   if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
+      $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
+   } else {
+      $('#lblSaldoPendienteOrden').removeClass('text-success').addClass('text-danger').text(`$${saldoPendiente.toFixed(2)}`);
+   }
+
+   $('#montoDescuentoOrden').val(montoDescuento);
+}
+
+const combo_descuentos_generales = async (containerId) => {
+
+   if(comboDescuentos.length == 0) {
+      comboDescuentos = '<option value="0" selected data-descuento="0">Selecciona un descuento</option>';
+      let respuesta = await obtiene_descuentos();
+      if(respuesta.estatus == 403) {
+         fnNoSesion();
+      }
+      else if(respuesta.estatus != 200) {
+         showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+         return;
+      }
+      else {
+         let res = await respuesta.data;
+         if(res.length > 0) {
+            res.map((descuento) => {
+               comboDescuentos +=`<option value="${descuento.id}" data-descuento="${descuento.porcentaje_desc}">${descuento.concepto_desc} (${descuento.porcentaje_desc} %)</option>`;
+            });
+            $('#'+containerId).html(comboDescuentos);
+         }      
+      }
+   }
+   else {
+      $('#'+containerId).html(comboDescuentos);
+   }   
+}
+
+const registra_orden = async () => {   
+
+   // Se obtienen los datos generales de la orden
+   let e = fnObtieneEdad(pacienteOrden.fecha_nacimiento);
+   let edad;
+   let idConvenio   = 0;
+   let tipoConvenio = '';
+   let nomConvenio  = '';
+   let idPrecio     = 0;
+   let nomPrecio    = 'Público en general';
+
+   e.anios > 0 ? edad = e.anios + ' años' : e.meses > 0 ? edad = e.meses + ' mes(es)' : edad = e.dias;
+
+   let idPaciente     = pacienteOrden.id;
+   let nomPaciente    = pacienteOrden.nombre + ' ' + pacienteOrden.apellido_paterno + ' ' +  pacienteOrden.apellido_materno;
+   let sexo           = pacienteOrden.sexo_biologico; 
+   let tipoCliente    = $('input[name="optionTipoCliente"]:checked').val();
+   
+
+   if(tipoCliente == 'convenio') {
+      let selectConvenio = document.getElementById("selectConvenioEmpresa");
+      idConvenio         = selectConvenio.value;
+      tipoConvenio       = $('option:selected', selectConvenio).attr('data-tipo');
+      nomConvenio        = $('#selectConvenioEmpresa option:selected').text();
+      idPrecio           = $('option:selected', selectConvenio).attr('data-lista-precio');
+      nomPrecio          = $('option:selected', selectConvenio).attr('data-nom-precio');
+   }
+
+   // Se obtienen los datos generales del pago
+   let selectDescuento       = document.getElementById("descuentoGeneralOrden");
+   let idDescuento           = selectDescuento.value;
+   let porDescuento          = $('option:selected', selectDescuento).attr('data-descuento');
+   let cargoExtraOrden       = $('#cargoExtraOrden').val().trim();
+   let motivoCargoExtraOrden = $('#motivoCargoExtraOrden').val().trim();
+   let abonoOrden            = $('#abonoOrden').val().trim();
+   let metodoPagoOrden       = $('#metodoPagoOrden').val();
+   
+   if(parseFloat(idPaciente) == 0 || nomPaciente == '' || sexo == '' || tipoCliente == '') {      
+      ToastColor.fire({
+         text: '¡Atención! Hubo parámetros que no pudieron cargarse, actualiza y vuelve a intentarlo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+   else if(tipoCliente == 'convenio' && idConvenio == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar a la empresa, laboratorio o doctor del convenio',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#selectConvenioEmpresa').focus();
+      return;
+   }
+   else if(tipoCliente == 'convenio' && idConvenio == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar a la empresa, laboratorio o doctor del convenio',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#selectConvenioEmpresa').focus();
+      return;
+   }
+   else if(arrEstudios.length == 0) {
+      ToastColor.fire({
+         text: '¡Atención! Debes agregar al menos un estudio a la orden',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+   else if(parseFloat(cargoExtraOrden) > 0 && motivoCargoExtraOrden == '') {      
+      ToastColor.fire({
+         text: '¡Atención! Si ingresas un cargo extra, deberás ingresar un motivo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#motivoCargoExtraOrden').focus();
+      return;
+   }
+   else if(parseInt(metodoPagoOrden) == 0) {      
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar un método de pago',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#metodoPagoOrden').focus();
+      return;
+   }
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden será registrada', 'question', 'Sí, guardar', 'Cancelar');
+
+   if (!res.result) {
+      return;
+   }
+
+   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden };
+
+   $('#btnRegistrarOrden').prop('disabled',true);
+   
+   let respuesta = await registrar_orden(objOrden);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      $('#modalRegistrarOrden').modal('hide');      
+      $('#btnRegistrarOrden').prop('disabled',false);
+      ModalOrdenRegistradaExito(respuesta.data[1], respuesta.data[2], respuesta.data[3]);
+      TabRecepcion();
+   }
+   else {
+      showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
+      $('#btnRegistrarOrden').prop('disabled',false);
+      return;
+   }
+}
+
+const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
+
+   totalNeto = parseFloat(totalNeto) || 0;
+
+   let html = `
+   <div class="modal fade shadow-lg modal-superior-blur" id="modalOrdenRegistradaExito" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content sombra-modal border-0">
+            <div class="modal-body p-4 text-center">
+               
+               <!-- ÍCONO DE ÉXITO -->
+               <div class="mb-3">
+                  <div class="rounded-circle bg-success-subtle mx-auto p-3" style="width: 70px; height: 70px;">
+                     <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                  </div>
+               </div>
+
+               <h4 class="fw-bold text-dark mb-1">¡Orden Registrada con Éxito!</h4>
+               <p class="text-muted small mb-4">La orden de trabajo ha sido generada correctamente en el sistema.</p>
+
+               <!-- DATOS CLAVE DE LA ORDEN (USANDO GRID DE BS5) -->
+               <div class="bg-light rounded-3 p-3 border mb-4 text-start">
+                  
+                  <!-- FILA 1: FOLIO Y ESTADO -->
+                  <div class="row align-items-center mb-3 pb-2 border-bottom">
+                     <div class="col-7">
+                        <span class="text-muted fs-7 d-block text-uppercase fw-semibold">Folio de Orden</span>
+                        <span class="fw-bold text-primary fs-5">${folio}</span>
+                     </div>
+                     <div class="col-5 text-end">
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">
+                           <i class="bi bi-check2 me-1"></i> Confirmado
+                        </span>
+                     </div>
+                  </div>
+
+                  <!-- FILA 2: MONTO TOTAL -->
+                  <div class="row align-items-center">
+                     <div class="col-6">
+                        <span class="text-muted fs-7 d-block text-uppercase fw-semibold">Monto Total</span>
+                        <small class="text-muted fs-7">Total neto cobrado</small>
+                     </div>
+                     <div class="col-6 text-end">
+                        <h3 class="fw-bold text-dark mb-0">$${totalNeto.toFixed(2)}</h3>
+                     </div>
+                  </div>
+
+               </div>
+
+               <!-- MENSAJE INFORMATIVO SECUNDARIO -->
+               <div class="alert alert-info border-0 bg-info-subtle text-info-emphasis small py-2 mb-4">
+                  <i class="bi bi-info-circle me-1"></i> Puedes imprimir el comprobante o pasar al siguiente registro.
+               </div>
+
+               <!-- ACCIONES PRINCIPALES (GRID BS5) -->
+               <div class="row g-2">
+                  <div class="col-md-6">
+                     <button type="button" class="btn btn-primary btn-redondo w-100" onclick="imprimirTicketOrden('${folio}', '${keyQuery}');">
+                        <i class="bi bi-printer me-1"></i> Imprimir
+                     </button>
+                  </div>
+                  <div class="col-md-6">
+                     <button type="button" class="btn btn-outline-secondary btn-redondo w-100" data-bs-dismiss="modal">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva orden
+                     </button>
+                  </div>
+               </div>
+
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminExt').html(html);
+   $('#modalOrdenRegistradaExito').modal('show');
+}
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion                    = TabRecepcion;
-window.modalPacientesEncontrados       = modalPacientesEncontrados;
+window.ModalPacientesEncontrados       = ModalPacientesEncontrados;
+window.ModalRegistrarOrden             = ModalRegistrarOrden;
+window.ModalOrdenRegistradaExito       = ModalOrdenRegistradaExito;
 
 window.paciente_seleccionado           = paciente_seleccionado;
 window.form_carga_estudios             = form_carga_estudios;
@@ -709,3 +1265,8 @@ window.agrega_estudio_carrito          = agrega_estudio_carrito;
 window.borra_estudio_carrito           = borra_estudio_carrito;
 window.pintado_carrito                 = pintado_carrito;
 window.borra_carrito_recepcion         = borra_carrito_recepcion;
+
+window.combo_descuentos_generales      = combo_descuentos_generales;
+window.registra_orden                  = registra_orden;
+window.calcularTotalDinamico           = calcularTotalDinamico;
+window.buscar_ordenes_hoy              = buscar_ordenes_hoy;

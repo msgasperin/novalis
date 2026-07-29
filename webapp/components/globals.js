@@ -198,7 +198,7 @@ const fnObtieneEdad = (dateString) => {
     anios--;
   }
 
-  edad = { anios, meses, dias };
+  let edad = { anios, meses, dias };
   return edad
 }
 

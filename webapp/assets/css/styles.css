@@ -44,6 +44,10 @@
   src: url(fuentes/inter/Inter-SemiBold.woff2) format("truetype");
 }
 
+.altura-ordenes-hoy {
+  max-height: 70vh; overflow-y: auto;
+}
+
 .separador {
   background-color:#fffbee; 
   border-left:5px solid var(--mostaza);
@@ -123,12 +127,12 @@
     min-height: 500px;
   }
 
-.info-lib {
+.info-nova {
   background-color: var(--primary);
   color: var(--negro);
 }
 
-.text-lib {
+.text-nova {
   color: var(--primary-dark);
 }
 

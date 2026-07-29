@@ -7,12 +7,12 @@
 	   	$this->conectar();
 	  	}
 
-		// ************************************************************************** CONVENIOS ********************************************************************************************
+		// *********************************************************************** CONVENIOS ******************************************************************************************
 
 		public function obtiene_convenios() {
 			try {
 				$res = [];
-				$sql = $this->dbh->prepare("SELECT id_convenio, razon_social, nombre_comercial, rfc, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, tipo FROM cat_convenios WHERE activo = 1");
+				$sql = $this->dbh->prepare("SELECT id_convenio, razon_social, nombre_comercial, rfc, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, nombre, tipo FROM cat_convenios AS C INNER JOIN cat_listas_precios AS P ON C.lista_precio_id = P.id WHERE C.activo = 1");
 				$sql->execute();
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);				
 			} catch (Exception $error) {

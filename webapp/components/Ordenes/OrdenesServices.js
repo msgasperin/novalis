@@ -5,6 +5,15 @@ export const obtiene_estudios_recepcion = async (tipoSolicitante, idListaPrecio)
    return await postJSON('../api/controller/ordenes.php', datos);
 }
 
+export const obtiene_ordenes_hoy = async () => {
+   const datos = { func: 'obtiene_ordenes_hoy' };
+   return await postJSON('../api/controller/ordenes.php', datos);
+}
+
+export const registrar_orden = async (objOrden) => {
+   return await postJSON('../api/controller/ordenes.php', objOrden);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CARRITO DE ESTUDIOS EN RECEPCIÓN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 export const agregar_estudio_carrito = async (idEstudio) => {
    const datos = { func: 'agregar_estudio_carrito', idEstudio };
