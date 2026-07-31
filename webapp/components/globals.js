@@ -1,3 +1,17 @@
+const comboMeses = `
+<option value="1">Enero</option>
+<option value="2">Febrero</option>
+<option value="3">Marzo</option>
+<option value="4">Abril</option>
+<option value="5">Mayo</option>
+<option value="6">Junio</option>
+<option value="7">Julio</option>
+<option value="8">Agosto</option>
+<option value="9">Septiembre</option>
+<option value="10">Octubre</option>
+<option value="11">Noviembre</option>
+<option value="12">Diciembre</option>`;
+
 const arrayMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const hoy = new Date();
@@ -59,9 +73,9 @@ export const manejarErrorRequest = (error) => {
     // Sin internet
     if (!navigator.onLine) {
       return {
-          estatus: 0,
-          mensaje: "No tienes conexión a internet.",
-          data: []
+        estatus: 0,
+        mensaje: "No tienes conexión a internet.",
+        data: []
       };
     }
 
@@ -515,5 +529,6 @@ window.reducirImagen           = reducirImagen;
 window.formatoMoneda           = formatoMoneda;
 window.iniciales               = iniciales;
 window.quitarAcentos           = quitarAcentos;
+window.comboMeses              = comboMeses;
 
 

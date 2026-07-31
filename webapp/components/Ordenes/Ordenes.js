@@ -1,13 +1,14 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy } from "./OrdenesServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado } from "./OrdenesServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
 
-let arrOrdenesHoy        = [];
-let arrEstudios          = [];
-let arrPacientesBusqueda = [];
-let comboConvenios       = '';
-let comboDescuentos      = '';
+let arrOrdenesBusAvanzada = [];
+let arrOrdenesHoy         = [];
+let arrEstudios           = [];
+let arrPacientesBusqueda  = [];
+let comboConvenios        = '';
+let comboDescuentos       = '';
 let pacienteOrden;
 
 const TabRecepcion = () => {
@@ -66,13 +67,11 @@ const TabRecepcion = () => {
          <div class="card">
             <div class="card-body">
                <div class="row">
-                  <div class="col-12">
-                     <h5>Búsqueda de ordenes</h5>
-                  </div>
                   <div class="col-12 mt-2">
-                     <div class="input-group mb-3">
-                        <input type="date" class="form-control" name="busOrdFecha" id="busOrdFecha" placeholder="Buscar ordenes...">
-                        <button class="btn btn-dark btn-lib" type="button" id="button-addon2"><i class="bi bi-search"></i></button>
+                     <div class="d-grid gap-2">
+                        <button class="btn btn-dark btn-lib btn-redondo" type="button" onclick="ModalBuscarOrdenes();">
+                           <i class="bi bi-search"></i> Búsqueda ordenes
+                        </button>
                      </div>
                   </div>
                   <div class="col-12 mt-2">
@@ -81,7 +80,7 @@ const TabRecepcion = () => {
                            <span class="fs-6 fw-bold text-secondary text-uppercase tracking-wider">Órdenes del Día</span>
                         </div>
                         <div class="col-4 text-end">
-                           <span class="badge bg-primary rounded-pill"><span id="totalHoy"></span></span>
+                           <span class="badge bg-primary rounded-pill"><span id="totalHoy">0</span></span>
                         </div>
                      </div>
 
@@ -124,7 +123,19 @@ const obtener_ordenes_hoy = async (containerId) => {
       return;
    }
    else if(respuesta.data.length == 0) {
-      $('#'+containerId).html('No hay ordenes registradas el día de hoy');
+      $('#' + containerId).html(`
+         <div class="card border-0 shadow-sm mb-2 text-center">
+            <div class="card-body p-4">
+                  <div class="row align-items-center">
+                     <div class="col-12">
+                        <i class="bi bi-inbox text-muted display-6 d-block mb-2"></i>
+                        <h6 class="card-title text-dark fw-bold mb-1">Sin órdenes registradas</h6>
+                        <span class="text-muted small">No hay órdenes registradas el día de hoy.</span>
+                     </div>
+                  </div>
+            </div>
+         </div>
+      `);
       return;
    }
    else {
@@ -1228,7 +1239,7 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
                <!-- ACCIONES PRINCIPALES (GRID BS5) -->
                <div class="row g-2">
                   <div class="col-md-6">
-                     <button type="button" class="btn btn-primary btn-redondo w-100" onclick="imprimirTicketOrden('${folio}', '${keyQuery}');">
+                     <button type="button" class="btn btn-dark btn-lib btn-redondo w-100" onclick="imprimirTicketOrden('${folio}', '${keyQuery}');">
                         <i class="bi bi-printer me-1"></i> Imprimir
                      </button>
                   </div>
@@ -1248,11 +1259,330 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
    $('#modalOrdenRegistradaExito').modal('show');
 }
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ BÚSQUEDA AVANZADA DE ORDENES +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const ModalBuscarOrdenes = () => {
+   let html = `
+   <div class="modal fade modal-superior-blur" id="ModalBuscarOrdenes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content sombra-modal border-0">
+            
+            <!-- Encabezado sutil -->
+            <div class="modal-header border-0 pb-0">
+               <h5 class="modal-title d-flex align-items-center gap-2">
+                  <i class="bi bi-search text-primary-emphasis fs-4"></i>
+                  <span>Búsqueda de Órdenes</span>
+               </h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body py-3">
+               
+               <!-- Contenedor de Filtros -->
+               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
+                  <div class="row g-2 align-items-end">
+                     
+                     <!-- Criterio principal -->
+                     <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Buscar por</label>
+                        <select class="form-select form-select-sm" id="filtro_criterio" onchange="cambiarTipoFiltro(this.value)">
+                           <option value="folio">Folio de Orden</option>
+                           <option value="paciente" selected>Paciente / Nombre</option>
+                           <option value="fecha">Día específico</option>
+                           <option value="mes">Mes completo</option>
+                           <option value="convenio">Convenio / Empresa</option>
+                        </select>
+                     </div>
+
+                     <!-- Campo dinámico de entrada (Input de texto / Fecha / Mes) -->
+                     <div class="col-12 col-md-5" id="col_campo_busqueda">
+                        <label class="form-label small fw-semibold text-muted mb-1" id="label_busqueda">Nombre del Paciente</label>
+                        <div class="input-group input-group-sm">
+                           <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+                           <input type="text" class="form-control" id="input_parametro_busqueda" placeholder="Escribe para buscar..." autocomplete="off">
+                        </div>
+                     </div>
+
+                     <!-- Estatus (Opcional para acotar) -->
+                     <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold text-muted mb-1">Estatus</label>
+                        <select class="form-select form-select-sm" id="filtro_estatus">
+                           <option value="TODOS">Todos</option>
+                           <option value="RECEPCION">Recepción</option>
+                           <option value="LABORATORIO">Laboratorio</option>
+                           <option value="COMPLETADA">Completada</option>
+                           <option value="ENTREGADA">Entregada</option>
+                           <option value="CANCELADA">Cancelada</option>
+                        </select>
+                     </div>
+
+                  </div>
+
+                  <!-- Botón de acción -->
+                  <div class="row mt-3">
+                     <div class="col-12 text-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-redondo px-3 me-1" onclick="limpiar_busqueda_avanzada()">
+                           <i class="bi bi-eraser me-1"></i> Limpiar
+                        </button>
+                        <button type="button" class="btn btn-dark btn-lib btn-sm btn-redondo px-4" onclick="busqueda_avanzada_ordenes('contenedor_resultados_busqueda')">
+                           <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Area de Resultados -->
+               <div id="contenedor_resultados_busqueda">
+                  <div class="text-center py-4 text-muted">
+                     <i class="bi bi-receipt-cutoff fs-2 d-block mb-2 text-secondary"></i>
+                     <span class="small">Ingresa un criterio de búsqueda para mostrar los resultados.</span>
+                  </div>
+               </div>
+
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-3" data-bs-dismiss="modal">
+                  Cerrar
+               </button>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#ModalBuscarOrdenes').modal('show');
+};
+
+const cambiarTipoFiltro = (tipo) => {
+   const col = $('#col_campo_busqueda');
+   let label = 'Parámetro';
+   let inputHtml = '';
+
+   switch (tipo) {
+      case 'folio':
+         label = 'Número de Folio';
+         inputHtml = `
+            <div class="input-group input-group-sm">
+               <span class="input-group-text bg-white"><i class="bi bi-hash text-muted"></i></span>
+               <input type="text" class="form-control" id="inputParametroBusqueda" placeholder="Ej. O-26-1-23" autocomplete="off">
+            </div>`;
+         break;
+
+      case 'paciente':
+         label = 'Nombre del Paciente';
+         inputHtml = `
+            <div class="input-group input-group-sm">
+               <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+               <input type="text" class="form-control" id="inputParametroBusqueda" placeholder="Escribe el nombre..." autocomplete="off">
+            </div>`;
+         break;
+
+      case 'fecha':
+         label = 'Selecciona el Día';
+         inputHtml = `
+            <div class="input-group input-group-sm">
+               <span class="input-group-text bg-white"><i class="bi bi-calendar-event text-muted"></i></span>
+               <input type="date" class="form-control" id="inputParametroBusqueda">
+            </div>`;
+         break;
+
+      case 'mes':
+         label = 'Selecciona el Mes';
+         inputHtml = `
+            <div class="input-group input-group-sm">
+               <span class="input-group-text bg-white"><i class="bi bi-calendar3 text-muted"></i></span>
+               <select name="inputParametroBusqueda" id="inputParametroBusqueda" class="form-select form-select-sm">
+                  <option value="00">Selecciona un mes</option>
+                  ${comboMeses}
+               </select>
+            </div>`;
+         break;
+
+      case 'convenio':
+         label = 'Nombre del Convenio';
+         inputHtml = `
+            <div class="input-group input-group-sm">
+               <span class="input-group-text bg-white"><i class="bi bi-building text-muted"></i></span>
+               <select name="inputParametroBusqueda" id="inputParametroBusqueda" class="form-select form-select-sm">
+                  <option value="00">Selecciona un mes</option>
+                  ${comboConvenios}
+               </select>
+            </div>`;
+
+            combo_listas_convenios('inputParametroBusqueda');
+         break;
+   }
+
+   col.html(`<label class="form-label small fw-semibold text-muted mb-1">${label}</label>${inputHtml}`);
+};
+
+const busqueda_avanzada_ordenes = async (containerId) => {
+
+   let filtroCriterio    = $('#filtro_criterio').val();
+   let parametroBusqueda = $('#inputParametroBusqueda').val();
+   let filtroEstatus     = $('#filtro_estatus').val();
+
+   if(filtroCriterio == 'folio' || filtroCriterio == 'fecha' || filtroCriterio == 'paciente') {
+      if(parametroBusqueda == '') {
+         ToastColor.fire({
+            text: '¡Atención! Debes ingresar el valor de búsqueda',
+            icon: 'warning'
+         });
+         $('#parametroBusqueda').focus();
+         return;
+      }
+   }
+   else if(filtroCriterio == 'mes' || filtroCriterio == 'convenio') {
+      if(parseInt(parametroBusqueda) == 0) {
+         ToastColor.fire({
+            text: '¡Atención! Debes seleccionar el valor de búsqueda',
+            icon: 'warning'
+         });
+         $('#parametroBusqueda').focus();
+         return;
+      }
+   }
+   else {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar un parámetro de búsqueda',
+         icon: 'warning'
+      });
+      $('#filtro_criterio').focus();
+   }
+
+   $('#'+containerId).html('<div class="text-center mt-5"><span class="loader_bar_2"></span><div class="text-secondary fs-7">Cargando...</div></div>');
+   
+   let respuesta = await buscar_ordenes_avanzado(filtroCriterio, parametroBusqueda, filtroEstatus);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('#'+containerId).html(`
+         <div class="text-center py-4 text-muted">
+            <i class="bi bi-receipt-cutoff fs-2 d-block mb-2 text-secondary"></i>
+            <span class="small">Ingresa un criterio de búsqueda para mostrar los resultados.</span>
+         </div>`);
+      return;
+   }
+   else if(respuesta.data.length == 0) {
+      $('#' + containerId).html(`
+         <div class="card border-0 shadow-sm mb-2 text-center">
+            <div class="card-body p-4">
+               <div class="row align-items-center">
+                  <div class="col-12">
+                     <i class="bi bi-inbox text-muted display-6 d-block mb-2"></i>
+                     <h6 class="card-title text-dark fw-bold mb-1">Sin órdenes registradas</h6>
+                     <span class="text-muted small">No se encontraron órdenes registradas con el parámetro de búsqueda enviado.</span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      `);
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      arrOrdenesBusAvanzada = res;
+      pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, containerId);
+   }
+}
+
+const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
+   
+   // Función auxiliar para badge de estatus con los estilos del proyecto
+   const getBadgeEstatus = (estatus) => {
+      let bgClass = 'bg-secondary';
+      switch ((estatus || '').toUpperCase()) {
+         case 'RECEPCION': bgClass = 'bg-info text-dark'; break;
+         case 'LABORATORIO': bgClass = 'bg-warning text-dark'; break;
+         case 'COMPLETADA': bgClass = 'bg-success'; break;
+         case 'ENTREGADA': bgClass = 'bg-primary'; break;
+         case 'CANCELADA': bgClass = 'bg-danger'; break;
+      }
+      return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
+   };
+
+   let html = 
+   `<div class="table-responsive rounded-3 border shadow-sm">
+      <table class="table table-hover align-middle mb-0 dataTable" id="tableBusquedaAvanzada">
+         <thead class="table-dark text-uppercase small">
+            <tr>
+               <th width="8%" class="text-center py-2">Folio</th>
+               <th width="32%" class="py-2">Paciente</th>
+               <th width="28%" class="text-center py-2">Cliente / Convenio</th>
+               <th width="14%" class="text-center py-2">Fecha / Hora</th>
+               <th width="10%" class="text-center py-2">Estatus</th>
+               <th width="8%" class="text-center py-2">Acciones</th>
+            </tr>
+         </thead>
+         <tbody>`;
+         
+         data.map(row => {
+            html +=
+            `<tr id="trBusqueda${row.folio}">
+               <td class="text-center font-monospace fw-bold text-primary-emphasis">
+                  #${row.folio}
+               </td>
+               <td>
+                  <div class="fw-semibold text-dark">${row.paciente_nombre_historico || 'Sin nombre'}</div>
+               </td>
+               <td class="text-center">
+                  <span class="d-block fw-semibold text-secondary small text-uppercase">${row.tipo_cliente ?? ''}</span>
+                  <span class="d-block text-muted small">${row.convenio_nombre_historico ?? '-'}</span>
+               </td>
+               <td class="text-start small text-muted">
+                  <i class="bi bi-calendar3 me-1 opacity-50"></i>${row.fecha_registro ?? ''}
+                  ${row.hora_registro ? `<br><i class="bi bi-clock me-1 opacity-50"></i><span class="extra-small">${row.hora_registro}</span>` : ''}
+               </td>
+               <td class="text-center">
+                  ${getBadgeEstatus(row.estatus)}
+               </td>
+               <td class="text-center">
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-redondo px-2" title="Editar paciente" onclick="editar_paciente_orden('${row.folio}')">
+                     <i class="bi bi-pencil"></i>
+                  </button>
+               </td>
+            </tr>`;
+         });
+         
+         html +=
+         `</tbody>
+      </table>
+   </div>`;
+   
+   $('#'+containerId).html(html);
+
+   setTimeout(() => {
+      new DataTable('#tableBusquedaAvanzada', {   
+         language: {
+            url: "assets/lib/DataTables/es-ES.json",
+         },
+         responsive: true,
+         order: [[0, 'desc']] // Se suele ordenar por ID/Folio descendente en búsquedas
+      });
+   }, 200);
+}
+
+const limpiar_busqueda_avanzada = () => {
+   $('#filtro_criterio').val('paciente');
+   $('#filtro_criterio').change();
+   $('#filtro_estatus').val('TODOS');
+   $('#contenedor_resultados_busqueda').html(`
+      <div class="text-center py-4 text-muted">
+         <i class="bi bi-receipt-cutoff fs-2 d-block mb-2 text-secondary"></i>
+         <span class="small">Ingresa un criterio de búsqueda para mostrar los resultados.</span>
+      </div>`);
+}
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion                    = TabRecepcion;
 window.ModalPacientesEncontrados       = ModalPacientesEncontrados;
 window.ModalRegistrarOrden             = ModalRegistrarOrden;
 window.ModalOrdenRegistradaExito       = ModalOrdenRegistradaExito;
+window.ModalBuscarOrdenes              = ModalBuscarOrdenes;
 
 window.paciente_seleccionado           = paciente_seleccionado;
 window.form_carga_estudios             = form_carga_estudios;
@@ -1270,3 +1600,7 @@ window.combo_descuentos_generales      = combo_descuentos_generales;
 window.registra_orden                  = registra_orden;
 window.calcularTotalDinamico           = calcularTotalDinamico;
 window.buscar_ordenes_hoy              = buscar_ordenes_hoy;
+
+window.cambiarTipoFiltro               = cambiarTipoFiltro;
+window.busqueda_avanzada_ordenes       = busqueda_avanzada_ordenes;
+window.limpiar_busqueda_avanzada       = limpiar_busqueda_avanzada;

@@ -10,6 +10,11 @@ export const obtiene_ordenes_hoy = async () => {
    return await postJSON('../api/controller/ordenes.php', datos);
 }
 
+export const buscar_ordenes_avanzado = async (filtro, parametro, estatus) => {
+   const datos = { func: 'busqueda_avanzada_ordenes', filtro, parametro, estatus };
+   return await postJSON('../api/controller/ordenes.php', datos);
+}
+
 export const registrar_orden = async (objOrden) => {
    return await postJSON('../api/controller/ordenes.php', objOrden);
 }

@@ -26,6 +26,11 @@
           echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
         break;
 
+        case 'busqueda_avanzada_ordenes':
+          $res = $v->busqueda_avanzada_ordenes($_SESSION["id_sucursal"], $_POST["filtro"], $_POST["parametro"], $_POST["estatus"]);
+          echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+        break;
+
         case 'agregar_estudio_carrito':
           $estudio = $_SESSION["estudios_orden"][$_POST["idEstudio"]] ?? null;
 
