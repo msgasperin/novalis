@@ -150,6 +150,8 @@ const reducirImagen = (file, maxWidth = 1200, quality = 0.7) => {
 
 }
 
+const fmtMoney = (val) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parseFloat(val || 0));
+
 const fnFailPeticion = (err = '') => {
   ToastColor.fire({
     text: '¡Hubo un problema, recarga la página e inténtalo de nuevo!' + err,
@@ -530,5 +532,6 @@ window.formatoMoneda           = formatoMoneda;
 window.iniciales               = iniciales;
 window.quitarAcentos           = quitarAcentos;
 window.comboMeses              = comboMeses;
+window.fmtMoney                = fmtMoney;
 
 

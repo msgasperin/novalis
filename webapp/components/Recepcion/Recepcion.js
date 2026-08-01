@@ -1,4 +1,4 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado } from "./OrdenesServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado } from "./RecepcionServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
@@ -15,7 +15,7 @@ const TabRecepcion = () => {
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2">
-         <div class="fs-4"> <i class="bi bi-clipboard-minus"></i> Recepcion</div>
+         <div class="fs-4"> <i class="bi bi-clipboard-minus"></i> Recepción</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2 text-end">
          <button class="btn btn-dark btn-lib btn-redondo fs-6" type="button" id="btnNuevoCliente" onclick="ModalFormCliente(0);">
@@ -147,7 +147,9 @@ const obtener_ordenes_hoy = async (containerId) => {
 
 const pinta_ordenes_del_dia = (data, containerId) => {
 
-   let color   = '';
+   let color     = '';
+   let colorPago = '';
+
    let cuantas = data.length;
    $('#totalHoy').html(cuantas+' hoy');
 
@@ -155,16 +157,17 @@ const pinta_ordenes_del_dia = (data, containerId) => {
    `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
       data.forEach((row, index) => {
 
-         color = (row.tipo_cliente == 'particular') ? 'success' : 'primary';
+         color     = (row.tipo_cliente == 'particular') ? 'dark' : 'primary';
+         colorPago = (row.estatus_pago == 'PAGADO') ? 'success' : (row.estatus_pago == 'PARCIAL') ? 'primary' : 'danger';
          
          html+=`      
-         <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-${color} pointer">
+         <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-${colorPago}">
             <div class="card-body p-3">
                
                <div class="row align-items-center mb-2">
-                  <div class="col-7">
-                     <span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle rounded-pill small text-uppercase">
-                        ${row.tipo_cliente}
+                  <div class="col-7 pointer">
+                     <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase">
+                        <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
                      </span>
                   </div>
                   <div class="col-5 text-end">
@@ -179,6 +182,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                      <h6 class="card-title text-dark fw-bold mb-1 text-truncate">
                         ${row.paciente_nombre_historico}
                      </h6>
+                     <span class="text-muted small text-uppercase">${row.tipo_cliente ?? ''}</span><br>
                      <span class="text-muted small">${row.convenio_nombre_historico ?? ''}</span>
                   </div>
                </div>
@@ -188,6 +192,9 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                      <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
                   </div>
                   <div class="col-6 text-end">
+                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir ticket">
+                        <i class="bi bi-ticket-detailed text-dark fs-7"></i>
+                     </a>
                      <span class="badge bg-light text-dark border small">${row.estatus}</span>
                   </div>
                </div>
@@ -292,8 +299,7 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
             <p class="mb-3">
                No se encontraron pacientes que coincidan con "<strong>${parametroBusqueda}</strong>"
             </p>
-            <button type="button" 
-                  class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
+            <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
                <i class="bi bi-person-plus-fill me-1"></i> Registrar como nuevo paciente
             </button>
          </td>
@@ -302,10 +308,10 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
    
       listaPacientes.forEach((paciente, index) => {
          // Sanitizamos nombres para evitar problemas con comillas en el onclick
-         const nombreCompleto = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
-         const nombreEscapado = nombreCompleto.replace(/'/g, "\\'");
+         const nombreCompleto    = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
+         const nombreEscapado    = nombreCompleto.replace(/'/g, "\\'");
          const apPaternoEscapado = paciente.apellido_paterno.replace(/'/g, "\\'");
-         const nomEscapado = paciente.nombre.replace(/'/g, "\\'");
+         const nomEscapado       = paciente.nombre.replace(/'/g, "\\'");
 
          filasPacientes += `
          <tr class="align-middle">
@@ -348,10 +354,22 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
             </div>
 
             <div class="modal-body py-3">
-               <p class="text-muted small mb-3">
-                  Resultados para la búsqueda: <mark class="px-2 py-0.5 rounded text-dark bg-info bg-opacity-25">"${parametroBusqueda}"</mark>
-               </p>
-               
+               <div class="row">
+                  <div class="col-12 col-sm-8 mb-3">
+                     <p class="text-muted small">
+                        Resultados para la búsqueda: <mark class="px-2 py-0.5 rounded text-dark bg-info bg-opacity-25">"${parametroBusqueda}"</mark>
+                     </p>
+                  </div>
+                  <div class="col-12 col-sm-4 text-end mb-3">`
+                     if(listaPacientes.length > 0) {
+                        html+=`
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
+                           <i class="bi bi-person-plus-fill me-1"></i> Registrar nuevo paciente
+                        </button>`;
+                     }
+                     html+=`
+                  </div>
+               </div>               
                <div class="table-responsive">
                   <table class="table table-hover align-middle mb-0">
                      <thead class="table-light sticky-top">
@@ -402,10 +420,14 @@ const paciente_seleccionado = (idPaciente, paciente, origen) => {
                   ${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno}
                </h5>
             </div>
-            <div class="col-md-4 text-md-end">
-               <span class="badge bg-light text-dark border fw-semibold fs-7 px-2 py-1">
-                  ${paciente.correo || '<em class="text-muted-light">Sin correo</em>'}
-               </span>
+            <div class="col-md-4 text-md-end">               
+               <div class="badge bg-light text-dark border fw-semibold fs-7 px-2 py-1">
+                  <i class="bi bi-at"></i> ${paciente.correo || '<em class="text-muted-light">Sin correo</em>'}
+               </div>
+               <br>               
+               <div class="badge bg-light text-dark border fw-semibold fs-7 px-2 py-1">
+                  <i class="bi bi-telephone-forward"></i> ${paciente.telefono || '<em class="text-muted-light">Sin Teléfono</em>'}
+               </div>
             </div>
          </div>
 
@@ -634,7 +656,7 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
 const pintado_carrito = (data, containerId) => {
 
    let html         = '';
-   let descuento    = '';
+   let labelDesc    = '';
    let totalSinDesc = 0;
    let totalConDesc = 0;
    let total        = 0;
@@ -642,8 +664,18 @@ const pintado_carrito = (data, containerId) => {
    if (data && Object.keys(data).length > 0) {
       Object.values(data).forEach(row => {
 
-         row.aplica_desc == 'SI' ? totalConDesc += parseFloat(row.precio || 0) : totalSinDesc += parseFloat(row.precio || 0);
+         labelDesc = '';
+
+         if(row.aplica_desc == 'SI') {
+            totalConDesc += parseFloat(row.precio || 0) 
+            labelDesc = '<div class="small text-muted fst-italic"><i class="bi bi-tag me-1"></i>Aplica descuento</div>';
+         }
+         else {
+            totalSinDesc += parseFloat(row.precio || 0);
+         }
+
          total+= row.precio;
+
          
          html += 
          `<div class="card mb-2 rounded-2 border-0 shadow-sm validaHayCarrito" id="cardEstudioCarrito${row.id}">
@@ -653,6 +685,7 @@ const pintado_carrito = (data, containerId) => {
                      <h6 class="fw-bold mb-1 text-primary-emphasis">${row.nom_estudio ?? ''}</h6>
                      <div class="small text-secondary lh-sm mb-1">${row.descripcion_estudio ?? ''}</div>
                      ${row.indicaciones_toma ? `<div class="small text-muted fst-italic"><i class="bi bi-info-circle me-1"></i>${row.indicaciones_toma}</div>` : ''}
+                     ${labelDesc}
                   </div>
                   
                   <div class="col-6 col-md-3 col-lg-2 text-start text-md-center">
@@ -798,7 +831,7 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                <div class="p-3 bg-light rounded border mb-4">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                      <span class="text-muted small">Subtotal estudios:</span>
-                     <span class="fw-semibold small" id="lblSubtotalOrden">$${total.toFixed(2)}</span>
+                     <span class="fw-semibold small" id="lblSubtotalOrden">$${total.toFixed(2)}</span>                     
                   </div>
 
                   <!-- Línea de Descuento -->
@@ -915,12 +948,12 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                               <div class="col-md-8">
                                  <label for="metodoPagoOrden" class="form-label fw-semibold small text-secondary">Método de pago del abono</label>
                                  <select name="metodoPagoOrden" id="metodoPagoOrden" class="form-select">
-                                    <option value="0" selected>Selecciona un método de pago</option>
-                                    <option value="1">Efectivo</option>
-                                    <option value="2">Tarjeta de Débito</option>
-                                    <option value="3">Tarjeta de Crédito</option>
-                                    <option value="4">Transferencia (SPEI)</option>
-                                    <option value="5">Cheque</option>
+                                    <option value="NA" selected>Selecciona un método de pago</option>
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="TARJETA DE DEBITO">Tarjeta de Débito</option>
+                                    <option value="TARJETA DE CREDITO">Tarjeta de Crédito</option>
+                                    <option value="TRANSFERENCIA">Transferencia (SPEI)</option>
+                                    <option value="CHEQUE">Cheque</option>
                                  </select>
                               </div>
                            </div>
@@ -953,13 +986,13 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
    }, 200);
 }
 
-const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
+const calcularTotalDinamico_old = (total, totalConDesc, totalSinDesc) => {
    
    let montoDescuento         = 0;
    let subTotalMenosDescuento = total;
    
    // 1. Obtenemos el subtotal base
-   let subtotalBase = parseFloat($('#lblSubtotalOrden').text().replace('$', '').trim()) || 0;
+   let subtotalBase = parseFloat($('#lblTotalConDescuento').text().replace('$', '').trim()) || 0;   
 
    // 2. Obtener datos del Descuento seleccionado
    let selectDescuento = $('#descuentoGeneralOrden option:selected');
@@ -1030,6 +1063,85 @@ const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
    }
 
    $('#montoDescuentoOrden').val(montoDescuento);
+}
+
+const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
+    
+    let montoDescuento = 0;
+    
+    // 1. Usamos los parámetros que ya recibe la función (o fallback al DOM si no vienen)
+    let baseAplicableDescuento = parseFloat(totalConDesc) || 0;
+    let baseSinDescuento       = parseFloat(totalSinDesc) || 0;
+    let subtotalGeneral        = parseFloat(total) || (baseAplicableDescuento + baseSinDescuento);
+
+    // 2. Obtener datos del Descuento seleccionado
+    let selectDescuento = $('#descuentoGeneralOrden option:selected');
+    let idDescuento     = parseFloat(selectDescuento.val()) || 0;
+    let porcentajeDesc  = selectDescuento.data('descuento') || 0;
+    let nombreDescuento = selectDescuento.text().trim();
+
+    // 3. Obtener datos del Cargo Extra
+    let cargoExtra  = parseFloat($('#cargoExtraOrden').val()) || 0;
+    let motivoCargo = $('#motivoCargoExtraOrden').val().trim();
+
+    // 4. Cálculo de descuento ÚNICAMENTE sobre los productos/estudios permitidos (totalConDesc)
+    if (porcentajeDesc > 0 && baseAplicableDescuento > 0) {
+        montoDescuento = Math.round((baseAplicableDescuento * parseFloat(porcentajeDesc)) / 100);
+    }
+
+    // 5. Actualizar vista: Descuento
+    if (montoDescuento > 0) {
+        $('#lblTextoDescuento').html(`<i class="bi bi-tag-fill me-1"></i> Descuento ${nombreDescuento}:`);
+        $('#lblMontoDescuento').text(`-$${montoDescuento.toFixed(2)}`);
+        $('#rowDescuentoAplicado').removeClass('d-none');
+    } else {
+        $('#rowDescuentoAplicado').addClass('d-none');
+    }
+
+    // 6. Actualizar vista: Cargo Extra
+    if (cargoExtra > 0) {
+        let textoMotivo = motivoCargo !== '' ? ` (${motivoCargo})` : '';
+        $('#lblTextoCargoExtra').html(`<i class="bi bi-plus-circle-fill me-1"></i> Cargo extra${textoMotivo}:`);
+        $('#lblMontoCargoExtra').text(`+$${cargoExtra.toFixed(2)}`);
+        $('#rowCargoExtraAplicado').removeClass('d-none');
+    } else {
+        $('#rowCargoExtraAplicado').addClass('d-none');
+    }
+
+    // 7. Cálculo del Total Neto Final (Subtotal General - Descuento + Cargo Extra)
+    let totalNeto = (subtotalGeneral - montoDescuento) + cargoExtra;
+    if (totalNeto < 0) totalNeto = 0;
+
+    // 8. Obtener Abono ingresado
+    let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
+
+    // Si el abono excede el total neto, ajustamos al máximo posible
+    if (abonoInput > totalNeto) {
+        abonoInput = totalNeto;
+        $('#abonoOrden').val(totalNeto.toFixed(2));
+    }
+
+    // 9. Actualizar vista: Abono en el resumen
+    if (abonoInput > 0) {
+        $('#lblMontoAbonoResumen').text(`-$${abonoInput.toFixed(2)}`);
+        $('#rowAbonoAplicado').removeClass('d-none');
+    } else {
+        $('#rowAbonoAplicado').addClass('d-none');
+    }
+
+    // 10. Cálculo de Saldo Pendiente
+    let saldoPendiente = totalNeto - abonoInput;
+
+    // 11. Renderizar Total Neto, Saldo e Hidden
+    $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
+    
+    if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
+        $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
+    } else {
+        $('#lblSaldoPendienteOrden').removeClass('text-success').addClass('text-danger').text(`$${saldoPendiente.toFixed(2)}`);
+    }
+
+    $('#montoDescuentoOrden').val(montoDescuento);
 }
 
 const combo_descuentos_generales = async (containerId) => {
@@ -1144,7 +1256,7 @@ const registra_orden = async () => {
       $('#motivoCargoExtraOrden').focus();
       return;
    }
-   else if(parseInt(metodoPagoOrden) == 0) {      
+   else if(parseInt(metodoPagoOrden) == 'NA') {      
       ToastColor.fire({
          text: '¡Atención! Debes seleccionar un método de pago',
          icon: 'warning',
@@ -1239,9 +1351,9 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
                <!-- ACCIONES PRINCIPALES (GRID BS5) -->
                <div class="row g-2">
                   <div class="col-md-6">
-                     <button type="button" class="btn btn-dark btn-lib btn-redondo w-100" onclick="imprimirTicketOrden('${folio}', '${keyQuery}');">
+                     <a href="reportes/ticket?kq=${keyQuery}" target="_blank" class="btn btn-dark btn-lib btn-redondo w-100">
                         <i class="bi bi-printer me-1"></i> Imprimir
-                     </button>
+                     </a>
                   </div>
                   <div class="col-md-6">
                      <button type="button" class="btn btn-outline-secondary btn-redondo w-100" data-bs-dismiss="modal">
@@ -1299,7 +1411,7 @@ const ModalBuscarOrdenes = () => {
                         <label class="form-label small fw-semibold text-muted mb-1" id="label_busqueda">Nombre del Paciente</label>
                         <div class="input-group input-group-sm">
                            <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
-                           <input type="text" class="form-control" id="input_parametro_busqueda" placeholder="Escribe para buscar..." autocomplete="off">
+                           <input type="text" class="form-control" id="inputParametroBusqueda" placeholder="Escribe para buscar..." autocomplete="off">
                         </div>
                      </div>
 
@@ -1425,12 +1537,12 @@ const busqueda_avanzada_ordenes = async (containerId) => {
    let filtroEstatus     = $('#filtro_estatus').val();
 
    if(filtroCriterio == 'folio' || filtroCriterio == 'fecha' || filtroCriterio == 'paciente') {
-      if(parametroBusqueda == '') {
+      if(parametroBusqueda.length < 3) {
          ToastColor.fire({
-            text: '¡Atención! Debes ingresar el valor de búsqueda',
+            text: '¡Atención! Debes ingresar el valor de búsqueda, mayor a 3 caracteres',
             icon: 'warning'
          });
-         $('#parametroBusqueda').focus();
+         $('#inputParametroBusqueda').focus();
          return;
       }
    }
@@ -1440,7 +1552,7 @@ const busqueda_avanzada_ordenes = async (containerId) => {
             text: '¡Atención! Debes seleccionar el valor de búsqueda',
             icon: 'warning'
          });
-         $('#parametroBusqueda').focus();
+         $('#inputParametroBusqueda').focus();
          return;
       }
    }
@@ -1484,65 +1596,110 @@ const busqueda_avanzada_ordenes = async (containerId) => {
       return;
    }
    else {
-      let res = await respuesta.data;
+      let res = respuesta.data;
       arrOrdenesBusAvanzada = res;
       pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, containerId);
    }
 }
 
-const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
+const getBadgeEstatus = (estatus) => {
+   let bgClass = 'bg-secondary';
+   switch ((estatus || '').toUpperCase()) {
+      case 'RECEPCION': bgClass = 'bg-secondary text-white'; break;
+      case 'LABORATORIO': bgClass = 'bg-warning text-dark'; break;
+      case 'COMPLETADA': bgClass = 'bg-success'; break;
+      case 'ENTREGADA': bgClass = 'bg-primary'; break;
+      case 'CANCELADA': bgClass = 'bg-danger'; break;
+   }
+   return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
+};
+
+const getCeldaPago = (estatusPago, totalNeto, totalAbonado, saldoDeudor) => {
    
-   // Función auxiliar para badge de estatus con los estilos del proyecto
-   const getBadgeEstatus = (estatus) => {
-      let bgClass = 'bg-secondary';
-      switch ((estatus || '').toUpperCase()) {
-         case 'RECEPCION': bgClass = 'bg-info text-dark'; break;
-         case 'LABORATORIO': bgClass = 'bg-warning text-dark'; break;
-         case 'COMPLETADA': bgClass = 'bg-success'; break;
-         case 'ENTREGADA': bgClass = 'bg-primary'; break;
-         case 'CANCELADA': bgClass = 'bg-danger'; break;
-      }
-      return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
-   };
+   const estatusUpper = (estatusPago || 'PENDIENTE').toUpperCase();
+
+   // 1. Caso PAGADO
+   if (estatusUpper === 'PAGADO') {
+      return `
+         <span class="d-block text-success fw-bold small">
+            <i class="bi bi-check-circle-fill me-1"></i>${fmtMoney(totalNeto)}
+         </span>
+         <span class="extra-small text-muted small">Saldado</span>`;
+   }
+
+   // 2. Caso PARCIAL
+   if (estatusUpper === 'PARCIAL') {
+      return `
+         <span class="d-block text-danger fw-bold small">
+            Resta ${fmtMoney(saldoDeudor)}
+         </span>
+         <span class="extra-small text-secondary small">
+            <i class="bi bi-wallet2 me-1 opacity-50"></i>Abono: ${fmtMoney(totalAbonado)}
+         </span>`;
+   }
+
+   // 3. Caso PENDIENTE
+   return `
+      <span class="d-block text-danger fw-bold small">
+         Debe ${fmtMoney(totalNeto)}
+      </span>
+      <span class="extra-small text-muted small">
+         <i class="bi bi-exclamation-circle me-1 opacity-50"></i>Sin abono
+      </span>`;
+};
+
+const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
 
    let html = 
    `<div class="table-responsive rounded-3 border shadow-sm">
-      <table class="table table-hover align-middle mb-0 dataTable" id="tableBusquedaAvanzada">
+      <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableBusquedaAvanzada">
          <thead class="table-dark text-uppercase small">
             <tr>
-               <th width="8%" class="text-center py-2">Folio</th>
-               <th width="32%" class="py-2">Paciente</th>
-               <th width="28%" class="text-center py-2">Cliente / Convenio</th>
-               <th width="14%" class="text-center py-2">Fecha / Hora</th>
-               <th width="10%" class="text-center py-2">Estatus</th>
-               <th width="8%" class="text-center py-2">Acciones</th>
+               <th width="15%" class="text-center py-2">Orden</th>
+               <th width="35%" class="py-2">Paciente / Convenio</th>
+               <th width="15%" class="text-center py-2">Registro</th>
+               <th width="20%" class="text-center py-2">Estado Pago</th>
+               <th width="15%" class="text-center py-2">Acciones</th>
             </tr>
          </thead>
          <tbody>`;
          
-         data.map(row => {
+         data.forEach(row => {
             html +=
             `<tr id="trBusqueda${row.folio}">
-               <td class="text-center font-monospace fw-bold text-primary-emphasis">
-                  #${row.folio}
-               </td>
-               <td>
-                  <div class="fw-semibold text-dark">${row.paciente_nombre_historico || 'Sin nombre'}</div>
-               </td>
+               <!-- 1. FOLIO Y ESTATUS DE ORDEN -->
                <td class="text-center">
-                  <span class="d-block fw-semibold text-secondary small text-uppercase">${row.tipo_cliente ?? ''}</span>
-                  <span class="d-block text-muted small">${row.convenio_nombre_historico ?? '-'}</span>
-               </td>
-               <td class="text-start small text-muted">
-                  <i class="bi bi-calendar3 me-1 opacity-50"></i>${row.fecha_registro ?? ''}
-                  ${row.hora_registro ? `<br><i class="bi bi-clock me-1 opacity-50"></i><span class="extra-small">${row.hora_registro}</span>` : ''}
-               </td>
-               <td class="text-center">
+                  <span class="font-monospace fw-bold text-primary-emphasis d-block mb-1">
+                     #${row.folio}
+                  </span>
                   ${getBadgeEstatus(row.estatus)}
                </td>
+
+               <td>
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="${row.paciente_nombre_historico || ''}">
+                     ${row.paciente_nombre_historico || 'Sin nombre'}
+                  </div>
+                  <div class="extra-small text-muted lh-sm mt-1">
+                     <span class="fw-semibold text-secondary text-uppercase">${row.tipo_cliente ?? 'PARTICULAR'}</span>
+                     ${row.convenio_nombre_historico ? ` <span class="opacity-50">|</span> ${row.convenio_nombre_historico}` : ''}
+                  </div>
+               </td>
+
+               <td class="text-center small text-muted">
+                  <span class="d-block"><i class="bi bi-calendar3 me-1 opacity-50"></i>${row.fecha_registro ?? ''}</span>
+                  ${row.hora_registro ? `<span class="extra-small text-secondary"><i class="bi bi-clock me-1 opacity-50"></i>${row.hora_registro}</span>` : ''}
+               </td>
+
                <td class="text-center">
-                  <button type="button" class="btn btn-sm btn-outline-secondary btn-redondo px-2" title="Editar paciente" onclick="editar_paciente_orden('${row.folio}')">
-                     <i class="bi bi-pencil"></i>
+                  ${getCeldaPago(row.estatus_pago, row.total_neto, row.total_abonado, row.saldo_deudor)}
+               </td>
+
+               <td class="text-center">
+                  <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
+                     <i class="bi bi-ticket-detailed"></i>
+                  </a>
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalAbonosPagos('${row.folio}')">
+                     <i class="bi bi-currency-dollar"></i>
                   </button>
                </td>
             </tr>`;
@@ -1553,7 +1710,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
       </table>
    </div>`;
    
-   $('#'+containerId).html(html);
+   $('#' + containerId).html(html);
 
    setTimeout(() => {
       new DataTable('#tableBusquedaAvanzada', {   
@@ -1561,7 +1718,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
             url: "assets/lib/DataTables/es-ES.json",
          },
          responsive: true,
-         order: [[0, 'desc']] // Se suele ordenar por ID/Folio descendente en búsquedas
+         order: [[0, 'desc']]
       });
    }, 200);
 }

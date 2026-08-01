@@ -1,8 +1,8 @@
 <?php
-  require_once('../model/Ordenes.php');
+  require_once('../model/Recepcion.php');
   require_once('../model/Globales.php');
   /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-   $v = new Ordenes($bd_cliente);
+   $v = new Recepcion($bd_cliente);
    $g = new Globales($bd_cliente);
   $_POST = json_decode(file_get_contents("php://input"), true);
   
@@ -111,16 +111,19 @@
             $montoDescuento = 0;
             $porDescuento   = floatval($_POST["porDescuento"] ?? 0);
             $cargoExtra     = floatval($_POST["cargoExtraOrden"] ?? 0);
+            $totalConDesc   = 0;
 
             foreach ($_SESSION["carrito_orden"] as $item) {
               $precioItem = floatval($item["precio"]);
               $subtotal  += $precioItem;
 
               // Se aplica descuento si el porcentaje es mayor a 0 y el estudio lo permite
-              if ($porDescuento > 0 && !empty($item["aplica_desc"])) {
-                $montoDescuento += round(($precioItem * $porDescuento) / 100, 2);
+              if ($item["aplica_desc"] == 'SI') {
+                $totalConDesc += $precioItem;
               }
             }
+
+            $montoDescuento = round(($totalConDesc * $porDescuento) / 100);
 
             $total_neto = ($subtotal - $montoDescuento) + $cargoExtra;
             if ($total_neto < 0) {
@@ -136,7 +139,7 @@
             $_POST["total_neto"]      = $total_neto;
             $_POST["cargoExtra"]      = $cargoExtra;
             
-            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["nombre"], $_SESSION["id_sucursal"]);
+            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["nombre"], $_SESSION["id_sucursal"], $_SESSION["sucursal"]);
             if($res["estatus"] == 200) {
               $g->bitacora('Orden registrada con folio: '.$res["data"][1], $res["data"][0] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }

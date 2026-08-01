@@ -17,18 +17,24 @@
 
 		public function login(string $usuario, string $contrasenia) {	
 			try {
-				$sql = $this->dbh->prepare("SELECT id_usuario, id_sucursal_fk, nombre, usuario, correo, perfil FROM cat_usuarios WHERE usuario = ? AND AES_DECRYPT(contrasenia,?) = ?");
+				$sql = $this->dbh->prepare(
+               "SELECT id_usuario, id_sucursal_fk, U.nombre, usuario, correo, perfil, S.nombre AS sucursal
+               FROM cat_usuarios AS U
+               INNER JOIN cat_sucursales AS S ON U.id_sucursal_fk = S.id
+               WHERE usuario = ? AND AES_DECRYPT(contrasenia,?) = ?"
+            );
 				$sql->execute(array($usuario, $this->key, $contrasenia));
 
 				if($sql->rowCount() == 1) {
 					$row = $sql->fetch(PDO::FETCH_ASSOC);					
 					$datos = [
 						'id_usuario' 	  => $row["id_usuario"], 
-						'id_sucursal_fk' => $row["id_sucursal_fk"], 
 						'nombre'         => $row["nombre"], 
 						'usuario'        => $row["usuario"],
 						'correo'         => $row["correo"],
-                  'perfil'         => $row["perfil"]
+                  'perfil'         => $row["perfil"],
+                  'id_sucursal_fk' => $row["id_sucursal_fk"],
+                  'sucursal'       => $row["sucursal"]
 					];
 					$res = array(
 						'estatus' => 200,
