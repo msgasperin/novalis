@@ -34,3 +34,20 @@ export const borrar_estudio_carrito = async (idCarrito) => {
    const datos = { func: 'borrar_estudio_carrito', idCarrito };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE ABONOS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export const obtener_abonos_orden = async (idOrden) => {
+   const datos = { func: 'obtener_abonos_orden', idOrden };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}
+
+export const obtener_saldos_orden = async (idOrden) => {
+   const datos = { func: 'obtener_saldos_orden', idOrden };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}
+
+export const registra_abono = async (idOrden, metodoPago, monto) => {
+   const datos = { func: 'registra_abono', idOrden, metodoPago, monto };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}

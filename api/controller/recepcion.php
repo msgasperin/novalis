@@ -145,12 +145,43 @@
             }
                         
             echo json_encode($res);
+        break;       
+
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE ABONOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        case 'obtener_saldos_orden':
+          $res = $v->obtiene_saldos_orden($_POST["idOrden"]);
+          echo json_encode(["estatus" => 200, "mensaje" => "ok", "data" => $res]);
+        break;
+
+        case 'obtener_abonos_orden':
+          $res = $v->obtener_abonos_orden($_POST["idOrden"]);
+          echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+        break;       
+
+        case 'registra_abono':
+
+          if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"])) {
+            $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+            echo json_encode($res);
+            break;
+          }
+
+          $res = $v->registrar_abono($_POST["idOrden"], $_POST["monto"], $_POST["metodoPago"], $_SESSION["id_sucursal"], $_SESSION["nombre"]);
+
+          if($res["estatus"] == 200) {
+            $g->bitacora('Abono registrado con ID: '.$res["data"][0].' a la orden: ', $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+
+            $saldos = $v->obtiene_saldos_orden($_POST["idOrden"]);
+            $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $saldos];
+          }            
+          echo json_encode($res);
          break;
-       
 
         default:
           echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", "data" => []]);
         break;
+
       }
     }
     else {

@@ -25,7 +25,7 @@
 				$fecha_ini = date('Y-m-d').' 00:00:00';
 				$fecha_fin = date('Y-m-d').' 23:59:59';
 
-				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
+				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, archivo_pdf_path, total_neto, total_abonado, saldo_deudor FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
 				$sql->execute([$fecha_ini, $fecha_fin, $id_sucursal]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -47,7 +47,7 @@
 					$palabras = explode(' ', trim($parametro));
 					$term_boolean = implode('* ', $palabras) . '*';
 
-					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query FROM ordenes_trabajo WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus");
+					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path FROM ordenes_trabajo WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus");
 					$sql->execute([$id_sucursal, $term_boolean]);
 				}
 				else {
@@ -70,7 +70,7 @@
 						$condicion = '';
 					}
 
-					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query FROM ordenes_trabajo WHERE sucursal_id = ? $condicion $filtro_estatus");
+					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path FROM ordenes_trabajo WHERE sucursal_id = ? $condicion $filtro_estatus");
 					$sql->execute([$id_sucursal]);
 				}
 				
@@ -211,6 +211,59 @@
 				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 			
+			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
+			return $res;
+		}
+
+		public function obtiene_saldos_orden(int $id_orden) {
+			$res = [];
+			try {
+
+				$sql = $this->dbh->prepare("SELECT total_neto, total_abonado, saldo_deudor FROM ordenes_trabajo WHERE id = ?");
+				$sql->execute([$id_orden]);				
+				
+				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
+		public function obtener_abonos_orden(int $id_orden) {
+			$res = [];
+			try {
+
+				$sql = $this->dbh->prepare("SELECT id, monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago, '%d-%m-%Y') AS fecha_pago, DATE_FORMAT(fecha_pago, '%h:%i %p') AS hora_pago FROM orden_pagos WHERE orden_id = ? ORDER BY id DESC");
+				$sql->execute([$id_orden]);				
+				
+				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
+		public function registrar_abono(int $id_orden, float $monto, string $metodo_pago, int $sucursal, string $user_cap) {
+      	$estatus = 500;
+      	$data    = [0];
+			$mensaje = 'Error al registrar abono';
+			try {
+				$sql = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, monto, metodo_pago, referencia_pago, usuario_recibio) VALUES (?,?,?,?,?,?)");
+				$ok = $sql->execute(array($id_orden, $sucursal, $monto, $metodo_pago, 'ABONO', $user_cap));
+
+				if($ok) {
+					$idAbono = $this->dbh->lastInsertId();
+					$estatus = 200;
+					$data    = [$idAbono];
+					$mensaje = 'ok';	
+        		}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+						
 			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
 			return $res;
 		}

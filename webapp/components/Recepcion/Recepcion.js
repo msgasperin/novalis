@@ -1,4 +1,4 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado } from "./RecepcionServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden } from "./RecepcionServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
@@ -18,7 +18,7 @@ const TabRecepcion = () => {
          <div class="fs-4"> <i class="bi bi-clipboard-minus"></i> Recepción</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2 text-end">
-         <button class="btn btn-dark btn-lib btn-redondo fs-6" type="button" id="btnNuevoCliente" onclick="ModalFormCliente(0);">
+         <button class="btn btn-dark btn-lib btn-redondo fs-6" type="button" id="btnNuevaOrden" onclick="TabRecepcion();">
             <i class="bi bi-plus-lg"></i>
          </button>
       </div>
@@ -165,15 +165,18 @@ const pinta_ordenes_del_dia = (data, containerId) => {
             <div class="card-body p-3">
                
                <div class="row align-items-center mb-2">
-                  <div class="col-7 pointer">
-                     <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase">
+                  <div class="col-6">
+                     <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase pointer" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
                         <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
                      </span>
                   </div>
-                  <div class="col-5 text-end">
-                     <span class="fw-semibold text-primary small bg-light px-2 py-1 rounded">
+                  <div class="col-6 text-end">
+                     <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded">
                         #${row.folio}
                      </span>
+                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir ticket">
+                        <i class="bi bi-ticket-detailed text-primary fs-6"></i>
+                     </a>
                   </div>
                </div>
 
@@ -192,10 +195,14 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                      <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
                   </div>
                   <div class="col-6 text-end">
-                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir ticket">
-                        <i class="bi bi-ticket-detailed text-dark fs-7"></i>
-                     </a>
-                     <span class="badge bg-light text-dark border small">${row.estatus}</span>
+                     <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>`;
+                     if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {
+                        html+=`
+                        <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir resultado">
+                           <i class="bi bi-file-earmark-medical text-success fs-6"></i>
+                        </a>`;
+                     }
+                     html+=`
                   </div>
                </div>
 
@@ -986,85 +993,6 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
    }, 200);
 }
 
-const calcularTotalDinamico_old = (total, totalConDesc, totalSinDesc) => {
-   
-   let montoDescuento         = 0;
-   let subTotalMenosDescuento = total;
-   
-   // 1. Obtenemos el subtotal base
-   let subtotalBase = parseFloat($('#lblTotalConDescuento').text().replace('$', '').trim()) || 0;   
-
-   // 2. Obtener datos del Descuento seleccionado
-   let selectDescuento = $('#descuentoGeneralOrden option:selected');
-   let idDescuento     = parseFloat(selectDescuento.val()) || 0;
-   let porcentajeDesc  = selectDescuento.data('descuento') || 0;
-   let nombreDescuento = selectDescuento.text().trim();
-
-   // 3. Obtener datos del Cargo Extra
-   let cargoExtra  = parseFloat($('#cargoExtraOrden').val()) || 0;
-   let motivoCargo = $('#motivoCargoExtraOrden').val().trim();
-
-   // 4. Cálculo de descuento
-   if(porcentajeDesc > 0) {
-      montoDescuento         = Math.round((parseFloat(subtotalBase) * parseFloat(porcentajeDesc)) / 100);
-      subTotalMenosDescuento = Math.round(parseFloat(subtotalBase) - parseFloat(montoDescuento));
-   }
-
-   // 5. Actualizar vista: Descuento
-   if (montoDescuento > 0) {
-      $('#lblTextoDescuento').html(`<i class="bi bi-tag-fill me-1"></i> Descuento ${nombreDescuento}:`);
-      $('#lblMontoDescuento').text(`-$${montoDescuento.toFixed(2)}`);
-      $('#rowDescuentoAplicado').removeClass('d-none');
-   } else {
-      $('#rowDescuentoAplicado').addClass('d-none');
-   }
-
-   // 6. Actualizar vista: Cargo Extra
-   if (cargoExtra > 0) {
-      let textoMotivo = motivoCargo !== '' ? ` (${motivoCargo})` : '';
-      $('#lblTextoCargoExtra').html(`<i class="bi bi-plus-circle-fill me-1"></i> Cargo extra${textoMotivo}:`);
-      $('#lblMontoCargoExtra').text(`+$${cargoExtra.toFixed(2)}`);
-      $('#rowCargoExtraAplicado').removeClass('d-none');
-   } else {
-      $('#rowCargoExtraAplicado').addClass('d-none');
-   }
-
-   // 7. Cálculo del Total Neto Final
-   let totalNeto = (subtotalBase - montoDescuento) + cargoExtra;
-   if (totalNeto < 0) totalNeto = 0;
-
-   // 8. Obtener Abono ingresado
-   let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
-
-   // Si el abono excede el total neto (por ej. si aplicaron descuento posteriormente), ajustamos al máximo posible
-   if (abonoInput > totalNeto) {
-      abonoInput = totalNeto;
-      $('#abonoOrden').val(totalNeto.toFixed(2));
-   }
-
-   // 9. Actualizar vista: Abono en el resumen
-   if (abonoInput > 0) {
-      $('#lblMontoAbonoResumen').text(`-$${abonoInput.toFixed(2)}`);
-      $('#rowAbonoAplicado').removeClass('d-none');
-   } else {
-      $('#rowAbonoAplicado').addClass('d-none');
-   }
-
-   // 10. Cálculo de Saldo Pendiente
-   let saldoPendiente = totalNeto - abonoInput;
-
-   // 11. Renderizar Total Neto, Saldo e Hidden
-   $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
-   
-   if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
-      $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
-   } else {
-      $('#lblSaldoPendienteOrden').removeClass('text-success').addClass('text-danger').text(`$${saldoPendiente.toFixed(2)}`);
-   }
-
-   $('#montoDescuentoOrden').val(montoDescuento);
-}
-
 const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
     
     let montoDescuento = 0;
@@ -1377,16 +1305,17 @@ const ModalBuscarOrdenes = () => {
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalBuscarOrdenes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-         <div class="modal-content sombra-modal border-0">
-            
-            <!-- Encabezado sutil -->
-            <div class="modal-header border-0 pb-0">
-               <h5 class="modal-title d-flex align-items-center gap-2">
-                  <i class="bi bi-search text-primary-emphasis fs-4"></i>
-                  <span>Búsqueda de Órdenes</span>
-               </h5>
-               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+         <div class="modal-content sombra-modal border-0">            
+
+            <div class="modal-header modal-head-per">
+               <h1 class="modal-title fs-5">
+                  <i class="bi bi-search fs-4"></i>
+                  <span>Búsqueda de ordenes</span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>         
 
             <div class="modal-body py-3">
                
@@ -1698,9 +1627,16 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                   <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
                      <i class="bi bi-ticket-detailed"></i>
                   </a>
-                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalAbonosPagos('${row.folio}')">
+                  <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
                      <i class="bi bi-currency-dollar"></i>
-                  </button>
+                  </button>`
+                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {
+                     html+=`
+                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
+                        <i class="bi bi-file-earmark-medical"></i>
+                     </a>`;
+                  }
+                  html+=`
                </td>
             </tr>`;
          });
@@ -1734,12 +1670,283 @@ const limpiar_busqueda_avanzada = () => {
       </div>`);
 }
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE PAGOS  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const ModalGestionPagos = (idOrden, folio) => {
+   
+   let html = `
+   <div class="modal fade modal-superior-blur" id="ModalGestionPagos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content sombra-modal border-0">
+            
+            <div class="modal-header modal-head-per">
+               <h1 class="modal-title fs-5">
+                  <i class="bi bi-wallet2 fs-4 me-2"></i>
+                  <span>Gestión de Abonos <small class="fs-6">(Orden #${folio || '---'})</small></span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>
+
+            <div class="modal-body py-3">
+               
+               <div class="row g-2 mb-3">
+                  <div class="col-12 col-md-4">
+                     <div class="p-2 border rounded-3 bg-white text-center">
+                        <span class="d-block text-muted small fw-semibold">Total Orden</span>
+                        <span class="fw-bold fs-6 text-dark" id="lbl_total_orden"></span>
+                     </div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                     <div class="p-2 border rounded-3 bg-white text-center">
+                        <span class="d-block text-muted small fw-semibold">Total Abonado</span>
+                        <span class="fw-bold fs-6 text-success" id="lbl_total_abonado"></span>
+                     </div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                     <div class="p-2 border rounded-3 bg-light text-center border-warning">
+                        <span class="d-block text-muted small fw-semibold">Saldo Pendiente</span>
+                        <span class="fw-bold fs-6 text-danger" id="lbl_saldo_pendiente"></span>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
+                  <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase">
+                     <i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Abono
+                  </h6>
+                  <div class="row g-2 align-items-end">
+                     
+                     <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold text-muted mb-1">Monto a abonar</label>
+                        <div class="input-group input-group-sm">
+                           <span class="input-group-text bg-white"><i class="bi bi-currency-dollar text-muted"></i></span>
+                           <input type="number" inputmode="numeric" step="0.01" min="0.1" class="form-control" id="abono_monto" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" onpaste="return false;">
+                        </div>
+                     </div>
+
+                     <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold text-muted mb-1">Método de Pago</label>
+                        <select class="form-select form-select-sm" id="abono_metodo" required>
+                           <option value="NA" selected>Selecciona un método de pago</option>
+                           <option value="EFECTIVO">Efectivo</option>
+                           <option value="TARJETA DE DEBITO">Tarjeta de Débito</option>
+                           <option value="TARJETA DE CREDITO">Tarjeta de Crédito</option>
+                           <option value="TRANSFERENCIA">Transferencia (SPEI)</option>
+                           <option value="CHEQUE">Cheque</option>
+                        </select>
+                     </div>
+
+                     <div class="col-12 col-md-2 text-end">
+                        <button type="button" class="btn btn-dark btn-lib btn-sm btn-redondo w-100" id="btnRegistraAbono" onclick="registrar_abono(${idOrden});">
+                           <i class="bi bi-check-lg me-1"></i> Abonar
+                        </button>
+                     </div>
+
+                  </div>
+               </div>
+
+               <div class="row mt-4">
+                  <div class="col-12 text-center">
+                     <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase">Historial de Pagos</h6>
+                  </div>
+                  <div class="col-12">
+                     <div id="container_abonos_orden"></div>
+                  </div>
+               </div>
+
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+               <div class="row w-100">
+                  <div class="col-12 text-end">
+                     <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
+                        Cerrar
+                     </button>
+                  </div>
+               </div>
+            </div>
+            <input type="hidden" id="totNetoOrdenAbono">
+            <input type="hidden" id="totAbonadoOrdenAbono">
+            <input type="hidden" id="DeudaOrdenAbono">
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminExt').html(html);
+   $('#ModalGestionPagos').modal('show');
+
+   setTimeout(() => {
+      obtiene_abonos_orden('container_abonos_orden', idOrden);
+      obtiene_saldos_orden(idOrden, 'lbl_total_orden', 'lbl_total_abonado', 'lbl_saldo_pendiente');
+   }, 200);
+}
+
+const obtiene_saldos_orden = async (idOrden, lblTotal, lblAbonado, lblDeuda) => {
+   
+   let respuesta = await obtener_saldos_orden(idOrden);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else if(respuesta.data.length == 0) {
+      $('#'+lblTotal).html(0);
+      $('#'+lblAbonado).html(0);
+      $('#'+lblDeuda).html(0);
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      $('#'+lblTotal).html('$'+res[0].total_neto);
+      $('#'+lblAbonado).html('$'+res[0].total_abonado);
+      $('#'+lblDeuda).html('$'+res[0].saldo_deudor);
+      $('#totNetoOrdenAbono').val(res[0].total_neto);
+      $('#totAbonadoOrdenAbono').val(res[0].total_abonado);
+      $('#DeudaOrdenAbono').val(res[0].saldo_deudor);
+   }
+}
+
+const obtiene_abonos_orden = async (containerId, idOrden) => {
+
+   $('#'+containerId).html('<div class="text-center mt-5"><span class="loader_bar_2"></span><div class="text-secondary fs-7">Cargando...</div></div>');
+   
+   let respuesta = await obtener_abonos_orden(idOrden);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else if(respuesta.data.length == 0) {
+      $('#' + containerId).html(`
+         <div class="card border-0 shadow-sm mb-2 text-center">
+            <div class="card-body p-4">
+               <div class="row align-items-center">
+                  <div class="col-12">
+                     <i class="bi bi-inbox text-muted display-6 d-block mb-2"></i>
+                     <h6 class="card-title text-dark fw-bold mb-1">Sin abonos registrados</h6>
+                     <span class="text-muted small">No hay abonos registrados para la orden seleccionada.</span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      `);
+      return;
+   }
+   else {
+      let res = await respuesta.data;
+      pinta_abonos_orden(res, containerId, idOrden);
+   }
+}
+
+const pinta_abonos_orden = (data, containerId, idOrden) => {
+
+   let html = 
+   `<div class="table-responsive" id="contenedor_tabla_abonos">
+      <table class="table table-sm table-hover align-middle mb-0">
+         <thead class="table-light">
+            <tr>
+               <th width="25%">Fecha</th>
+               <th width="25%">Método</th>
+               <th width="25%" class="text-end">Monto</th>
+               <th width="25%" class="text-center">Acción</th>
+            </tr>
+         </thead>
+         <tbody id="tbody_historial_abonos">`;
+            data.forEach((row, index) => {         
+               html+=`
+               <tr>
+                  <td><i class="bi bi-clock me-1 text-muted"></i>${row.fecha_pago} ${row.hora_pago}</td>
+                  <td><span class="badge bg-secondary-subtle text-dark border">${row.metodo_pago}</span></td>
+                  <td class="text-end fw-semibold">$${row.monto}</td>
+                  <td class="text-center">
+                     <button type="button" class="btn btn-outline-danger btn-sm btn-redondo btn-sm" title="Eliminar abono" onclick="eliminar_abono(${row.id}, '${idOrden}')">
+                        <i class="bi bi-trash fs-6"></i>
+                     </button>
+                  </td>
+               </tr>`;
+            });
+            html+=`
+         </tbody>
+      </table>
+   </div>`;
+
+   $('#' + containerId).html(html);
+}
+
+const registrar_abono = async (idOrden) => {
+
+   let monto        = $('#abono_monto').val().trim();
+   let metodoPago   = $('#abono_metodo').val();
+   let totalNeto    = $('#totNetoOrdenAbono').val().trim();
+   let totalAbonado = $('#totAbonadoOrdenAbono').val().trim();
+   let saldoDeudor  = $('#DeudaOrdenAbono').val().trim();
+   
+   if (idOrden == '') {
+      ToastColor.fire({
+         text: '¡Atención! Faltaron parámetros importantes',
+         icon: 'warning'
+      });
+      return;
+   }
+   else if (parseFloat(monto < 0) || monto == '' || parseFloat(monto) > parseFloat(saldoDeudor)) {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar un monto mayor a 0 y este no debe pasar del saldo deudor',
+         icon: 'warning'
+      });
+      $('#abono_monto').focus();
+      return;
+   }
+   else if (metodoPago == 'NA') {
+      ToastColor.fire({
+         text: '¡Atención! Debes seleccionar el método de pago',
+         icon: 'warning'
+      });
+      $('#abono_metodo').focus();
+      return;
+   }
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El abono será registrado', 'question', 'Sí, registrar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnRegistraAbono').prop('disabled', false);
+      return;
+   }
+
+   $('.btnRegistraAbono').prop('disabled', true);
+   let respuesta = await registra_abono(idOrden, metodoPago, monto);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Abono registrado!', '', 'success', 2500);
+      $('#lbl_total_orden').html(respuesta.data[0].total_neto);
+      $('#lbl_total_abonado').html(respuesta.data[0].total_abonado);
+      $('#lbl_saldo_pendiente').html(respuesta.data[0].saldo_deudor);
+      $('#abono_monto').val('');
+      $('#abono_metodo').val('NA');
+      obtiene_abonos_orden('container_abonos_orden', idOrden);
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnRegistraAbono').prop('disabled', false);
+      return;
+   }
+}
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion                    = TabRecepcion;
 window.ModalPacientesEncontrados       = ModalPacientesEncontrados;
 window.ModalRegistrarOrden             = ModalRegistrarOrden;
 window.ModalOrdenRegistradaExito       = ModalOrdenRegistradaExito;
 window.ModalBuscarOrdenes              = ModalBuscarOrdenes;
+window.ModalGestionPagos               = ModalGestionPagos;
 
 window.paciente_seleccionado           = paciente_seleccionado;
 window.form_carga_estudios             = form_carga_estudios;
@@ -1761,3 +1968,5 @@ window.buscar_ordenes_hoy              = buscar_ordenes_hoy;
 window.cambiarTipoFiltro               = cambiarTipoFiltro;
 window.busqueda_avanzada_ordenes       = busqueda_avanzada_ordenes;
 window.limpiar_busqueda_avanzada       = limpiar_busqueda_avanzada;
+
+window.registrar_abono                 = registrar_abono;
