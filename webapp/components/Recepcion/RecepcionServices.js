@@ -51,3 +51,8 @@ export const registra_abono = async (idOrden, metodoPago, monto) => {
    const datos = { func: 'registra_abono', idOrden, metodoPago, monto };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
+
+export const elimina_abono = async (idAbono, idOrden) => {
+   const datos = { func: 'elimina_abono', idAbono, idOrden };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}

@@ -1,4 +1,4 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden } from "./RecepcionServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden, elimina_abono } from "./RecepcionServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
@@ -1712,7 +1712,7 @@ const ModalGestionPagos = (idOrden, folio) => {
                   </div>
                </div>
 
-               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
+               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm si-display" id="cardRegistroAbono">
                   <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase">
                      <i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Abono
                   </h6>
@@ -1808,6 +1808,13 @@ const obtiene_saldos_orden = async (idOrden, lblTotal, lblAbonado, lblDeuda) => 
       $('#totNetoOrdenAbono').val(res[0].total_neto);
       $('#totAbonadoOrdenAbono').val(res[0].total_abonado);
       $('#DeudaOrdenAbono').val(res[0].saldo_deudor);
+
+      if(res[0].saldo_deudor > 0) {
+         $('#cardRegistroAbono').show();
+      }
+      else {
+         $('#cardRegistroAbono').hide();
+      }
    }
 }
 
@@ -1861,12 +1868,12 @@ const pinta_abonos_orden = (data, containerId, idOrden) => {
          <tbody id="tbody_historial_abonos">`;
             data.forEach((row, index) => {         
                html+=`
-               <tr>
+               <tr id="trListadoAbono${row.id}">
                   <td><i class="bi bi-clock me-1 text-muted"></i>${row.fecha_pago} ${row.hora_pago}</td>
                   <td><span class="badge bg-secondary-subtle text-dark border">${row.metodo_pago}</span></td>
                   <td class="text-end fw-semibold">$${row.monto}</td>
                   <td class="text-center">
-                     <button type="button" class="btn btn-outline-danger btn-sm btn-redondo btn-sm" title="Eliminar abono" onclick="eliminar_abono(${row.id}, '${idOrden}')">
+                     <button type="button" class="btn btn-outline-danger btn-sm btn-redondo btn-sm btnEliminarAbono" title="Eliminar abono" onclick="eliminar_abono(${row.id}, '${idOrden}', '${row.monto}')">
                         <i class="bi bi-trash fs-6"></i>
                      </button>
                   </td>
@@ -1881,7 +1888,6 @@ const pinta_abonos_orden = (data, containerId, idOrden) => {
 }
 
 const registrar_abono = async (idOrden) => {
-
    let monto        = $('#abono_monto').val().trim();
    let metodoPago   = $('#abono_metodo').val();
    let totalNeto    = $('#totNetoOrdenAbono').val().trim();
@@ -1912,14 +1918,14 @@ const registrar_abono = async (idOrden) => {
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El abono será registrado', 'question', 'Sí, registrar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El abono de $' + monto + ' será registrado', 'question', 'Sí, registrar', 'Cancelar');
    
    if (!res.result) {
-      $('.btnRegistraAbono').prop('disabled', false);
+      $('#btnRegistraAbono').prop('disabled', false);
       return;
    }
 
-   $('.btnRegistraAbono').prop('disabled', true);
+   $('#btnRegistraAbono').prop('disabled', true);
    let respuesta = await registra_abono(idOrden, metodoPago, monto);
       if(respuesta.estatus == 403) {
       fnNoSesion();
@@ -1932,10 +1938,71 @@ const registrar_abono = async (idOrden) => {
       $('#abono_monto').val('');
       $('#abono_metodo').val('NA');
       obtiene_abonos_orden('container_abonos_orden', idOrden);
+
+      $('#totNetoOrdenAbono').val(respuesta.data[0].total_neto);
+      $('#totAbonadoOrdenAbono').val(respuesta.data[0].total_abonado);
+      $('#DeudaOrdenAbono').val(respuesta.data[0].saldo_deudor);
+
+      if(respuesta.data[0].saldo_deudor > 0) {
+         $('#cardRegistroAbono').show();
+      }
+      else {
+         $('#cardRegistroAbono').hide();
+      }
+      $('#btnRegistraAbono').prop('disabled', false);
       
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnRegistraAbono').prop('disabled', false);
+      $('#btnRegistraAbono').prop('disabled', false);
+      return;
+   }
+}
+
+const eliminar_abono = async (idAbono, idOrden, monto) => {
+   
+   if (idOrden == '' || idOrden <= 0 || idAbono == '' || idAbono <= 0) {
+      ToastColor.fire({
+         text: '¡Atención! Faltaron parámetros importantes',
+         icon: 'warning'
+      });
+      return;
+   }
+   
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El abono de $' + monto  + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnEliminarAbono').prop('disabled', false);
+      return;
+   }
+
+   $('.btnEliminarAbono').prop('disabled', true);
+   let respuesta = await elimina_abono(idAbono, idOrden);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Abono eliminado!', '', 'success', 2500);
+      $('#trListadoAbono'+idAbono).remove();
+      $('#lbl_total_orden').html(respuesta.data[0].total_neto);
+      $('#lbl_total_abonado').html(respuesta.data[0].total_abonado);
+      $('#lbl_saldo_pendiente').html(respuesta.data[0].saldo_deudor);
+      $('#abono_monto').val('');
+      $('#abono_metodo').val('NA');
+
+      $('#totNetoOrdenAbono').val(respuesta.data[0].total_neto);
+      $('#totAbonadoOrdenAbono').val(respuesta.data[0].total_abonado);
+      $('#DeudaOrdenAbono').val(respuesta.data[0].saldo_deudor);
+
+      if(respuesta.data[0].saldo_deudor > 0) {
+         $('#cardRegistroAbono').show();
+      }
+      else {
+         $('#cardRegistroAbono').hide();
+      }
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnEliminarAbono').prop('disabled', false);
       return;
    }
 }
@@ -1970,3 +2037,4 @@ window.busqueda_avanzada_ordenes       = busqueda_avanzada_ordenes;
 window.limpiar_busqueda_avanzada       = limpiar_busqueda_avanzada;
 
 window.registrar_abono                 = registrar_abono;
+window.eliminar_abono                  = eliminar_abono;

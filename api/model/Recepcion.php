@@ -234,8 +234,8 @@
 			$res = [];
 			try {
 
-				$sql = $this->dbh->prepare("SELECT id, monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago, '%d-%m-%Y') AS fecha_pago, DATE_FORMAT(fecha_pago, '%h:%i %p') AS hora_pago FROM orden_pagos WHERE orden_id = ? ORDER BY id DESC");
-				$sql->execute([$id_orden]);				
+				$sql = $this->dbh->prepare("SELECT id, monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago, '%d-%m-%Y') AS fecha_pago, DATE_FORMAT(fecha_pago, '%h:%i %p') AS hora_pago FROM orden_pagos WHERE orden_id = ? AND estatus = ? ORDER BY id DESC");
+				$sql->execute([$id_orden, 1]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
@@ -262,6 +262,28 @@
 			} 
 			catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+						
+			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
+			return $res;
+		}
+
+		public function eliminar_abonos(int $id_abono) {
+      	$estatus = 500;
+      	$data    = [0];
+			$mensaje = 'Error al eliminar el abono';
+			try {
+				$sql = $this->dbh->prepare("UPDATE orden_pagos SET estatus = ? WHERE id = ?");
+				$ok = $sql->execute(array(0, $id_abono));
+
+				if($ok) {
+					$estatus = 200;
+					$mensaje = 'ok';	
+        		}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
 			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);

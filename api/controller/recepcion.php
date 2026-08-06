@@ -145,7 +145,7 @@
             }
                         
             echo json_encode($res);
-        break;       
+        break;
 
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE ABONOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -160,7 +160,6 @@
         break;       
 
         case 'registra_abono':
-
           if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"])) {
             $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
             echo json_encode($res);
@@ -176,7 +175,25 @@
             $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $saldos];
           }            
           echo json_encode($res);
-         break;
+        break;
+
+        case 'elimina_abono':
+          if(empty($_POST["idOrden"]) || empty($_POST["idAbono"])) {
+            $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+            echo json_encode($res);
+            break;
+          }
+
+          $res = $v->eliminar_abonos($_POST["idAbono"]);
+
+          if($res["estatus"] == 200) {
+            $g->bitacora('Abono eliminado con ID: '.$_POST["idAbono"].' a la orden: ', $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+
+            $saldos = $v->obtiene_saldos_orden($_POST["idOrden"]);
+            $res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $saldos];
+          }            
+          echo json_encode($res);
+        break;
 
         default:
           echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", "data" => []]);
