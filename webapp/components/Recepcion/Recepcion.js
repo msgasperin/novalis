@@ -3,12 +3,12 @@ import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacien
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
 
-let arrOrdenesBusAvanzada = [];
-let arrOrdenesHoy         = [];
-let arrEstudios           = [];
-let arrPacientesBusqueda  = [];
-let comboConvenios        = '';
-let comboDescuentos       = '';
+let arrOrdenesBusAvanzada  = [];
+let arrOrdenesHoy          = [];
+let arrEstudios            = [];
+let arrPacientesBusqueda   = [];
+let comboConvenios         = '';
+let comboDescuentos        = '';
 let pacienteOrden;
 
 const TabRecepcion = () => {
@@ -294,64 +294,13 @@ const buscar_paciente_recepcion = async () => {
    }
 }
 
-const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
-   // Generamos las filas de los pacientes encontrados
-   let filasPacientes = '';
-
-   if (listaPacientes.length === 0) {
-      filasPacientes = `
-      <tr>
-         <td colspan="5" class="text-center py-4 text-muted">
-            <i class="bi bi-person-x fs-3 d-block mb-2 text-warning-emphasis"></i>
-            <p class="mb-3">
-               No se encontraron pacientes que coincidan con "<strong>${parametroBusqueda}</strong>"
-            </p>
-            <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
-               <i class="bi bi-person-plus-fill me-1"></i> Registrar como nuevo paciente
-            </button>
-         </td>
-      </tr>`;
-   } else {
-   
-      listaPacientes.forEach((paciente, index) => {
-         // Sanitizamos nombres para evitar problemas con comillas en el onclick
-         const nombreCompleto    = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
-         const nombreEscapado    = nombreCompleto.replace(/'/g, "\\'");
-         const apPaternoEscapado = paciente.apellido_paterno.replace(/'/g, "\\'");
-         const nomEscapado       = paciente.nombre.replace(/'/g, "\\'");
-
-         filasPacientes += `
-         <tr class="align-middle">
-            <td width="30%">
-               <strong class="text-dark">${paciente.apellido_paterno} ${paciente.apellido_materno || ''}</strong>, ${paciente.nombre}
-            </td>
-            <td width="15%" class="text-nowrap">
-               <i class="bi bi-calendar3 text-muted me-1"></i> ${paciente.fecha_nacimiento_format || 'N/D'}
-            </td>
-            <td width="20%">
-               <span class="small text-muted d-block text-truncate" style="max-width: 180px;" title="${paciente.correo || ''}">
-                  ${paciente.correo || '<em class="text-muted-light">Sin correo</em>'}
-               </span>
-            </td>
-            <td width="15%" class="text-center">
-               <span class="badge rounded-pill bg-light text-dark border">
-                  ${paciente.sexo_biologico || '-'}
-               </span>
-            </td>
-            <td width="20%" class="text-center">
-               <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="paciente_seleccionado('${paciente.id}', '', 1);">
-                  <i class="bi bi-check2-circle"></i> Seleccionar
-               </button>
-            </td>
-         </tr>`;
-      });
-   }
+const ModalPacientesEncontrados = (data, parametroBusqueda) => {   
 
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalPacientesEncontrados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
          <div class="modal-content sombra-modal border-0">
-            <!-- Encabezado con estilo sutil y limpio -->
+
             <div class="modal-header border-0 pb-0">
                <h5 class="modal-title d-flex align-items-center gap-2">
                   <i class="bi bi-people text-secondary fs-4"></i>
@@ -367,8 +316,18 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
                         Resultados para la búsqueda: <mark class="px-2 py-0.5 rounded text-dark bg-info bg-opacity-25">"${parametroBusqueda}"</mark>
                      </p>
                   </div>
-                  <div class="col-12 col-sm-4 text-end mb-3">`
-                     if(listaPacientes.length > 0) {
+               </div>
+               <div class="row">
+                  <div class="col-6 col-sm-4">
+                     <div class="input-group input-group-sm shadow-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                           <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 ps-0" id="busquedaPacienteEncontrado" placeholder="Buscar paciente..." onkeyUp="buscar_paciente_encontrado();">
+                     </div>
+                  </div>
+                  <div class="col-6 col-sm-8 text-end mb-3">`
+                     if(data.length > 0) {
                         html+=`
                         <button type="button" class="btn btn-outline-dark btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
                            <i class="bi bi-person-plus-fill me-1"></i> Registrar nuevo paciente
@@ -376,23 +335,8 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
                      }
                      html+=`
                   </div>
-               </div>               
-               <div class="table-responsive">
-                  <table class="table table-hover align-middle mb-0">
-                     <thead class="table-light sticky-top">
-                        <tr class="small text-uppercase text-muted">
-                           <th>Nombre del Paciente</th>
-                           <th>F. Nacimiento</th>
-                           <th>Correo</th>
-                           <th class="text-center">Sexo</th>
-                           <th class="text-center">Acción</th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        ${filasPacientes}
-                     </tbody>
-                  </table>
-               </div>
+               </div>  
+               <div id="container_pacientes_encontrador"></div>
             </div>
 
             <div class="modal-footer border-0 pt-0">
@@ -407,6 +351,96 @@ const ModalPacientesEncontrados = (listaPacientes, parametroBusqueda) => {
    // Inyectamos en tu contenedor común de modales de administración/procesos
    $('#modalAdmin').html(html);
    $('#ModalPacientesEncontrados').modal('show');
+   pinta_pacientes_encontrados(data, parametroBusqueda, 'container_pacientes_encontrador');
+}
+
+const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
+        
+   let html = `             
+   <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+         <thead class="table-light sticky-top">
+            <tr class="small text-uppercase text-muted">
+               <th>Nombre del Paciente</th>
+               <th>F. Nacimiento</th>
+               <th>Correo</th>
+               <th class="text-center">Sexo</th>
+               <th class="text-center">Acción</th>
+            </tr>
+         </thead>
+         <tbody>`;
+            if (data.length === 0) {
+               html += `
+               <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                     <i class="bi bi-person-x fs-3 d-block mb-2 text-warning-emphasis"></i>
+                     <p class="mb-3">
+                        No se encontraron pacientes que coincidan con "<strong>${parametroBusqueda}</strong>"
+                     </p>
+                     <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
+                        <i class="bi bi-person-plus-fill me-1"></i> Registrar como nuevo paciente
+                     </button>
+                  </td>
+               </tr>`;
+            } 
+            else {         
+               data.forEach((paciente, index) => {
+                  // Sanitizamos nombres para evitar problemas con comillas en el onclick
+                  const nombreCompleto    = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
+                  const nombreEscapado    = nombreCompleto.replace(/'/g, "\\'");
+                  const apPaternoEscapado = paciente.apellido_paterno.replace(/'/g, "\\'");
+                  const nomEscapado       = paciente.nombre.replace(/'/g, "\\'");
+
+                  html += `
+                  <tr class="align-middle">
+                     <td width="30%">
+                        <strong class="text-dark">${paciente.apellido_paterno} ${paciente.apellido_materno || ''}</strong>, ${paciente.nombre}
+                     </td>
+                     <td width="15%" class="text-nowrap">
+                        <i class="bi bi-calendar3 text-muted me-1"></i> ${paciente.fecha_nacimiento_format || 'N/D'}
+                     </td>
+                     <td width="20%">
+                        <span class="small text-muted d-block text-truncate" style="max-width: 180px;" title="${paciente.correo || ''}">
+                           ${paciente.correo || '<em class="text-muted-light">Sin correo</em>'}
+                        </span>
+                     </td>
+                     <td width="15%" class="text-center">
+                        <span class="badge rounded-pill bg-light text-dark border">
+                           ${paciente.sexo_biologico || '-'}
+                        </span>
+                     </td>
+                     <td width="20%" class="text-center">
+                        <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="paciente_seleccionado('${paciente.id}', '', 1);">
+                           <i class="bi bi-check2-circle"></i> Seleccionar
+                        </button>
+                     </td>
+                  </tr>`;
+               });
+            }
+            html+=`
+         </tbody>
+      </table>
+   </div>`;
+
+   $('#'+containerId).html(html);
+}
+
+const buscar_paciente_encontrado = () => {
+   let busqueda = $('#busquedaPacienteEncontrado').val().trim().toLowerCase();
+   
+   const filtrado = arrPacientesBusqueda.filter(paciente => {
+
+      const nombreCompleto    = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
+      const nombreEscapado    = nombreCompleto.replace(/'/g, "\\'");
+      const apPaternoEscapado = paciente.apellido_paterno.replace(/'/g, "\\'");
+      const nomEscapado       = paciente.nombre.replace(/'/g, "\\'");
+
+      const nombreCoincide    = nomEscapado.toLowerCase().includes(busqueda);
+      
+      return nombreCoincide;
+   });
+
+   pinta_pacientes_encontrados(filtrado, busqueda, 'container_pacientes_encontrador');
 }
 
 const paciente_seleccionado = (idPaciente, paciente, origen) => {  
@@ -596,6 +630,8 @@ const combo_listas_estudios = async (tipoSolicitante, idListaPrecio, containerId
 const agrega_estudio_carrito =  async () => {
    
    let idEstudio    = $('#estudiosRecepcion').val().trim();
+   let observacion = $('#observacionesOrden').length ? $('#observacionesOrden').val().trim() : '';
+
    arrEstudios      = [];
 
    if(idEstudio <= 0) {
@@ -617,7 +653,7 @@ const agrega_estudio_carrito =  async () => {
    else if(res.estatus == 200) {
       $('#estudiosRecepcion').val(0);
       $('#estudiosRecepcion').trigger('change');
-      pintado_carrito(res.data, 'estudios_agregados_recepcion');
+      pintado_carrito(res.data, 'estudios_agregados_recepcion', observacion);
    }
    else {
       ToastColor.fire({
@@ -637,6 +673,7 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
       return;
    }
 
+   let observacion = $('#observacionesOrden').length ? $('#observacionesOrden').val().trim() : '';
    arrEstudios   = [];
    let respuesta = await borrar_estudio_carrito(idCarrito);
    
@@ -648,10 +685,10 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
    else if(respuesta.estatus == 200) {
       showMessageSwalTimer('¡Estudio eliminado correctamente!', '', 'success', 2500);
       $('#cardEstudioCarrito'+idCarrito).remove();
-      pintado_carrito(respuesta.data);
+      pintado_carrito(respuesta.data, 'estudios_agregados_recepcion', observacion);
 
       if (!document.querySelector('.validaHayCarrito')) {
-         pintado_carrito([], 'estudios_agregados_recepcion');
+         pintado_carrito([], 'estudios_agregados_recepcion', observacion);
       }
    }
    else {
@@ -660,7 +697,7 @@ const borra_estudio_carrito = async (idCarrito, estudio) => {
    }
 }
 
-const pintado_carrito = (data, containerId) => {
+const pintado_carrito = (data, containerId, observacion) => {
 
    let html         = '';
    let labelDesc    = '';
@@ -713,11 +750,15 @@ const pintado_carrito = (data, containerId) => {
       html +=
       `<div class="card border-0 bg-light rounded-2 mt-3 p-3">
          <div class="row align-items-center g-3">
+            <div class="col-12 mt-3">
+               <b class="fs-8">Observación adicional</b>
+               <textarea name="observacionesOrden" id="observacionesOrden" class="form-control form-control-sm" rows="2" maxlength="300">${observacion}</textarea>
+            </div>
             <div class="col-12 col-sm-6 text-start text-sm-start">
                <span class="text-uppercase small fw-bold text-secondary d-block">Resumen de Orden</span>
                <span class="fs-4 fw-bold text-dark" id="totalVentaOrden">Total: $${total.toFixed(2)}</span>
             </div>
-            <div class="col-12 col-sm-6 text-end text-sm-end">
+            <div class="col-12 col-sm-6 text-end text-sm-end mt-3">
                <button type="button" class="btn btn-dark btn-lib btn-redondo px-4 py-2 fw-semibold w-100 w-sm-auto" id="btnRegistrarOrden" onclick="ModalRegistrarOrden('${total}', '${totalConDesc}', '${totalSinDesc}');">
                   <i class="bi bi-save me-1"></i> Registrar orden
                </button>
@@ -737,6 +778,7 @@ const pintado_carrito = (data, containerId) => {
 }
 
 const borra_carrito_recepcion = async () => {
+
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'Los estudios agregados serán eliminados', 'question', 'Sí, borrar', 'Cancelar');
    
    if (!res.result) {
@@ -1116,7 +1158,7 @@ const registra_orden = async () => {
    let nomPaciente    = pacienteOrden.nombre + ' ' + pacienteOrden.apellido_paterno + ' ' +  pacienteOrden.apellido_materno;
    let sexo           = pacienteOrden.sexo_biologico; 
    let tipoCliente    = $('input[name="optionTipoCliente"]:checked').val();
-   
+   let observacion    = $('#observacionesOrden').length ? $('#observacionesOrden').val().trim() : '';
 
    if(tipoCliente == 'convenio') {
       let selectConvenio = document.getElementById("selectConvenioEmpresa");
@@ -1201,7 +1243,7 @@ const registra_orden = async () => {
       return;
    }
 
-   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden };
+   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion };
 
    $('#btnRegistrarOrden').prop('disabled',true);
    
@@ -2016,6 +2058,7 @@ window.ModalBuscarOrdenes              = ModalBuscarOrdenes;
 window.ModalGestionPagos               = ModalGestionPagos;
 
 window.paciente_seleccionado           = paciente_seleccionado;
+window.buscar_paciente_encontrado      = buscar_paciente_encontrado;
 window.form_carga_estudios             = form_carga_estudios;
 window.buscar_paciente_recepcion       = buscar_paciente_recepcion;
 window.busca_paciente_fecha_nacimiento = busca_paciente_fecha_nacimiento;

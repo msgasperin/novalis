@@ -132,7 +132,7 @@
 				$key_query = 'OD'. date('y').$id_sucursal.$consecutivo.$this->generarCadena(5);
 			
 				// Nota: Los campos financieros (total, subtotal, etc.) no se envían porque inician en 0 por DEFAULT
-				$sqlOrden = $this->dbh->prepare("INSERT INTO ordenes_trabajo (anio, mes, id_folio, folio, sucursal_id, sucursal_historico, paciente_id, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, tipo_cliente, convenio_id, convenio_nombre_historico, lista_precio_id, lista_precio_nombre_historico, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, key_query, user_cap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				$sqlOrden = $this->dbh->prepare("INSERT INTO ordenes_trabajo (anio, mes, id_folio, folio, sucursal_id, sucursal_historico, paciente_id, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, tipo_cliente, convenio_id, convenio_nombre_historico, lista_precio_id, lista_precio_nombre_historico, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, key_query, observaciones, user_cap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 				$paramsOrden = [
 					date('Y'),
@@ -157,6 +157,7 @@
 					$post["motivoCargoExtraOrden"] ?? '',
 					$post["total_neto"],
 					$key_query,
+					$post["observacion"],
 					$user_cap
 				];
 

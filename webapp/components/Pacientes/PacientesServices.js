@@ -12,8 +12,13 @@ export const obtiene_credenciales_pacientes = async (idPaciente) => {
    return respuesta;
 }
 
-export const guardar_paciente = async (objEstudio) => {   
-   let respuesta = await postJSON('../api/controller/pacientes.php', objEstudio);
+export const valida_coincidencia_paciente = async (objPaciente) => {   
+   let respuesta = await postJSON('../api/controller/pacientes.php', objPaciente);
+   return respuesta;
+};
+
+export const guardar_paciente = async (objPaciente) => {   
+   let respuesta = await postJSON('../api/controller/pacientes.php', objPaciente);
    return respuesta;
 };
 

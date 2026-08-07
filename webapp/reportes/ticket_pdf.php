@@ -102,6 +102,10 @@
          ];
       }
 
+      $sqlAbonos = $v->dbh->prepare("SELECT DATE_FORMAT(fecha_pago, '%d/%m/%Y') AS fecha, metodo_pago, monto FROM orden_pagos WHERE orden_id = ? ORDER BY id ASC");
+      $sqlAbonos->execute([$orden["id"]]);
+      $abonos    = $sqlAbonos->fetchAll(PDO::FETCH_ASSOC);
+
       $sqlEstudios = $v->dbh->prepare("SELECT nombre_estudio_historico, precio_aplicado, aplico_desc FROM orden_detalles WHERE orden_id = ?");
       $sqlEstudios->execute([$orden["id"]]);
       $estudios = $sqlEstudios->fetchAll(PDO::FETCH_ASSOC);
@@ -320,6 +324,49 @@
                      <td class="text-right">$'.number_format($orden['total_abonado'], 2).'</td>
                   </tr>
                   <tr style="font-size: 8pt;">
+                     <td class="text-right fw-bold">SALDO RESTANTE:</td>
+                     <td class="text-right fw-bold" style="border-top: 1px dashed #000;">
+                        $'.number_format($orden['saldo_deudor'], 2).'
+                     </td>
+                  </tr>
+                  <tr style="font-size: 8pt;">
+                     <td class="text-right fw-bold" style="padding-top: 2px;">TOTAL:</td>
+                     <td class="text-right fw-bold" style="padding-top: 2px; border-top: 1px solid #000;">
+                        $'.number_format($orden['total_neto'], 2).'
+                     </td>
+                  </tr>';
+
+                  // --- INICIO: DESGLOSE DE ABONOS ---
+                  if (!empty($abonos)) {
+                     echo '
+                     <tr>
+                        <td colspan="2" style="padding-top: 4px;">
+                           <div style="font-weight: bold; font-size: 6.5pt; text-transform: uppercase; border-bottom: 0.5px dashed #aaa; margin-bottom: 2px;">
+                              Historial de Pagos:
+                           </div>
+                        </td>
+                     </tr>';
+
+                     foreach ($abonos as $pago) {
+                        echo '
+                        <tr style="font-size: 6.5pt; color: #333;">
+                           <td class="text-left" style="padding-left: 5px;">
+                              '.$pago['fecha'].' ('.strtoupper($pago['metodo_pago']).')
+                           </td>
+                           <td class="text-right">
+                              $'.number_format($pago['monto'], 2).'
+                           </td>
+                        </tr>';
+                     }
+                  }
+                  // --- FIN: DESGLOSE DE ABONOS ---
+
+                  echo '
+                  <tr>
+                     <td class="text-right" style="padding-top: 3px;">Total Abonado:</td>
+                     <td class="text-right" style="padding-top: 3px;">$'.number_format($orden['total_abonado'], 2).'</td>
+                  </tr>
+                  <tr>
                      <td class="text-right fw-bold">SALDO RESTANTE:</td>
                      <td class="text-right fw-bold" style="border-top: 1px dashed #000;">
                         $'.number_format($orden['saldo_deudor'], 2).'

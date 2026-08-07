@@ -35,6 +35,26 @@
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
+          case 'valida_coincidencia_paciente':   
+            
+            if(!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {
+               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+               echo json_encode($res);
+               break;
+            }
+
+            $res = $v->valida_coincidencia_paciente($_POST["nomPaciente"], $_POST["apPaterno"], $_POST["apMaterno"], $_POST["fechaNacimiento"]);
+            if(!empty($res)) {
+               $estatus = 201;
+               $mensaje = 'ok';
+               $data    = $res;
+               echo json_encode($res);
+               break;
+            }
+                      
+            echo json_encode($res);
+         break;
+
          case 'guardar_paciente':   
             
             if(!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {

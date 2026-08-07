@@ -1,6 +1,8 @@
-import { obtiene_pacientes, guardar_paciente, eliminar_paciente, obtiene_credenciales_pacientes, cambiar_credenciales } from "./PacientesServices.js";
+import { obtiene_pacientes, guardar_paciente, eliminar_paciente, obtiene_credenciales_pacientes, cambiar_credenciales, busca_paciente_coincidencia, valida_coincidencia_paciente } from "./PacientesServices.js";
 
-let arrPacientes = [];
+let arrPacientes              = [];
+let arrPacientesCoincidencias = [];
+let objPacCoincidencia        = {};
 
 const TabPacientes = () => {
    let html =
@@ -13,12 +15,35 @@ const TabPacientes = () => {
       </div>
    </div>
    <div class="mt-4">
-      <div id="listar_pacientes"></div>      
+      <div class="card border-0 shadow-sm mb-3">
+         <div class="card-body p-2">
+            <div class="input-group">
+               <input type="text" id="inputBuscarPaciente" class="form-control border-0 shadow-none ps-1" placeholder="Escribe el nombre del paciente a buscar..." autocomplete="off">
+               <button class="btn btn-outline-success border-0 btn-redondo" type="button" id="btnBusquedaPacienteModulo" onclick="listar_pacientes('listar_pacientes');">
+                  <i class="bi bi-search"></i>
+               </button>
+            </div>
+         </div>
+      </div>
+      <div id="listar_pacientes">
+         <div class="card border-0 shadow-sm mb-3 text-center">
+            <div class="card-body p-4">
+               <div class="row align-items-center">
+                  <div class="col-12">
+                     <i class="bi bi-people text-muted display-6 d-block mb-2"></i>
+                     <h6 class="card-title text-dark fw-bold mb-1">Pacientes</h6>
+                     <span class="text-muted small d-block mb-3">
+                        Ingresa el nombre del paciente en el buscador para consultar su expediente, o bien, haz clic en el botón <strong class="text-primary pointer" onclick="ModalFormPaciente(0, '', 1);"><i class="bi bi-person-plus-fill me-1"></i>Nuevo paciente</strong> para registrar a uno nuevo.
+                     </span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
    </div>`;
 
    $('#containerMain').html(html);
    
-   listar_pacientes('listar_pacientes');
 }
 
 const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
@@ -62,15 +87,15 @@ const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
             </div>
             <div class="modal-body">
                <div class="row">
-                  <div class="col-12 mt-3">
+                  <div class="col-12 col-sm-6 mt-3">
                      <b>Nombre del paciente *</b>
                      <input type="text" name="nomPaciente" id="nomPaciente" class="form-control" maxlength="100" value="${nombre}"/>
                   </div>
-                  <div class="col-12 col-sm-6 mt-3">
+                  <div class="col-12 col-sm-3 mt-3">
                      <b>Apellido paterno *</b>
                      <input type="text" name="apPaterno" id="apPaterno" class="form-control" maxlength="70" value="${apellido_paterno}"/>
                   </div>
-                  <div class="col-12 col-sm-6 mt-3">
+                  <div class="col-12 col-sm-3 mt-3">
                      <b>Apellido materno</b>
                      <input type="text" name="apMaterno" id="apMaterno" class="form-control" maxlength="70" value="${apellido_materno}"/>
                   </div>
@@ -97,7 +122,7 @@ const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
                </div>
             </div>
             <div class="modal-footer border-0 text-end">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarPaciente" onclick="fn_guardar_paciente('${idPaciente}', ${origen});">
+              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarPaciente" onclick="validar_coincidencia_paciente('${idPaciente}', ${origen});">
                 <i class="bi bi-save"></i> Guardar
               </button> 
               <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
@@ -120,9 +145,21 @@ const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
 }
 
 const listar_pacientes = async (containerId) => {
-   activarLoad('Cargando pacientes...');
+   
+   let parametroBusqueda = $('#inputBuscarPaciente').val().trim();
 
-   let respuesta      = await obtiene_pacientes();
+   if (parametroBusqueda.length < 3) {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar una palabra más larga; al menos 3 letras',
+         icon: 'warning'
+      });
+      $('#inputBuscarPaciente').focus();
+      return;
+   }
+
+   activarLoad('Cargando pacientes...');
+   
+   let respuesta      = await busca_paciente_coincidencia(parametroBusqueda);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
@@ -227,8 +264,9 @@ const ModalCredencialesPaciente = (idPaciente, nomPaciente, apPaterno) => {
    fn_ver_credenciales_paciente(idPaciente, nomPaciente, apPaterno);
 }
 
-const fn_guardar_paciente = async (idPaciente, origen) => {
-
+const validar_coincidencia_paciente = async (idPaciente, origen) => {
+   
+   //Si es un registro nuevo validamos
    let nomPaciente      = $('#nomPaciente').val().trim();
    let apPaterno        = $('#apPaterno').val();
    let apMaterno        = $('#apMaterno').val().trim();
@@ -289,7 +327,145 @@ const fn_guardar_paciente = async (idPaciente, origen) => {
       }
    }
      
-   const objPaciente = { func: 'guardar_paciente', idPaciente, nomPaciente, apPaterno, apMaterno, sexoBiologico, fechaNacimiento, telefonoPaciente, correoPaciente };
+   const objPaciente = { func: 'valida_coincidencia_paciente', idPaciente, nomPaciente, apPaterno, apMaterno, sexoBiologico, fechaNacimiento, telefonoPaciente, correoPaciente };
+
+   // Si es una edición
+   if(parseInt(idPaciente) > 0) { 
+      fn_guardar_paciente(idPaciente, origen, objPaciente);
+      return;
+   }
+
+   $('#btnGuardarPaciente').prop('disabled', true);
+
+   let respuesta = await valida_coincidencia_paciente(objPaciente);
+
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+
+      if(respuesta.data.length > 0) {
+         objPacCoincidencia =  objPaciente;
+         arrPacientesCoincidencias = respuesta.data;
+         ModalCoincidenciasPacientes(arrPacientesCoincidencias, objPaciente, origen);
+         $('#btnGuardarPaciente').prop('disabled', false);
+         return;
+      }
+
+      fn_guardar_paciente(idPaciente, origen, objPaciente, 1);
+      $('#btnGuardarPaciente').prop('disabled', false);
+
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('#btnGuardarPaciente').prop('disabled', false);
+      return;
+   }
+}
+
+const ModalCoincidenciasPacientes = (data, objPaciente, origen) => {
+
+    let html = `
+    <div class="modal fade modal-superior-blur" id="modalCoincidenciasPacientes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down modal-lg">
+            <div class="modal-content sombra-modal border-0">
+                
+                <div class="modal-header bg-warning bg-opacity-10 border-0 pt-3 pb-2 px-4">
+                    <h6 class="modal-title fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>
+                        Posibles pacientes registrados
+                    </h6>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">
+                        Encontramos ${data.length} ${data.length === 1 ? 'coincidencia' : 'coincidencias'} en el catálogo. Verifica si el paciente que estás intentando registrar ya existe:
+                    </p>
+                    <div class="pe-1">`;
+                        data.forEach(row => {
+                           const materno = row.apellido_materno ? ` ${row.apellido_materno}` : '';
+                           const nombreCompleto = `${row.nombre} ${row.apellido_paterno}${materno}`;
+                           
+                           html += `
+                           <div class="card border-0 shadow-sm mb-2 rounded-3 hover-shadow transition-all">
+                              <div class="card-body p-3">
+                                 <div class="row align-items-center">
+                                    <div class="col-8 col-md-9">
+                                       <div class="fw-bold text-dark mb-1">
+                                          <i class="bi bi-person-circle text-secondary me-2"></i>${nombreCompleto}
+                                       </div>
+                                       <div class="d-flex flex-wrap gap-3 text-muted small">
+                                          <span><i class="bi bi-calendar3 me-1"></i>${row.fecha_nacimiento}</span>
+                                          ${row.telefono ? `<span><i class="bi bi-telephone me-1"></i>${row.telefono}</span>` : ''}
+                                          ${row.correo ? `<span><i class="bi bi-at me-1"></i></i>${row.correo}</span>` : ''}
+                                       </div>
+                                    </div>
+                                    <div class="col-4 col-md-3 text-end">
+                                       <button type="button" class="btn btn-sm btn-outline-success btn-redondo px-3 w-100" onclick="paciente_coincidente_seleccionado(${row.id}, ${origen})">
+                                          <i class="bi bi-check-lg me-1"></i>Seleccionar
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>`;
+                        });
+
+                        html += `
+                    </div>
+
+                    <div class="alert alert-light border-0 bg-light rounded-3 mt-3 mb-0 p-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle text-primary me-2 fs-5"></i>
+                            <span class="text-muted small">
+                                Si estás seguro de que es una persona distinta, haz clic en <strong>"Guardar como nuevo"</strong>.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 bg-light px-4 py-3 d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-secondary btn-redondo" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-dark btn-lib btn-redondo shadow-sm" id="btnForzarGuardadoPaciente" onclick="fn_guardar_paciente(0, '${origen}', 0, 2);">
+                        <i class="bi bi-person-plus-fill me-1"></i>Ninguno coincide, guardar como nuevo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    $('#modalAdminExt2').html(html);
+    $('#modalCoincidenciasPacientes').modal('show');   
+};
+
+const paciente_coincidente_seleccionado = (idPaciente, origen) => {
+
+   $('#modalCoincidenciasPacientes').modal('hide');
+   $('#modalFormPaciente').modal('hide');
+
+   let objetoPac = arrPacientesCoincidencias.find(paciente => paciente.id = idPaciente);  
+
+   if(origen == 1) {
+      $('#inputBuscarPaciente').val(objetoPac.nombre + ' ' + objetoPac.apellido_paterno + ' ' + objetoPac.apellido_materno);
+      setTimeout(() => {
+         listar_pacientes('listar_pacientes');
+      }, 200);
+   }
+   else {      
+      window.paciente_seleccionado(0, objetoPac, 2);
+   }
+}
+
+const fn_guardar_paciente = async (idPaciente, origen, objPaciente, origenObjeto) => {
+     
+   if(origenObjeto == 2) {
+      objPaciente = objPacCoincidencia;
+   }
+
+   let nomPaciente  = objPaciente.nomPaciente + ' ' + objPaciente.apPaterno + ' ' + objPaciente.apMaterno;
+   let msjAccion    = '';
+   objPaciente.func = 'guardar_paciente';
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del paciente ' + nomPaciente + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -308,15 +484,20 @@ const fn_guardar_paciente = async (idPaciente, origen) => {
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormPaciente').modal('hide');
+      $('#modalCoincidenciasPacientes').modal('hide');
       $('#btnGuardarPaciente').prop('disabled', false);
       if(origen == 1) {
-         listar_pacientes('listar_pacientes');
+         $('#inputBuscarPaciente').val(objPaciente.nomPaciente + ' ' + objPaciente.apPaterno + ' ' + objPaciente.apMaterno );
+         setTimeout(() => {
+            listar_pacientes('listar_pacientes');
+         }, 200);
       }
       else {
-         let objetoPac = { id: respuesta.data[0], nombre: nomPaciente, apellido_paterno: apPaterno, apellido_materno: apMaterno, fecha_nacimiento: fechaNacimiento, sexo_biologico: sexoBiologico, telefono: telefonoPaciente, correo: correoPaciente };
+         let objetoPac = { id: respuesta.data[0], nombre: objPaciente.nomPaciente, apellido_paterno: objPaciente.apPaterno, apellido_materno: objPaciente.apMaterno, fecha_nacimiento: objPaciente.fechaNacimiento, sexo_biologico: objPaciente.sexoBiologico, telefono: objPaciente.telefonoPaciente, correo: objPaciente.correoPaciente };
          window.paciente_seleccionado(0, objetoPac, 2);
       }
-   } else {
+   } 
+   else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('#btnGuardarPaciente').prop('disabled', false);
       return;
@@ -427,11 +608,14 @@ const fn_cambiar_credenciales_paciente = async (idPaciente, nomPaciente, apPater
 }
 
 // Interfaces
-window.TabPacientes                     = TabPacientes;
-window.ModalFormPaciente                = ModalFormPaciente;
-window.ModalCredencialesPaciente        = ModalCredencialesPaciente;
+window.TabPacientes                      = TabPacientes;
+window.ModalFormPaciente                 = ModalFormPaciente;
+window.ModalCredencialesPaciente         = ModalCredencialesPaciente;
 // Funciones
-window.fn_eliminar_paciente             = fn_eliminar_paciente;
-window.fn_guardar_paciente              = fn_guardar_paciente;
-window.fn_ver_credenciales_paciente     = fn_ver_credenciales_paciente;
-window.fn_cambiar_credenciales_paciente = fn_cambiar_credenciales_paciente;
+window.fn_eliminar_paciente              = fn_eliminar_paciente;
+window.validar_coincidencia_paciente     = validar_coincidencia_paciente;
+window.fn_guardar_paciente               = fn_guardar_paciente;
+window.fn_ver_credenciales_paciente      = fn_ver_credenciales_paciente;
+window.fn_cambiar_credenciales_paciente  = fn_cambiar_credenciales_paciente;
+window.listar_pacientes                  = listar_pacientes;
+window.paciente_coincidente_seleccionado = paciente_coincidente_seleccionado;

@@ -35,6 +35,49 @@
 			return $res;
 		}
 
+		public function valida_coincidencia_paciente(string $nombre, string $paterno, ?string $materno, string $fechaNac) {
+
+			$estatus = 500;
+			$mensaje = 'Hubo un problema para validar la coincidencia del paciente';
+			$data    = [0];
+
+			try {
+				$sql = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, sexo_biologico, telefono, correo, 
+							(
+								IF(fecha_nacimiento = :fecha_nac,8,0)
+								+
+								IF(apellido_paterno = :paterno,5,0)
+								+
+								IF(apellido_materno = :materno,2,0)
+								+
+								IF(nombre LIKE CONCAT('%', :nombre, '%') OR :nombre LIKE CONCAT('%',nombre,'%') ,3,0)
+							) AS score
+						FROM cat_pacientes
+						HAVING score >= 8
+						ORDER BY score DESC, fecha_nacimiento DESC
+						LIMIT 10;";
+
+				$stmt = $this->dbh->prepare($sql);
+				$stmt->execute([
+					':nombre'    => trim($nombre),
+					':paterno'   => trim($paterno),
+					':materno'   => trim($materno ?? ''),
+					':fecha_nac' => $fechaNac
+				]);
+
+				$estatus = 200;
+				$mensaje = 'ok';
+				$data    = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			}
+			catch(Exception $error) {
+				error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+
+			return $res;
+		}
+
 		public function busca_pacientes_coincidencia(string $parametro) {
 			
 			$res = [];
@@ -142,7 +185,7 @@
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
-			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
 			return $res;
 		}
 
@@ -215,7 +258,7 @@
 				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
-			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
 			return $res;
 		}
 	}
