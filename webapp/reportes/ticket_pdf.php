@@ -71,7 +71,7 @@
       }
 
       $sqlDatosOrden = $v->dbh->prepare(
-         "SELECT O.id, folio, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, paciente_nombre_historico, convenio_nombre_historico, estatus_pago, estatus, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, total_abonado, saldo_deudor, sucursal_historico, direccion, telefono, key_query
+         "SELECT O.id, folio, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, paciente_nombre_historico, convenio_nombre_historico, estatus_pago, estatus, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, total_abonado, saldo_deudor, sucursal_historico, direccion, telefono, key_query, DATE_FORMAT(fecha_cancelacion, '%d-%m-%Y %h:%i %p') AS fecha_cancelacion, user_cancela, motivo_cancela
          FROM ordenes_trabajo AS O
          INNER JOIN cat_sucursales AS S ON S.id = O.sucursal_id
          WHERE key_query = ?"
@@ -116,6 +116,8 @@
       $rutaQr = __DIR__ . '/../assets/images/qr_resultados.png'; // Ruta física en el servidor
       $qrBase64 = obtenerLogoBase64($rutaQr);
 
+      $esCancelado = (strtoupper(trim($orden['estatus'])) === 'CANCELADO');
+
       ob_start();
 
       echo '
@@ -128,11 +130,31 @@
                      @page {
                         margin: 4mm 4mm 4mm 4mm;
                      }
+                        
                      body {
                         font-family: "Helvetica", Helvetica, Arial, sans-serif;
                         font-size: 7pt;
                         line-height: 1.15;
                         color: #000;
+                     }
+
+                     .watermark {
+                        position: fixed;
+                        top: 50%;
+                        left: 0%;
+                        width: 100%;
+                        text-align: center;
+                        font-size: 26pt;
+                        font-weight: bold;
+                        color: rgba(200, 0, 0, 0.25);
+                        border: 3px solid rgba(200, 0, 0, 0.25);
+                        padding: 8px 0;
+                        transform: rotate(-30deg);
+                        transform-origin: center center;
+                        z-index: -1000;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        border-radius: 10px;
                      }
 
                      /* Utilidades */
@@ -217,7 +239,7 @@
                </style>
             </head>
             <body>
-               <!-- 1. ENCABEZADO Y SUCURSAL -->
+               '.($esCancelado ? '<div class="watermark">CANCELADO</div>' : '').'
                <div class="text-center">
                   <img src="'.$logoBase64.'" style="max-width: 140px; max-height: 50px; margin-bottom: 4px;"><br>
                   <div class="brand-title">'.$empresa['nombre'].'</div>
@@ -253,7 +275,33 @@
                      </tr>';
                   }  
                   echo '                  
-               </table>
+               </table>';
+
+               // --- INICIO: DATOS DE CANCELACIÓN ---
+                  if ($esCancelado) {
+                     echo '
+                     <div class="divider"></div>
+
+                     <div style="border: 1px dashed #000; padding: 4px; border-radius: 3px; font-size: 6.5pt;">
+                        <div class="fw-bold text-center text-uppercase" style="font-size: 7pt; margin-bottom: 2px;">DATOS DE CANCELACIÓN</div>
+                        <table class="table-data">
+                           <tr>
+                              <td width="35%" class="fw-bold">FECHA CANC:</td>
+                              <td width="65%">'.$orden['fecha_cancelacion'].'</td>
+                           </tr>
+                           <tr>
+                              <td class="fw-bold">CANCELÓ:</td>
+                              <td class="text-uppercase">'.$orden['user_cancela'].'</td>
+                           </tr>
+                           <tr>
+                              <td class="fw-bold">MOTIVO:</td>
+                              <td class="text-uppercase">'.$orden['motivo_cancela'].'</td>
+                           </tr>
+                        </table>
+                     </div>';
+                  }
+                  // --- FIN: DATOS DE CANCELACIÓN ---
+                  echo '
 
                <div class="divider"></div>
 

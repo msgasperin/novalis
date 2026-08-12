@@ -1,4 +1,4 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden, elimina_abono } from "./RecepcionServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden, elimina_abono, cancela_orden } from "./RecepcionServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
@@ -151,66 +151,75 @@ const pinta_ordenes_del_dia = (data, containerId) => {
    let colorPago = '';
 
    let cuantas = data.length;
-   $('#totalHoy').html(cuantas+' hoy');
+   $('#totalHoy').html(cuantas + ' hoy');
 
-   let html = 
-   `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
-      data.forEach((row, index) => {
+   let html = `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
 
-         color     = (row.tipo_cliente == 'particular') ? 'dark' : 'primary';
-         colorPago = (row.estatus_pago == 'PAGADO') ? 'success' : (row.estatus_pago == 'PARCIAL') ? 'primary' : 'danger';
-         
-         html+=`      
-         <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 border-${colorPago}">
-            <div class="card-body p-3">
-               
-               <div class="row align-items-center mb-2">
-                  <div class="col-6">
-                     <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase pointer" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
-                        <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
-                     </span>
-                  </div>
-                  <div class="col-6 text-end">
-                     <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded">
-                        #${row.folio}
-                     </span>
-                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir ticket">
-                        <i class="bi bi-ticket-detailed text-primary fs-6"></i>
-                     </a>
-                  </div>
+   data.forEach((row, index) => {
+
+      color     = (row.tipo_cliente == 'particular') ? 'dark' : 'primary';
+      colorPago = (row.estatus_pago == 'PAGADO') ? 'success' : (row.estatus_pago == 'PARCIAL') ? 'primary' : 'danger';
+      
+      // Manejo visual si la orden ya está cancelada      
+      let borderClass = row.estatus == 'CANCELADO' ? 'border-danger' : `border-${colorPago}`;
+
+      html += `      
+      <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 ${borderClass} ${row.estatus == 'CANCELADO' ? 'opacity-75 bg-light' : ''}">
+         <div class="card-body p-3">
+            
+            <div class="row align-items-center mb-2">
+               <div class="col-6">
+                  <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase pointer" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
+                     <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
+                  </span>
                </div>
+               <div class="col-6 text-end d-flex align-items-center justify-content-end gap-1">
+                  <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded border">
+                     #${row.folio}
+                  </span>
+                  
+                  <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir ticket">
+                     <i class="bi bi-printer text-primary fs-7"></i>
+                  </a>
 
-               <div class="row">
-                  <div class="col-12">
-                     <h6 class="card-title text-dark fw-bold mb-1 text-truncate">
-                        ${row.paciente_nombre_historico}
-                     </h6>
-                     <span class="text-muted small text-uppercase">${row.tipo_cliente ?? ''}</span><br>
-                     <span class="text-muted small">${row.convenio_nombre_historico ?? ''}</span>
-                  </div>
+                  ${(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') ? `
+                     <button type="button" class="btn btn-sm btn-outline-danger border p-1 lh-1 btn-redondo" title="Cancelar orden" onclick="ModalCancelarOrden('${row.id}', '${row.folio}', 1)">
+                        <i class="bi bi-x-circle fs-7"></i>
+                     </button>
+                  ` : ''}
                </div>
-
-               <div class="row align-items-center mt-2 pt-2 border-top border-light">
-                  <div class="col-6">
-                     <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
-                  </div>
-                  <div class="col-6 text-end">
-                     <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>`;
-                     if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {
-                        html+=`
-                        <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="badge bg-light border" title="Imprimir resultado">
-                           <i class="bi bi-file-earmark-medical text-success fs-6"></i>
-                        </a>`;
-                     }
-                     html+=`
-                  </div>
-               </div>
-
             </div>
-         </div>`;
-      });
-      html+=`
-   </div>`;
+
+            <div class="row">
+               <div class="col-12">
+                  <h6 class="card-title text-dark fw-bold mb-1 text-truncate">
+                     ${row.paciente_nombre_historico}
+                  </h6>
+                  <span class="text-muted small text-uppercase">${row.tipo_cliente ?? ''}</span><br>
+                  <span class="text-muted small">${row.convenio_nombre_historico ?? ''}</span>
+               </div>
+            </div>
+
+            <div class="row align-items-center mt-2 pt-2 border-top border-light">
+               <div class="col-5">
+                  <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
+               </div>
+               <div class="col-7 text-end d-flex align-items-center justify-content-end gap-1">
+                  <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>
+                  
+                  ${(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) ? `
+                     <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir resultado">
+                        <i class="bi bi-file-earmark-medical text-success fs-7"></i>
+                     </a>
+                  ` : ''}
+               </div>
+            </div>
+
+         </div>
+      </div>`;
+   });
+
+   html += `</div>`;
 
    $('#' + containerId).html(html);
 }
@@ -1577,10 +1586,10 @@ const getBadgeEstatus = (estatus) => {
    let bgClass = 'bg-secondary';
    switch ((estatus || '').toUpperCase()) {
       case 'RECEPCION': bgClass = 'bg-secondary text-white'; break;
-      case 'LABORATORIO': bgClass = 'bg-warning text-dark'; break;
-      case 'COMPLETADA': bgClass = 'bg-success'; break;
-      case 'ENTREGADA': bgClass = 'bg-primary'; break;
-      case 'CANCELADA': bgClass = 'bg-danger'; break;
+      case 'PROCESO': bgClass = 'bg-warning text-dark'; break;
+      case 'LISTO': bgClass = 'bg-success'; break;
+      case 'ENTREGADO': bgClass = 'bg-primary'; break;
+      case 'CANCELADO': bgClass = 'bg-danger'; break;
    }
    return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
 };
@@ -1668,16 +1677,28 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                <td class="text-center">
                   <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
                      <i class="bi bi-ticket-detailed"></i>
-                  </a>
-                  <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
-                     <i class="bi bi-currency-dollar"></i>
-                  </button>`
+                  </a>`;
+
+                  if(row.estatus != 'CANCELADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
+                        <i class="bi bi-currency-dollar"></i>
+                     </button>`
+                  }
+
                   if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {
                      html+=`
                      <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
                         <i class="bi bi-file-earmark-medical"></i>
                      </a>`;
                   }
+                  if(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2" title="Cancelar orden" onclick="ModalCancelarOrden(${row.id}, '${row.folio}', 2);">
+                        <i class="bi bi-x-circle"></i>
+                     </button>`;
+                  }
+                  
                   html+=`
                </td>
             </tr>`;
@@ -2049,6 +2070,134 @@ const eliminar_abono = async (idAbono, idOrden, monto) => {
    }
 }
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CANCELAR ORDEN  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const ModalCancelarOrden = (idOrden, folio, origen) => {
+
+   let html = `
+   <div class="modal fade shadow-lg modal-superior-blur" id="modalCancelarOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content sombra-modal border-0">
+            <div class="modal-body p-4 text-center">
+               
+               <!-- ÍCONO DE ADVERTENCIA / CANCELACIÓN -->
+               <div class="mb-3">
+                  <div class="rounded-circle bg-danger-subtle mx-auto p-3" style="width: 70px; height: 70px;">
+                     <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                  </div>
+               </div>
+
+               <h4 class="fw-bold text-dark mb-1">Cancelar Orden de Trabajo</h4>
+               <p class="text-muted small mb-4">Esta acción marcará la orden como cancelada de forma permanente.</p>
+
+               <!-- DATOS CLAVE DE LA ORDEN Y MOTIVO DE CANCELACIÓN -->
+               <div class="bg-light rounded-3 p-3 border mb-3 text-start">
+                  
+                  <!-- FILA 1: FOLIO Y ESTADO -->
+                  <div class="row align-items-center mb-3 pb-2 border-bottom">
+                     <div class="col-7">
+                        <span class="text-muted fs-7 d-block text-uppercase fw-semibold">Folio de Orden</span>
+                        <span class="fw-bold text-dark fs-5">#${folio || '---'}</span>
+                     </div>
+                     <div class="col-5 text-end">
+                        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">
+                           <i class="bi bi-exclamation-octagon me-1"></i> Por Cancelar
+                        </span>
+                     </div>
+                  </div>
+
+                  <!-- FILA 2: INPUT PARA MOTIVO -->
+                  <div class="row">
+                     <div class="col-12">
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">
+                           Motivo de Cancelación <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control form-control-sm bg-white" id="motivoCancelaOrden" rows="3" placeholder="Describe la razón por la cual se cancela la orden..." maxlength="250"></textarea>
+                     </div>
+                  </div>
+
+               </div>
+
+               <!-- MENSAJE INFORMATIVO SECUNDARIO -->
+               <div class="alert alert-warning border-0 bg-warning-subtle text-warning-emphasis small py-2 mb-4">
+                  <i class="bi bi-exclamation-triangle me-1"></i> Esta operación es irreversible. Verifique la información antes de continuar.
+               </div>
+
+               <!-- ACCIONES PRINCIPALES (GRID BS5) -->
+               <div class="row g-2">
+                  <div class="col-6">
+                     <button type="button" class="btn btn-outline-secondary btn-redondo w-100" data-bs-dismiss="modal">
+                        Regresar
+                     </button>
+                  </div>
+                  <div class="col-6">
+                     <button type="button" class="btn btn-outline-danger btn-redondo w-100" id="btnProcesarCancelacion" onclick="cancelar_orden_trabajo(${idOrden}, '${folio}', ${origen});">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar Orden
+                     </button>
+                  </div>
+               </div>
+
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminExt').html(html);
+   $('#modalCancelarOrden').modal('show');
+
+   setTimeout(() => {
+      $('#cancelar_motivo_confirm').focus();
+   }, 200);
+}
+
+const cancelar_orden_trabajo = async (idOrden, folioOrden, origen) => {
+   
+   let motivo = $('#motivoCancelaOrden').val().trim();
+
+   if (idOrden == '' || idOrden <= 0 || folioOrden == '') {
+      ToastColor.fire({
+         text: '¡Atención! Faltaron parámetros importantes',
+         icon: 'warning'
+      });
+      return;
+   }
+   else if (motivo == '') {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar el motivo de la cancelación',
+         icon: 'warning'
+      });
+      $('#motivoCancelaOrden').focus();
+      return;
+   }
+   
+   $('.btnProcesarCancelacion').prop('disabled', true);
+
+   let respuesta = await cancela_orden(idOrden, folioOrden, motivo);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden cancelada!', '', 'success', 2500);
+      $('#modalCancelarOrden').modal('hide');
+
+      if(origen == 2) {
+         let orden = arrOrdenesBusAvanzada.find(o => o.id == idOrden);
+         if (orden) orden.estatus = 'CANCELADO';
+         pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, 'contenedor_resultados_busqueda');
+         
+      }
+      else {         
+         let orden = arrOrdenesHoy.find(o => o.id == idOrden);
+         if (orden) orden.estatus = 'CANCELADO';         
+         pinta_ordenes_del_dia(arrOrdenesHoy, 'ordenes_del_dia');
+      }
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnEliminarAbono').prop('disabled', false);
+      return;
+   }
+}
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion                    = TabRecepcion;
 window.ModalPacientesEncontrados       = ModalPacientesEncontrados;
@@ -2056,6 +2205,7 @@ window.ModalRegistrarOrden             = ModalRegistrarOrden;
 window.ModalOrdenRegistradaExito       = ModalOrdenRegistradaExito;
 window.ModalBuscarOrdenes              = ModalBuscarOrdenes;
 window.ModalGestionPagos               = ModalGestionPagos;
+window.ModalCancelarOrden              = ModalCancelarOrden;
 
 window.paciente_seleccionado           = paciente_seleccionado;
 window.buscar_paciente_encontrado      = buscar_paciente_encontrado;
@@ -2081,3 +2231,7 @@ window.limpiar_busqueda_avanzada       = limpiar_busqueda_avanzada;
 
 window.registrar_abono                 = registrar_abono;
 window.eliminar_abono                  = eliminar_abono;
+
+window.cancelar_orden_trabajo          = cancelar_orden_trabajo;
+
+

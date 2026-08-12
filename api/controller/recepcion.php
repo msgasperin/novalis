@@ -195,6 +195,24 @@
           echo json_encode($res);
         break;
 
+
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE ABONOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        case 'cancela_orden':
+          if(empty($_POST["idOrden"]) || empty($_POST["folioOrden"]) || empty($_POST["motivo"])) {
+            $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+            echo json_encode($res);
+            break;
+          }
+
+          $res = $v->cancelar_orden($_POST["idOrden"], $_POST["motivo"], $_SESSION["nombre"]);
+
+          if($res["estatus"] == 200) {
+            $g->bitacora('Orden cancelada con Folio: '.$_POST["folioOrden"].' a la orden: ', $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+          }            
+          echo json_encode($res);
+        break;
+
         default:
           echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", "data" => []]);
         break;

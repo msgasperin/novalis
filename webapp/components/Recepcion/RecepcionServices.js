@@ -56,3 +56,10 @@ export const elimina_abono = async (idAbono, idOrden) => {
    const datos = { func: 'elimina_abono', idAbono, idOrden };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CANCELAR ORDEN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export const cancela_orden = async (idOrden, folioOrden, motivo) => {
+   const datos = { func: 'cancela_orden', idOrden, folioOrden, motivo };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}

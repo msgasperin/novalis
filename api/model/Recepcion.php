@@ -284,7 +284,27 @@
 			} 
 			catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
-				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+						
+			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
+			return $res;
+		}
+
+		public function cancelar_orden(int $id_orden, string $motivo, string $user_cap) {
+      	$estatus = 500;
+      	$data    = [0];
+			$mensaje = 'Error al cancelar la orden';
+			try {
+				$sql = $this->dbh->prepare("UPDATE ordenes_trabajo SET estatus = ?, fecha_cancelacion = ?, user_cancela = ?, motivo_cancela = ? WHERE id = ? AND estatus != ?");
+				$ok = $sql->execute(array('CANCELADO', date('Y-m-d H:i:s'), $user_cap, $motivo, $id_orden, 'CANCELADO'));
+
+				if($ok) {
+					$estatus = 200;
+					$mensaje = 'ok';	
+        		}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
 			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
