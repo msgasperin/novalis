@@ -160,15 +160,16 @@ const pinta_ordenes_del_dia = (data, containerId) => {
       color     = (row.tipo_cliente == 'particular') ? 'dark' : 'primary';
       colorPago = (row.estatus_pago == 'PAGADO') ? 'success' : (row.estatus_pago == 'PARCIAL') ? 'primary' : 'danger';
       
-      // Manejo visual si la orden ya está cancelada      
-      let borderClass = row.estatus == 'CANCELADO' ? 'border-danger' : `border-${colorPago}`;
+      // Manejo visual si la orden es urgente o cancelada    
+      let isUrgente   = (row.es_urgente == 1 || row.es_urgente == '1');  
+      let borderClass = row.estatus == 'CANCELADO' ? 'border-danger' : isUrgente ? 'border-danger shadow' : `border-${colorPago}`;
 
       html += `      
       <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 ${borderClass} ${row.estatus == 'CANCELADO' ? 'opacity-75 bg-light' : ''}">
          <div class="card-body p-3">
             
             <div class="row align-items-center mb-2">
-               <div class="col-6">
+               <div class="col-6 d-flex align-items-center gap-1">
                   <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase pointer" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
                      <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
                   </span>
@@ -205,9 +206,15 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                   <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
                </div>
                <div class="col-7 text-end d-flex align-items-center justify-content-end gap-1">
+                  <!-- BADGE DE URGENTE -->
+                  ${isUrgente && row.estatus != 'CANCELADO' ? `
+                     <span class="badge bg-danger text-white rounded-pill small text-uppercase" title="Atención Prioritaria">
+                        <i class="bi bi-exclamation-triangle-fill"></i> URGENTE
+                     </span>
+                  ` : ''}
                   <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>
                   
-                  ${(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) ? `
+                  ${((row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) ? `
                      <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir resultado">
                         <i class="bi bi-file-earmark-medical text-success fs-7"></i>
                      </a>
@@ -929,6 +936,28 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
 
                <!-- SECCIÓN AJUSTES DE ORDEN -->
                <div class="row g-3">
+
+                  <!-- Bloque: Marcado de Urgencia -->
+                  <div class="col-12">
+                     <div class="card border-0 bg-white shadow-sm rounded-3 border-start border-danger border-4">
+                        <div class="card-body p-3">
+                           <div class="d-flex align-items-center justify-content-between">
+                              <div class="d-flex align-items-center me-3">
+                                 <span class="badge bg-danger-subtle text-danger fw-bold me-2 px-2 py-1 fs-6">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                 </span>
+                                 <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Prioridad de Atención</h6>
+                                    <span class="text-muted small">Marcar si esta orden requiere procesamiento prioritario (URGENTE)</span>
+                                 </div>
+                              </div>
+                              <div class="form-check form-switch fs-4 mb-0 me-1">
+                                 <input class="form-check-input style-cursor-pointer" type="checkbox" id="chkEsUrgenteOrden" name="chkEsUrgenteOrden" role="switch">
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
                   
                   <!-- Bloque 1: Aplicar Descuento -->
                   <div class="col-12">
@@ -1179,6 +1208,7 @@ const registra_orden = async () => {
    }
 
    // Se obtienen los datos generales del pago
+   let esUrgente             = $('#chkEsUrgenteOrden').is(':checked') ? 1 : 0;
    let selectDescuento       = document.getElementById("descuentoGeneralOrden");
    let idDescuento           = selectDescuento.value;
    let porDescuento          = $('option:selected', selectDescuento).attr('data-descuento');
@@ -1252,7 +1282,7 @@ const registra_orden = async () => {
       return;
    }
 
-   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion };
+   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion, esUrgente };
 
    $('#btnRegistrarOrden').prop('disabled',true);
    
@@ -1634,7 +1664,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
    `<div class="table-responsive rounded-3 border shadow-sm">
       <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableBusquedaAvanzada">
          <thead class="table-dark text-uppercase small">
-            <tr>
+            <tr class="border-start border-1 border-dark">
                <th width="15%" class="text-center py-2">Orden</th>
                <th width="35%" class="py-2">Paciente / Convenio</th>
                <th width="15%" class="text-center py-2">Registro</th>
@@ -1645,13 +1675,22 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
          <tbody>`;
          
          data.forEach(row => {
+            let isUrgente = (row.es_urgente == 1 || row.es_urgente == '1');
+
             html +=
-            `<tr id="trBusqueda${row.folio}">
-               <!-- 1. FOLIO Y ESTATUS DE ORDEN -->
+            `<tr id="trBusqueda${row.folio}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
+               
                <td class="text-center">
-                  <span class="font-monospace fw-bold text-primary-emphasis d-block mb-1">
-                     #${row.folio}
-                  </span>
+                  <div class="align-items-center justify-content-center gap-1 mb-1">
+                     <span class="font-monospace fw-bold text-primary-emphasis">
+                        #${row.folio}
+                     </span>
+                     ${isUrgente && row.estatus != 'CANCELADO' ? `
+                        <br><span class="fs-8 text-danger" title="Orden Urgente">
+                           <i class="bi bi-lightning-charge-fill text-danger"></i> URGENTE
+                        </span>
+                     ` : ''}
+                  </div>
                   ${getBadgeEstatus(row.estatus)}
                </td>
 
@@ -1683,7 +1722,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                      html+=`
                      <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
                         <i class="bi bi-currency-dollar"></i>
-                     </button>`
+                     </button>`;
                   }
 
                   if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {

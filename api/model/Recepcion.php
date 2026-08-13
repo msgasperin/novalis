@@ -25,7 +25,7 @@
 				$fecha_ini = date('Y-m-d').' 00:00:00';
 				$fecha_fin = date('Y-m-d').' 23:59:59';
 
-				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, archivo_pdf_path, total_neto, total_abonado, saldo_deudor FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
+				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, archivo_pdf_path, total_neto, total_abonado, saldo_deudor, es_urgente FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
 				$sql->execute([$fecha_ini, $fecha_fin, $id_sucursal]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -47,7 +47,11 @@
 					$palabras = explode(' ', trim($parametro));
 					$term_boolean = implode('* ', $palabras) . '*';
 
-					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path FROM ordenes_trabajo WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus");
+					$sql = $this->dbh->prepare(
+						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path, es_urgente 
+						FROM ordenes_trabajo 
+						WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus"
+					);
 					$sql->execute([$id_sucursal, $term_boolean]);
 				}
 				else {
@@ -70,7 +74,11 @@
 						$condicion = '';
 					}
 
-					$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path FROM ordenes_trabajo WHERE sucursal_id = ? $condicion $filtro_estatus");
+					$sql = $this->dbh->prepare(
+						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, archivo_pdf_path, es_urgente 
+						FROM ordenes_trabajo 
+						WHERE sucursal_id = ? $condicion $filtro_estatus"
+					);
 					$sql->execute([$id_sucursal]);
 				}
 				
@@ -132,7 +140,7 @@
 				$key_query = 'OD'. date('y').$id_sucursal.$consecutivo.$this->generarCadena(5);
 			
 				// Nota: Los campos financieros (total, subtotal, etc.) no se envían porque inician en 0 por DEFAULT
-				$sqlOrden = $this->dbh->prepare("INSERT INTO ordenes_trabajo (anio, mes, id_folio, folio, sucursal_id, sucursal_historico, paciente_id, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, tipo_cliente, convenio_id, convenio_nombre_historico, lista_precio_id, lista_precio_nombre_historico, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, key_query, observaciones, user_cap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				$sqlOrden = $this->dbh->prepare("INSERT INTO ordenes_trabajo (anio, mes, id_folio, folio, sucursal_id, sucursal_historico, paciente_id, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, tipo_cliente, convenio_id, convenio_nombre_historico, lista_precio_id, lista_precio_nombre_historico, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, es_urgente, key_query, observaciones, user_cap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 				$paramsOrden = [
 					date('Y'),
@@ -156,6 +164,7 @@
 					$post["cargoExtra"],
 					$post["motivoCargoExtraOrden"] ?? '',
 					$post["total_neto"],
+					$post["esUrgente"],
 					$key_query,
 					$post["observacion"],
 					$user_cap
