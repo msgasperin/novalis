@@ -126,12 +126,6 @@ const fn_pinta_listado_convenios = (containerId, data) => {
                      </div>
                   </div>
 
-                  <!-- RFC -->
-                  <div class="mb-2 p-2 rounded bg-secondary bg-opacity-10">
-                     <small class="text-muted d-block title-rfc">RFC</small>
-                     <span class="fw-bold text-dark text-rfc">${row.rfc}</span>
-                  </div>
-
                   <!-- Contacto + teléfono -->
                   <div class="row g-2 mb-2">
                      <div class="col-7">
@@ -154,12 +148,17 @@ const fn_pinta_listado_convenios = (containerId, data) => {
                <!-- Footer -->
                <div class="card-footer bg-white border-top-0 pb-2">
                   <div class="d-flex justify-content-end gap-2">
+
+                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', '${row.id_convenio}', '${row.nombre_comercial}');">
+                        <i class="bi bi-receipt"></i>
+                     </button>
                      <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio('${row.id_convenio}');">
                         <i class="bi bi-pencil"></i>
                      </button>
                      <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio}, '${row.nombre_comercial}');">
                         <i class="bi bi-trash"></i>
-                     </button>               
+                     </button>
+
                   </div>
                </div>
             </div>
@@ -176,10 +175,8 @@ const ModalFormConvenio = (idConvenio) => {
    let convenioSeleccionado = arrConvenios.filter(convenio => convenio.id_convenio == idConvenio);
 
    let titulo;
-   let razon_social        = '';
    let nombre_comercial    = '';
    let persona_contacto    = '';
-   let rfc                 = '';
    let telefono_contacto   = '';
    let correo_contacto     = '';
    let direccion           = '';
@@ -189,10 +186,8 @@ const ModalFormConvenio = (idConvenio) => {
 
    if(idConvenio > 0) {
       titulo              = 'Editar Convenio: '+ convenioSeleccionado[0].nombre_comercial ?? '';
-      razon_social        = convenioSeleccionado[0].razon_social ?? '';
       nombre_comercial    = convenioSeleccionado[0].nombre_comercial ?? '';
       persona_contacto    = convenioSeleccionado[0].persona_contacto ?? '';
-      rfc                 = convenioSeleccionado[0].rfc ?? '';
       telefono_contacto   = convenioSeleccionado[0].telefono_contacto ?? '';
       correo_contacto     = convenioSeleccionado[0].correo_contacto ?? '';
       direccion           = convenioSeleccionado[0].direccion ?? '';
@@ -222,10 +217,6 @@ const ModalFormConvenio = (idConvenio) => {
                      <b>Nombre *</b>
                      <input type="text" name="nomConvenio" id="nomConvenio" class="form-control" maxlength="200" value="${nombre_comercial}">
                   </div>
-                  <div class="col-12 mt-3">
-                     <b>Razón social</b>
-                     <input type="text" name="razonSocialConvenio" id="razonSocialConvenio" class="form-control" maxlength="200" value="${razon_social}">
-                  </div>
                   <div class="col-md-3 col-sm-6 col-12 mt-3">
                      <b>Tipo *</b>
                      <select name="tipoConvenio" id="tipoConvenio" class="form-select">
@@ -235,11 +226,7 @@ const ModalFormConvenio = (idConvenio) => {
                         <option value="DOCTOR">DOCTOR</option>
                      </select>
                   </div>
-                  <div class="col-md-3 col-sm-6 col-12 mt-3">
-                     <b>RFC *</b>
-                     <input type="text" name="rfcConvenio" id="rfcConvenio" class="form-control" maxlength="11" value="${rfc}" onkeypress="this.value=this.value.toUpperCase();">
-                  </div>
-                  <div class="col-md-6 col-sm-5 col-12 mt-3">
+                  <div class="col-md-9 col-sm-5 col-12 mt-3">
                      <b>Persona de Contacto *</b>
                      <input type="text" name="personaContactoConvenio" id="personaContactoConvenio" class="form-control" maxlength="200" value="${persona_contacto}">
                   </div>
@@ -318,10 +305,8 @@ const combo_listas_precios = async (containerId) => {
 
 const fn_guardar_convenio = async (idConvenio, origen) => {
 
-   let razonSocial        = $('#razonSocialConvenio').val().trim();
    let nomConvenio        = $('#nomConvenio').val().trim();
    let tipo               = $('#tipoConvenio').val();
-   let rfc                = $('#rfcConvenio').val().trim();
    let personaContacto    = $('#personaContactoConvenio').val().trim();
    let telefono           = $('#telConvenio').val().trim();
    let correo             = $('#correoConvenio').val().trim();
@@ -344,14 +329,6 @@ const fn_guardar_convenio = async (idConvenio, origen) => {
          icon: 'warning'
       });
       $('#tipoConvenio').focus();
-      return;
-   }
-   else if (rfc == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el RFC',
-         icon: 'warning'
-      });
-      $('#rfcConvenio').focus();
       return;
    }
    else if (personaContacto == '') {
@@ -405,7 +382,7 @@ const fn_guardar_convenio = async (idConvenio, origen) => {
       return;
    }
    
-   let objConvenio = { 'func': 'guardar', idConvenio, razonSocial, nomConvenio, tipo, rfc, personaContacto, telefono, correo, precio, direccion, passwordPlataforma };
+   let objConvenio = { 'func': 'guardar', idConvenio, nomConvenio, tipo, personaContacto, telefono, correo, precio, direccion, passwordPlataforma };
       
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'El convenio: ' + nomConvenio + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {

@@ -188,12 +188,12 @@ const pinta_listado_pacientes = (containerId, data) => {
       <thead>
          <tr>
             <th width="5%">ID</th>
-            <th width="40%">Paciente</th>
+            <th width="35%">Paciente</th>
             <th width="10%">Fecha Nacimiento</th>
             <th width="10%">Sexo</th>
             <th width="10%">Teléfono</th>
             <th width="15%">Correo</th>
-            <th width="10%">Acciones</th>
+            <th width="15%">Acciones</th>
          </tr>
       </thead>
       <tbody>`;
@@ -210,7 +210,10 @@ const pinta_listado_pacientes = (containerId, data) => {
                <td class="text-center">${row.telefono ?? ''}</td>
                <td class="text-center">${row.correo ?? ''}</td>
                <td class="text-center">
-                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormPaciente('${row.id}', '${row.nombreCompleto}', 1);" title="Editar paciente">
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('PACIENTE', '${row.id}', '${nombreCompleto}');">
+                        <i class="bi bi-receipt"></i>
+                     </button>
+                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormPaciente('${row.id}', '${nombreCompleto}', 1);" title="Editar paciente">
                      <i class="bi bi-pencil"></i>
                   </button>
                   <button type="buttton" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesPaciente('${row.id}', '${row.nombre}', '${row.apellido_paterno}');" title="Ver credenciales de acceso">

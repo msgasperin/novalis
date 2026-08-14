@@ -158,7 +158,7 @@ const fn_guardar_descuento = async (idDescuento) => {
    }
    else if (porcentajeDescuento == '' || parseInt(porcentajeDescuento) <= 0) {
       ToastColor.fire({
-         text: '¡Atención! Debes un porcentaje de descuento y este debe ser mayor a 0',
+         text: '¡Atención! Debes ingresar un porcentaje de descuento y este debe ser mayor a 0',
          icon: 'warning'
       });
       $('#porcentajeDescuento').focus();

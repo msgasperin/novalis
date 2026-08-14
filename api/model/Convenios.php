@@ -12,7 +12,7 @@
 		public function obtiene_convenios() {
 			try {
 				$res = [];
-				$sql = $this->dbh->prepare("SELECT id_convenio, razon_social, nombre_comercial, rfc, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, nombre, tipo FROM cat_convenios AS C INNER JOIN cat_listas_precios AS P ON C.lista_precio_id = P.id WHERE C.activo = 1");
+				$sql = $this->dbh->prepare("SELECT id_convenio, nombre_comercial, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, nombre, tipo FROM cat_convenios AS C INNER JOIN cat_listas_precios AS P ON C.lista_precio_id = P.id WHERE C.activo = 1");
 				$sql->execute();
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);				
 			} catch (Exception $error) {
@@ -27,9 +27,9 @@
       	$data    = [0];
 			$mensaje = 'Error al intentar insertar';
 			try {        		
-				$sql = $this->dbh->prepare("INSERT INTO cat_convenios (razon_social, nombre_comercial, rfc, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, tipo, password_plataforma, user_cap, fecha_cap) VALUES (?,?,?,?,?,?,?,?,?,AES_ENCRYPT(?,?),?,?)");
+				$sql = $this->dbh->prepare("INSERT INTO cat_convenios (nombre_comercial, persona_contacto, telefono_contacto, correo_contacto, direccion, lista_precio_id, tipo, password_plataforma, user_cap, fecha_cap) VALUES (?,?,?,?,?,?,?,AES_ENCRYPT(?,?),?,?)");
 				
-            $ok  = $sql->execute(array($post["razonSocial"], $post["nomConvenio"], $post["rfc"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $post["passwordPlataforma"], $this->key, $user_cap, date('Y-m-d H:i:s')));
+            $ok  = $sql->execute(array($post["nomConvenio"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $post["passwordPlataforma"], $this->key, $user_cap, date('Y-m-d H:i:s')));
 
 				if($ok) {
 					$id = $this->dbh->lastInsertId();
@@ -47,7 +47,6 @@
 			} 
 			catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
-            //print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
 			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);
@@ -61,14 +60,14 @@
 			try {
 
 				if(empty($post["passwordPlataforma"])) {
-					$sql = $this->dbh->prepare("UPDATE cat_convenios SET razon_social = ?, nombre_comercial = ?, rfc = ?, persona_contacto = ?, telefono_contacto = ?, correo_contacto = ?, direccion = ?, lista_precio_id = ?, tipo = ?, user_cap = ?, fecha_cap = ? WHERE id_convenio = ?");
+					$sql = $this->dbh->prepare("UPDATE cat_convenios SET nombre_comercial = ?, persona_contacto = ?, telefono_contacto = ?, correo_contacto = ?, direccion = ?, lista_precio_id = ?, tipo = ?, user_cap = ?, fecha_cap = ? WHERE id_convenio = ?");
 					
-					$ok  = $sql->execute(array($post["razonSocial"], $post["nomConvenio"], $post["rfc"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $user_cap, date('Y-m-d H:i:s'), $post["idConvenio"]));
+					$ok  = $sql->execute(array($post["nomConvenio"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $user_cap, date('Y-m-d H:i:s'), $post["idConvenio"]));
 				}
 				else {
-					$sql = $this->dbh->prepare("UPDATE cat_convenios SET razon_social = ?, nombre_comercial = ?, rfc = ?, persona_contacto = ?, telefono_contacto = ?, correo_contacto = ?, direccion = ?, lista_precio_id = ?, tipo = ?, password_plataforma = AES_ENCRYPT(?,?), user_cap = ?, fecha_cap = ? WHERE id_convenio = ?");
+					$sql = $this->dbh->prepare("UPDATE cat_convenios SET nombre_comercial = ?, persona_contacto = ?, telefono_contacto = ?, correo_contacto = ?, direccion = ?, lista_precio_id = ?, tipo = ?, password_plataforma = AES_ENCRYPT(?,?), user_cap = ?, fecha_cap = ? WHERE id_convenio = ?");
 					
-					$ok  = $sql->execute(array($post["razonSocial"], $post["nomConvenio"], $post["rfc"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $post["passwordPlataforma"], $this->key, $user_cap, date('Y-m-d H:i:s'), $post["idConvenio"]));
+					$ok  = $sql->execute(array($post["nomConvenio"], $post["personaContacto"], $post["telefono"], $post["correo"], $post["direccion"], $post["precio"], $post["tipo"], $post["passwordPlataforma"], $this->key, $user_cap, date('Y-m-d H:i:s'), $post["idConvenio"]));
 				}
 
 				if($ok) {

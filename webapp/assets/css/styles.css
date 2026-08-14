@@ -100,12 +100,6 @@
   background-color: #F26B7C;
 }
 
-
-
-.form-select {
-  border-radius: 0px;
-}
-
 .form-check-input:checked {
   background-color: var(--primary-dark);
   border-color: var(--primary-dark);

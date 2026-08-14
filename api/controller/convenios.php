@@ -22,7 +22,7 @@
 
          case 'guardar':
 
-            if(!isset($_POST["idConvenio"]) || empty($_POST["nomConvenio"]) || empty($_POST["precio"]) || empty($_POST["razonSocial"]) || empty($_POST["rfc"])  || empty($_POST["telefono"]) || empty($_POST["tipo"]) || $_POST["tipo"] == 'NA') {
+            if(!isset($_POST["idConvenio"]) || empty($_POST["nomConvenio"]) || empty($_POST["precio"]) || empty($_POST["telefono"]) || empty($_POST["tipo"]) || $_POST["tipo"] == 'NA') {
                $res = ['estatus' => 500, 'mensaje' => 'Faltaron parámetros importantes', 'data' => []];
                echo json_encode($res);
                break;

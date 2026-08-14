@@ -12,6 +12,55 @@ const comboMeses = `
 <option value="11">Noviembre</option>
 <option value="12">Diciembre</option>`;
 
+const REGIMENES_FISCALES = [
+  { clave: '601', descripcion: 'General de Ley Personas Morales', aplicaFisica: false, aplicaMoral: true },
+  { clave: '603', descripcion: 'Personas Morales con Fines no Lucrativos', aplicaFisica: false, aplicaMoral: true },
+  { clave: '605', descripcion: 'Sueldos y Salarios e Ingresos Asimilados a Salarios', aplicaFisica: true, aplicaMoral: false },
+  { clave: '606', descripcion: 'Arrendamiento', aplicaFisica: true, aplicaMoral: false },
+  { clave: '607', descripcion: 'Régimen de Enajenación o Adquisición de Bienes', aplicaFisica: true, aplicaMoral: false },
+  { clave: '608', descripcion: 'Demás ingresos', aplicaFisica: true, aplicaMoral: false },
+  { clave: '610', descripcion: 'Residentes en el Extranjero sin Establecimiento Permanente en México', aplicaFisica: true, aplicaMoral: true },
+  { clave: '611', descripcion: 'Ingresos por Dividendos (socios y accionistas)', aplicaFisica: true, aplicaMoral: false },
+  { clave: '612', descripcion: 'Personas Físicas con Actividades Empresariales y Profesionales', aplicaFisica: true, aplicaMoral: false },
+  { clave: '614', descripcion: 'Ingresos por intereses', aplicaFisica: true, aplicaMoral: false },
+  { clave: '615', descripcion: 'Régimen de los ingresos por obtención de premios', aplicaFisica: true, aplicaMoral: false },
+  { clave: '616', descripcion: 'Sin obligaciones fiscales', aplicaFisica: true, aplicaMoral: false },
+  { clave: '620', descripcion: 'Sociedades Cooperativas de Producción que optan por diferir sus ingresos', aplicaFisica: false, aplicaMoral: true },
+  { clave: '621', descripcion: 'Incorporación Fiscal', aplicaFisica: true, aplicaMoral: false },
+  { clave: '622', descripcion: 'Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras', aplicaFisica: false, aplicaMoral: true },
+  { clave: '623', descripcion: 'Opcional para Grupos de Sociedades', aplicaFisica: false, aplicaMoral: true },
+  { clave: '624', descripcion: 'Coordinados', aplicaFisica: false, aplicaMoral: true },
+  { clave: '625', descripcion: 'Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas', aplicaFisica: true, aplicaMoral: false },
+  { clave: '626', descripcion: 'Régimen Simplificado de Confianza (RESICO)', aplicaFisica: true, aplicaMoral: true }
+];
+
+const USOS_CFDI = [
+  { clave: 'G01', descripcion: 'Adquisición de mercancías', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'G02', descripcion: 'Devoluciones, descuentos o bonificaciones', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'G03', descripcion: 'Gastos en general', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I01', descripcion: 'Construcciones', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I02', descripcion: 'Mobiliario y equipo de oficina por inversiones', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I03', descripcion: 'Equipo de transporte', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I04', descripcion: 'Equipo de cómputo y accesorios', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I05', descripcion: 'Dados, troqueles, moldes, matrices y herramental', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I06', descripcion: 'Comunicaciones telefónicas', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I07', descripcion: 'Comunicaciones satelitales', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'I08', descripcion: 'Otra maquinaria y equipo', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'D01', descripcion: 'Honorarios médicos, dentales y gastos hospitalarios', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D02', descripcion: 'Gastos médicos por incapacidad o discapacidad', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D03', descripcion: 'Gastos funerales', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D04', descripcion: 'Donativos', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D05', descripcion: 'Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D06', descripcion: 'Aportaciones voluntarias al SAR', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D07', descripcion: 'Primas por seguros de gastos médicos', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D08', descripcion: 'Gastos de transportación escolar obligatoria', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D09', descripcion: 'Depósitos en cuentas especiales para el ahorro, primas que tengan como base planes de pensiones', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'D10', descripcion: 'Pagos por servicios educativos (colegiaturas)', aplicaFisica: true, aplicaMoral: false },
+  { clave: 'S01', descripcion: 'Sin efectos fiscales', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'CP01', descripcion: 'Pagos', aplicaFisica: true, aplicaMoral: true },
+  { clave: 'CN01', descripcion: 'Nómina', aplicaFisica: true, aplicaMoral: false }
+];
+
 const arrayMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const hoy = new Date();
@@ -533,5 +582,7 @@ window.iniciales               = iniciales;
 window.quitarAcentos           = quitarAcentos;
 window.comboMeses              = comboMeses;
 window.fmtMoney                = fmtMoney;
+window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
+window.USOS_CFDI               = USOS_CFDI;
 
 

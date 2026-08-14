@@ -882,7 +882,6 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
          <div class="modal-content sombra-modal border-0">
             <div class="modal-body p-4">
                
-               <!-- CABECERA ALINEADA A LA IZQUIERDA -->
                <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
                   <div class="rounded-circle bg-warning-subtle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; shrink: 0;">
                      <i class="bi bi-receipt text-warning-emphasis fs-3"></i>
@@ -1005,6 +1004,28 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                               <div class="col-md-7">
                                  <label for="motivoCargoExtraOrden" class="form-label fw-semibold small text-secondary">Motivo del cargo</label>
                                  <input type="text" name="motivoCargoExtraOrden" id="motivoCargoExtraOrden" class="form-control" placeholder="Ej. Servicio a domicilio, urgencia..." maxlength="100" oninput="calcularTotalDinamico('${total}', '${totalConDesc}', '${totalSinDesc}');">
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Bloque 2.5: Requerimiento de Factura -->
+                  <div class="col-12">
+                     <div class="card border-0 bg-white shadow-sm rounded-3 border-start border-info border-4">
+                        <div class="card-body p-3">
+                           <div class="d-flex align-items-center justify-content-between">
+                              <div class="d-flex align-items-center me-3">
+                                 <span class="badge bg-info-subtle text-info-emphasis fw-bold me-2 px-2 py-1 fs-6">
+                                    <i class="bi bi-file-earmark-text-fill"></i>
+                                 </span>
+                                 <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Solicitud de Factura</h6>
+                                    <span class="text-muted small">Marcar si esta orden requiere emisión de factura fiscal</span>
+                                 </div>
+                              </div>
+                              <div class="form-check form-switch fs-4 mb-0 me-1">
+                                 <input class="form-check-input style-cursor-pointer" type="checkbox" id="chkRequiereFacturaOrden" name="chkRequiereFacturaOrden" role="switch">
                               </div>
                            </div>
                         </div>
@@ -1209,6 +1230,7 @@ const registra_orden = async () => {
 
    // Se obtienen los datos generales del pago
    let esUrgente             = $('#chkEsUrgenteOrden').is(':checked') ? 1 : 0;
+   let requiereFactura       = $('#chkRequiereFacturaOrden').is(':checked') ? 1 : 0;
    let selectDescuento       = document.getElementById("descuentoGeneralOrden");
    let idDescuento           = selectDescuento.value;
    let porDescuento          = $('option:selected', selectDescuento).attr('data-descuento');
@@ -1282,7 +1304,7 @@ const registra_orden = async () => {
       return;
    }
 
-   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion, esUrgente };
+   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion, esUrgente, requiereFactura };
 
    $('#btnRegistrarOrden').prop('disabled',true);
    

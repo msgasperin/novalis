@@ -87,7 +87,6 @@
 			} 
 			catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
-				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 			
       	$res = array('estatus' => $estatus, 'data' => $data, 'mensaje' => $mensaje);

@@ -261,7 +261,7 @@ const ModalGestionarPrecios = (idListaPrecios, nomListaPrecios) => {
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">Gestión lista de precios: ${nomListaPrecios}</h1>
-               <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal" aria-label="Close">
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
             </div>

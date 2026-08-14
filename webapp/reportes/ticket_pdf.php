@@ -71,7 +71,7 @@
       }
 
       $sqlDatosOrden = $v->dbh->prepare(
-         "SELECT O.id, folio, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, paciente_nombre_historico, convenio_nombre_historico, estatus_pago, estatus, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, total_abonado, saldo_deudor, sucursal_historico, direccion, telefono, key_query, DATE_FORMAT(fecha_cancelacion, '%d-%m-%Y %h:%i %p') AS fecha_cancelacion, user_cancela, motivo_cancela
+         "SELECT O.id, folio, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, paciente_nombre_historico, convenio_nombre_historico, estatus_pago, estatus, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, total_abonado, saldo_deudor, sucursal_historico, direccion, telefono, key_query, DATE_FORMAT(fecha_cancelacion, '%d-%m-%Y %h:%i %p') AS fecha_cancelacion, user_cancela, motivo_cancela, es_urgente, requiere_factura
          FROM ordenes_trabajo AS O
          INNER JOIN cat_sucursales AS S ON S.id = O.sucursal_id
          WHERE key_query = ?"
@@ -274,6 +274,23 @@
                         <td class="text-uppercase">'.$orden['convenio_nombre_historico'].'</td>
                      </tr>';
                   }  
+
+                  if (!empty($orden['es_urgente']) && (int)$orden['es_urgente'] === 1) {
+                     echo '
+                     <tr>
+                        <td class="fw-bold" style="color: #c00;">PRIORIDAD:</td>
+                        <td class="fw-bold" style="color: #c00; text-transform: uppercase;">*** URGENTE ***</td>
+                     </tr>';
+                  }
+
+                  if (!empty($orden['requiere_factura']) && ((int)$orden['requiere_factura'] === 1 || strtoupper($orden['requiere_factura']) === 'SI')) {
+                     echo '
+                     <tr>
+                        <td class="fw-bold">FACTURA:</td>
+                        <td class="fw-bold">REQUIERE FACTURA</td>
+                     </tr>';
+                  }
+                  
                   echo '                  
                </table>';
 
@@ -410,16 +427,6 @@
                   // --- FIN: DESGLOSE DE ABONOS ---
 
                   echo '
-                  <tr>
-                     <td class="text-right" style="padding-top: 3px;">Total Abonado:</td>
-                     <td class="text-right" style="padding-top: 3px;">$'.number_format($orden['total_abonado'], 2).'</td>
-                  </tr>
-                  <tr>
-                     <td class="text-right fw-bold">SALDO RESTANTE:</td>
-                     <td class="text-right fw-bold" style="border-top: 1px dashed #000;">
-                        $'.number_format($orden['saldo_deudor'], 2).'
-                     </td>
-                  </tr>
                </table>
 
                <div class="divider"></div>
