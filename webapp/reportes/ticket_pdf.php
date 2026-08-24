@@ -52,6 +52,7 @@
    function obtener_html_ticket_pro() {
       
       require_once('../../api/config/class.pdo.php');
+      require_once('../../api/config/seguridad.php');
       /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
       $v = new Conexion($bd_cliente);
       $v->conectar();

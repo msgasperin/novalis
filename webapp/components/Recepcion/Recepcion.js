@@ -183,9 +183,13 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                      <i class="bi bi-printer text-primary fs-7"></i>
                   </a>
 
+                  <button type="button" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${row.key_query}');">
+                     <i class="bi bi-upc text-primary fs-6"></i>
+                  </button>
+
                   ${(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') ? `
                      <button type="button" class="btn btn-sm btn-outline-danger border p-1 lh-1 btn-redondo" title="Cancelar orden" onclick="ModalCancelarOrden('${row.id}', '${row.folio}', 1)">
-                        <i class="bi bi-x-circle fs-7"></i>
+                        <i class="bi bi-x-circle fs-6"></i>
                      </button>
                   ` : ''}
                </div>
@@ -1736,9 +1740,15 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                </td>
 
                <td class="text-center">
+
                   <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
                      <i class="bi bi-ticket-detailed"></i>
                   </a>`;
+
+                  html+=`
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${row.key_query}');">
+                     <i class="bi bi-upc"></i>
+                  </button>`;                  
 
                   if(row.estatus != 'CANCELADO') {
                      html+=`
@@ -2259,6 +2269,35 @@ const cancelar_orden_trabajo = async (idOrden, folioOrden, origen) => {
    }
 }
 
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ IMPRESIÓN DE ETIQUETAS  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const ModalImpresionEtiquetas = (keyQuery) => {
+   
+   let html = `
+   <div class="modal fade modal-superior-blur" id="ModalImpresionEtiquetas" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content sombra-modal border-0">            
+            <div class="modal-body py-3">
+               <iframe src="reportes/etiqueta_print.php?kq=${keyQuery}" width="100%" height="600"></iframe>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+               <div class="row w-100">
+                  <div class="col-12 text-end">
+                     <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
+                        Cerrar
+                     </button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminExt').html(html);
+   $('#ModalImpresionEtiquetas').modal('show');
+}
+
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabRecepcion                    = TabRecepcion;
 window.ModalPacientesEncontrados       = ModalPacientesEncontrados;
@@ -2267,6 +2306,7 @@ window.ModalOrdenRegistradaExito       = ModalOrdenRegistradaExito;
 window.ModalBuscarOrdenes              = ModalBuscarOrdenes;
 window.ModalGestionPagos               = ModalGestionPagos;
 window.ModalCancelarOrden              = ModalCancelarOrden;
+window.ModalImpresionEtiquetas         = ModalImpresionEtiquetas;
 
 window.paciente_seleccionado           = paciente_seleccionado;
 window.buscar_paciente_encontrado      = buscar_paciente_encontrado;

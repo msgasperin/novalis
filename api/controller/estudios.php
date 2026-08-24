@@ -27,13 +27,16 @@
                echo json_encode($res);
                break;
             }
+
+            // Convertir el arreglo recibido a string JSON
+    		   $tubosJson = isset($_POST["arrTubosEstudio"]) ? json_encode($_POST["arrTubosEstudio"], JSON_UNESCAPED_UNICODE) : json_encode([]);
             
             if(intval($_POST["idEstudio"]) == 0) {
-               $res         = $v->guardar_estudio($_POST, $_SESSION["nombre"]);
+               $res         = $v->guardar_estudio($_POST, $_SESSION["nombre"], $tubosJson);
                $msjBitacora = 'Estudio registrado: ';
             }
             else {
-               $res = $v->actualizar_estudio($_POST, $_SESSION["nombre"]);
+               $res = $v->actualizar_estudio($_POST, $_SESSION["nombre"], $tubosJson);
                $msjBitacora = 'Estudio modificado: ';
             }
 

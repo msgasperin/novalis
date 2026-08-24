@@ -1,6 +1,7 @@
 import { obtiene_estudios, guardar_estudio, eliminar_estudio } from "./EstudiosServices.js";
 
-let arrEstudios = [];
+let arrEstudios     = [];
+let arrTubosEstudio = [];
 
 const TabEstudios = () => {
    let html =
@@ -33,6 +34,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    let indicaciones_toma   = '';
    let descripcion_estudio = '';
    let aplicaDescuento     = 'NO';
+   arrTubosEstudio         = [];
 
    if(idEstudio > 0) {
       titulo              = 'Editar Estudio: '+ nomEstudio;
@@ -43,6 +45,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
       indicaciones_toma   = estudioSeleccionado[0].indicaciones_toma;
       descripcion_estudio = estudioSeleccionado[0].descripcion_estudio;
       aplicaDescuento     = estudioSeleccionado[0].aplica_desc;
+      arrTubosEstudio     = estudioSeleccionado[0].tubos_json ? JSON.parse(estudioSeleccionado[0].tubos_json) : [];
    }
    else {
       titulo = 'Registrar Nuevo Estudio';
@@ -91,11 +94,62 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                         <option value="SI">SI</option>
                      </select>
                   </div>
+                  <!-- SECCIÓN CONFIGURACIÓN DE ETIQUETAS Y TUBOS -->
+                  <div class="col-12 mt-3">
+                     <div class="card border-light-subtle shadow-sm">
+                        <div class="card-header bg-light fs-6 fw-bold">
+                           <i class="bi bi-tags"></i> Configuración de Etiquetas para Muestras
+                        </div>
+                        <div class="card-body">
+                           <div class="row align-items-end">
+                              <div class="col-12 col-sm-4">
+                                 <b>Contenedor / Tubo</b>
+                                 <select id="selectTuboMuestra" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Tubo Morado (EDTA)">Tubo Morado (EDTA)</option>
+                                    <option value="Tubo Rojo (Seco)">Tubo Rojo (Seco)</option>
+                                    <option value="Tubo Amarillo (Gel)">Tubo Amarillo (Gel)</option>
+                                    <option value="Tubo Azul (Citrato)">Tubo Azul (Citrato)</option>
+                                    <option value="Frasco Estéril">Frasco Estéril (Orina)</option>
+                                    <option value="Frasco Copro">Frasco Copro (Heces)</option>
+                                    <option value="Hisopo / Medio Transporte">Hisopo / Medio Transporte</option>
+                                 </select>
+                              </div>
+                              <div class="col-12 col-sm-4 mt-2 mt-sm-0">
+                                 <b>Tipo de Muestra</b>
+                                 <input type="text" id="txtTipoMuestra" class="form-control" placeholder="Ej. Sangre Total, Suero, Orina" maxlength="100"/>
+                              </div>
+                              <div class="col-8 col-sm-2 mt-2 mt-sm-0">
+                                 <b>Cantidad</b>
+                                 <input type="number" id="numCantTubo" class="form-control" value="1" min="1" max="10" onkeypress="return fnValidaNumeros(event);"/>
+                              </div>
+                              <div class="col-4 col-sm-2 mt-2 mt-sm-0 text-end">
+                                 <button type="button" class="btn btn-primary w-100 btn-redondo" onclick="fn_agregar_tubo_lista();">
+                                    <i class="bi bi-plus-lg"></i>
+                                 </button>
+                              </div>
+                           </div>
+
+                           <!-- LISTA DINÁMICA DE TUBOS AGREGADOS -->
+                           <div class="row mt-3">
+                              <div class="col-12">
+                                 <div id="contenedorTubosAgregados" class="d-flex flex-wrap gap-2 p-2 border rounded bg-white" style="min-height: 48px;">
+                                    <!-- Aquí se inyectan las pills con JS -->
+                                    <span class="text-muted small fst-italic id-sin-tubos">No se han agregado etiquetas a este estudio.</span>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <!-- Input oculto para recolectar el JSON en el submit -->
+                  <input type="hidden" name="tubosJson" id="tubosJson" value="[]" />
                   <div class="col-12 mt-3">
                      <b>Indicaciones toma de muestra</b>
                      <textarea name="indicacionesToma" id="indicacionesToma" class="form-control" rows="3" maxlength="400">${indicaciones_toma}</textarea>
                   </div>
                </div>
+               
             </div>
             <div class="modal-footer border-0 text-end">
               <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarEstudio" onclick="fn_guardar_estudio('${idEstudio}');">
@@ -114,10 +168,90 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    setTimeout(() => {
       $('#tipoEstudio').val(tipo);
       $('#estudioAplicaDesc').val(aplicaDescuento);
+      fn_renderizar_tubos();
    }, 200);
 }
 
+// Agrega el tubo/contenedor al arreglo local y desencadena el renderizado
+const fn_agregar_tubo_lista = () => {
+   let tubo    = $('#selectTuboMuestra').val();
+   let muestra = $('#txtTipoMuestra').val().trim();
+   let cant    = parseInt($('#numCantTubo').val()) || 1;
+
+   // Validaciones básicas de entrada
+   if (!tubo) {
+      ToastColor.fire({
+         text: '¡Atención! Seleccione un contenedor/tubo.',
+         icon: 'warning'
+      });
+      $('#selectTuboMuestra').focus();
+      return;
+   }
+   if (!muestra) {
+      ToastColor.fire({
+         text: '¡Atención! Ingrese el tipo de muestra (ej. Sangre Total, Suero, Orina).',
+         icon: 'warning'
+      });
+      $('#txtTipoMuestra').focus();
+      return;
+   }
+   if (cant <= 0) {
+      ToastColor.fire({
+         text: '¡Atención! La cantidad debe ser mayor a 0.',
+         icon: 'warning'
+      });
+      $('#txtTipoMuestra').focus();
+      return;
+   }
+
+   // 1. Agregar el elemento al arreglo global
+   arrTubosEstudio.push({
+      contenedor: tubo,
+      muestra: muestra,
+      cantidad: cant
+   });
+
+   // 2. Limpiar controles del formulario
+   $('#selectTuboMuestra').val('');
+   $('#txtTipoMuestra').val('');
+   $('#numCantTubo').val(1);
+
+   // 3. Refrescar la vista y sincronizar el JSON
+   fn_renderizar_tubos();
+};
+
+// Pinta las etiquetas (pills) en el DIV y actualiza el campo oculto JSON
+const fn_renderizar_tubos = () => {
+   let html = '';
+
+   if (arrTubosEstudio.length === 0) {
+      html = '<span class="text-muted small fst-italic">No se han agregado etiquetas a este estudio.</span>';
+   } else {
+      arrTubosEstudio.forEach((item, index) => {
+         html += `
+         <span class="badge bg-light text-dark border p-2 d-flex align-items-center gap-2">
+            <i class="bi bi-vial-fill text-primary"></i> 
+            <b>${item.cantidad}x</b> ${item.contenedor} — <span class="text-secondary">${item.muestra}</span>
+            <button type="button" class="btn-close btn-close-xs ms-1" onclick="fn_eliminar_tubo_lista(${index});" aria-label="Eliminar"></button>
+         </span>`;
+      });
+   }
+
+   // Pintar en el contenedor HTML
+   $('#contenedorTubosAgregados').html(html);
+
+   // Sincronizar el input hidden con la cadena JSON
+   $('#tubosJson').val(JSON.stringify(arrTubosEstudio));
+};
+
+// Elimina un ítem por su índice y re-renderiza
+const fn_eliminar_tubo_lista = (index) => {
+   arrTubosEstudio.splice(index, 1);
+   fn_renderizar_tubos();
+};
+
 const listar_estudios = async (containerId) => {
+   arrTubosEstudio = [];
    activarLoad('Cargando estudios...');
    let respuesta = await obtiene_estudios();
    if(respuesta.estatus == 403) {
@@ -228,7 +362,7 @@ const fn_guardar_estudio = async (idEstudio) => {
 
    costo == '' ? costo = 0 : costo;
 
-   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma, estudioAplicaDesc };
+   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma, estudioAplicaDesc, arrTubosEstudio };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + nomEstudio + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -282,8 +416,10 @@ const fn_eliminar_estudio = async (idEstudio, nomEstudio) => {
 }
 
 // Interfaces
-window.TabEstudios         = TabEstudios;
-window.ModalFormEstudio    = ModalFormEstudio;
+window.TabEstudios            = TabEstudios;
+window.ModalFormEstudio       = ModalFormEstudio;
 // Funciones
-window.fn_eliminar_estudio = fn_eliminar_estudio;
-window.fn_guardar_estudio  = fn_guardar_estudio;
+window.fn_eliminar_estudio    = fn_eliminar_estudio;
+window.fn_guardar_estudio     = fn_guardar_estudio;
+window.fn_eliminar_tubo_lista = fn_eliminar_tubo_lista;
+window.fn_agregar_tubo_lista  = fn_agregar_tubo_lista;

@@ -24,6 +24,7 @@ RewriteRule ^webapp/plataforma webapp/plataforma.php
         img-src 'self' data:; \
         font-src 'self'; \
         connect-src 'self'; \
+        frame-src 'self' blob:; \
         frame-ancestors 'self';"
 </IfModule>
 # ─────────────────────────────────────────────────────────────

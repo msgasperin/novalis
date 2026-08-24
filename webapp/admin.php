@@ -79,6 +79,7 @@
 		<script type="module" src="components/Recepcion/Recepcion.js?<?=time()?>"></script>
 		<script type="module" src="components/Descuentos/Descuentos.js?<?=time()?>"></script>
 		<script type="module" src="components/DatosFacturacion/DatosFacturacion.js?<?=time()?>"></script>
+		<script type="module" src="components/Bandejas/Bandejas.js?<?=time()?>"></script>
 
 		<script>
 			$(document).on('select2:open', function() {

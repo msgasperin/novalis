@@ -39,7 +39,7 @@
           <?php } ?>
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
-            <div class="opciones_menu align-menu" id="opcionLaboratorio" onclick="opcionActive('opcionLaboratorio'), TabRecepcion(), cerrarMenu();">
+            <div class="opciones_menu align-menu" id="opcionBandejas" onclick="opcionActive('opcionBandejas'), TabBandejas(), cerrarMenu();">
               <i class="bi bi-card-checklist icon-menu"></i>
               <div>Bandejas Operativas</div>
             </div>
