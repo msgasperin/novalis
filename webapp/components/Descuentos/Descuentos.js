@@ -5,7 +5,7 @@ let arrDescuentos = [];
 const TabDescuentos = () => {
    let html =
    `<div class="row">
-      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2">
+      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
          <div class="fs-4"> <i class="bi bi-percent"></i> Descuentos</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
@@ -48,7 +48,7 @@ const ModalFormDescuento = (idDescuento, conceptoDescuento) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalFormDescuentos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-fullscreen-md-down">
+      <div class="modal-dialog modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">${titulo}</h1>

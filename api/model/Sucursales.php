@@ -10,7 +10,7 @@
 		public function obtiene_sucursales() {
 			$res = [];
 			try {				
-				$sql = $this->dbh->prepare("SELECT id, nombre, direccion, telefono FROM cat_sucursales WHERE activo = 1");
+				$sql = $this->dbh->prepare("SELECT id, nombre, direccion, telefono, matriz FROM cat_sucursales WHERE activo = 1");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
@@ -25,8 +25,8 @@
 			$data    = [0];
 			$mensaje = 'Error al intentar guardar la sucursal';
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO cat_sucursales (nombre, direccion, telefono, user_cap) VALUES (?,?,?,?)");
-				$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $user_cap));
+				$sql = $this->dbh->prepare("INSERT INTO cat_sucursales (nombre, direccion, telefono, matriz, user_cap) VALUES (?,?,?,?,?)");
+				$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $post["matriz"], $user_cap));
 
 				if($ok) {
 					$estatus = 200;
@@ -47,8 +47,8 @@
 			$data    = [0];
 			$mensaje = 'Error al intentar actualizar la sucursal';
 			try {
-				$sql = $this->dbh->prepare("UPDATE cat_sucursales SET nombre = ?, direccion = ?, telefono = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
-				$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $user_cap, date('Y-m-d H:i:s'), $post["idSucursal"]));
+				$sql = $this->dbh->prepare("UPDATE cat_sucursales SET nombre = ?, direccion = ?, telefono = ?, matriz = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
+				$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $post["matriz"], $user_cap, date('Y-m-d H:i:s'), $post["idSucursal"]));
 
 				if($ok) {
 					$estatus = 200;

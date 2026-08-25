@@ -1,150 +1,259 @@
-
-let arrConvenios = [];
+import { busqueda_ordenes_bandeja } from "./BandejasServices.js";
 
 const TabBandejas = () => {
-   let html =
-   `<div class="row">
+   let fechaHoy = new Date().toISOString().split('T')[0];
+
+   let html = `
+   <div class="row">
       <div class="col-12 mt-2">
-         <div class="fs-4"> <i class="bi bi-card-checklist"></i> Bandejas Operativas</div>
-      </div>
-   </div>
-   <div class="row mt-2">
-      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
-         <div class="input-group">
-            <input type="text" name="inpBusquedaConvenio" id="inpBusquedaConvenio" class="form-control border-end-0" placeholder="Buscar convenio"  onkeyUp="fn_buscar_convenios();">
-            <span class="input-group-text border-start-0 bg-white"><i class="bi bi-search"></i></span>
-         </div>
-      </div>
-      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
-         <div class="input-group">
-            <select name="filtro_tipo_convenio" id="filtro_tipo_convenio" class="form-select" onChange="fn_filtrar_convenios();">
-               <option value="TODOS">Todos</option>
-               <option value="LABORATORIO">LABORATORIO</option>
-               <option value="EMPRESA">EMPRESA</option>
-               <option value="DOCTOR">DOCTOR</option>
-            </select>
+         <div class="fs-4 fw-bold">
+            <i class="bi bi-card-checklist"></i> Bandejas Operativas
          </div>
       </div>
    </div>
-   <div class="mt-4">
-      <div id="listado_convenios"></div>
+
+   <!-- Filtros Operativos Superiores -->
+   <div class="row mt-3">
+      <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12 mb-2">
+         <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+               <i class="bi bi-upc-scan text-muted"></i>
+            </span>
+            <input type="text" name="inpBusquedaOrdenBandeja" id="inpBusquedaOrdenBandeja" class="form-control border-start-0" placeholder="Buscar Folio o Paciente...">
+            <button class="btn btn-outline-dark btn-lib" type="button" id="btnBuscarFolioOpe" onclick="obtiene_ordenes_estatus(2,'');">
+               <i class="bi bi-search"></i>
+            </button>
+         </div>
+      </div>
+
+      <div class="col-xl-4 offset-xl-5 col-lg-4 offset-xl-4 col-md-4 col-sm-6 col-12 mb-2">
+         <div class="input-group">
+            <span class="input-group-text bg-white">
+               <i class="bi bi-calendar-range text-muted"></i>
+            </span>
+            <input type="date" name="filtroFechaInicio" id="filtroFechaInicio" class="form-control" value="${fechaHoy}">
+            <input type="date" name="filtroFechaFin" id="filtroFechaFin" class="form-control" value="${fechaHoy}">
+         </div>
+      </div>
+   </div>
+
+   <!-- Pestañas de Estatus Operativo -->
+   <div class="row g-2 mb-4 mt-2" id="contenedorBarraEstatus">
+      <div class="col-xl col-md-4 col-6">
+         <button type="button" class="btn-tab-pedidos btn-bandejas w-100 py-2 shadow-sm btn-status" id="btn-status-RECEPCION" onclick="cambiar_estatus_barra('RECEPCION')">
+            <i class="bi bi-clock-history me-sm-1"></i> Pendientes
+         </button>
+      </div>
+      
+      <div class="col-xl col-md-4 col-6">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-PARCIAL" onclick="cambiar_estatus_barra('PARCIAL')">
+            <i class="bi bi-file-earmark-pdf me-sm-1"></i> Resultados Parciales
+         </button>
+      </div>
+      
+      <div class="col-xl col-md-4 col-12">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-LISTO" onclick="cambiar_estatus_barra('LISTO')">
+            <i class="bi bi-clipboard2-check me-sm-1"></i> Ordenes completadas
+         </button>
+      </div>
+
+      <div class="col-xl col-md-4 col-6">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO')">
+            <i class="bi bi-check-circle me-sm-1"></i> Ordenes entregadas
+         </button>
+      </div>`;
+            
+      html+=`
+      <div class="col-xl col-md-6 col-6">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-CANCELADO" onclick="cambiar_estatus_barra('CANCELADO')">
+            <i class="bi bi-ban me-sm-1"></i> Cancelados
+         </button>
+      </div>
+   </div>
+
+   <!-- Contenedor Principal para la Tabla de Órdenes -->
+   <div class="row mt-3">
+      <div class="col-12">
+         <div id="listado_ordenes_bandeja"></div>
+      </div>
    </div>`;
 
    $('#containerMain').html(html);
 }
 
-const fn_buscar_convenios = () => {
-   // Capturamos el valor, limpiamos espacios y removemos acentos
-   let busqueda = $('#inpBusquedaConvenio').val().trim().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-   // Filtramos el arreglo comparando ambas cadenas sin acentos
-   const filtrado = arrConvenios.filter(convenio => {
-      const tituloSinAcentos = convenio.nombre_comercial.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");      
-      return tituloSinAcentos.includes(busqueda);
-   });   
-
-   fn_pinta_listado_convenios('listado_convenios', filtrado);
+const cambiar_estatus_barra = (estatus) => {
+   $('.btn-status').removeClass('btn-bandejas').addClass('btn-secondary');
+   $(`#btn-status-${estatus}`).addClass('btn-bandejas');
+   obtiene_ordenes_estatus(1, estatus);
 }
 
-const obtiene_ordenes_trabajo = async (containerId) => {
-   activarLoad('Cargando convenios...');
-   let respuesta = await obtiene_convenios();
+const obtiene_ordenes_estatus = async (origen, estatus) => {
+
+   let parametro = $('#inpBusquedaOrdenBandeja').val().trim();
+   let fechaIni  = $('#filtroFechaInicio').val().trim();
+   let fechaFin  = $('#filtroFechaFin').val().trim();
+     
+   if(origen == 1) {
+      const inicio     = new Date(fechaIni + 'T00:00:00');
+      const fin        = new Date(fechaFin + 'T00:00:00');
+      const diferencia = (fin - inicio) / (1000 * 60 * 60 * 24);
+
+      if(fechaIni == '' || fechaFin == '') {
+         ToastColor.fire({
+            text: '¡Atención! Debes seleccionar un rango de fechas',
+            icon: 'warning'
+         });
+         $('#filtroFechaInicio').focus();
+         return;
+      }
+      else if (diferencia > 30) {
+         ToastColor.fire({
+            text: '¡Atención! El rango de búsqueda no puede superar los 30 días',
+            icon: 'warning'
+         });
+         $('#filtroFechaInicio').focus();
+         return;
+      }
+   }
+   else if(origen == 2 && parametro == '') { // Búsqueda por folio o paciente      
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar el parámetro de búsqueda',
+         icon: 'warning'
+      });
+      $('#inpBusquedaOrdenBandeja').focus();
+      return;
+   }
+
+
+   activarLoad('Cargando ordenes de trabajo...');
+   let respuesta = await busqueda_ordenes_bandeja(origen, estatus, fechaIni, fechaFin, parametro);
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+      $('#listado_ordenes_bandeja').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron ordenes de trabajo</div>');
       closeLoad();
       return;
    }
    else {
-      arrConvenios = await respuesta.data;
-      if(arrConvenios.length > 0) {
-         fn_pinta_listado_convenios(containerId, arrConvenios);
+      if(respuesta.data.length > 0) {
+         pinta_ordenes_bandejas(respuesta.data);
       }
       else {
-         $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+         $('#listado_ordenes_bandeja').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron ordenes de trabajo</div>');
          closeLoad();
       }
    }
 }
 
-const pinta_ordenes_trabajo = (containerId, data) => {
-   const contenedor = document.getElementById(containerId);
-   
-   let iconTipoConvenio = '';
+const pinta_ordenes_bandejas = (data) => {
+
    let html = 
-   `<div class="row g-4">`;
-      data.forEach((row, i) => {
+   `<div class="table-responsive rounded-3 border shadow-sm">
+      <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableOrdenesBandeja">
+         <thead class="table-dark text-uppercase small">
+            <tr class="border-start border-1 border-dark">
+               <th width="15%" class="text-center py-2">Orden</th>
+               <th width="35%" class="py-2">Paciente / Convenio</th>
+               <th width="15%" class="text-center py-2">Registro</th>
+               <th width="20%" class="text-center py-2">Estado Pago</th>
+               <th width="15%" class="text-center py-2">Acciones</th>
+            </tr>
+         </thead>
+         <tbody>`;
          
-         row.tipo == 'LABORATORIO' ? iconTipoConvenio = '<i class="bi bi-droplet"></i>'
-         : row.tipo == 'EMPRESA' ? iconTipoConvenio = '<i class="bi bi-building"></i>'
-         : row.tipo == 'DOCTOR' ? iconTipoConvenio = '<i class="bi bi-clipboard2-pulse"></i>' : '<i class="bi bi-ban"></i>';
+         data.forEach(row => {
+            let isUrgente = (row.es_urgente == 1 || row.es_urgente == '1');
 
-         html += `
-         <div class="col-12 col-md-6 col-lg-4" id="cardConvenio${row.id_convenio}">
-            <div class="card h-100 shadow border-0">
-
-               <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-                  <span class="badge rounded-pill px-3 py-1 bg-success bg-opacity-10 border-1 text-success border-success">
-                     <i class="bi bi-circle-fill me-1"></i> Activo
-                  </span>
-                  <small class="text-muted">ID: #${row.id_convenio}</small>
-               </div>
-
-               <div class="card-body pt-2 mt-2">
-
-                  <div class="d-flex align-items-center gap-3 mb-3">
-                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 circle-card-avatar">
-                        ${iniciales(row.nombre_comercial)}
-                     </div>
-                     <div>
-                        <div class="mb-0 fw-bold text-dark fs-7">${row.nombre_comercial}</div>
-                        <small class="text-muted fs-8">${iconTipoConvenio} ${row.tipo}</small>
-                     </div>
+            html +=
+            `<tr id="trBusqueda${row.folio}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
+               
+               <td class="text-center">
+                  <div class="align-items-center justify-content-center gap-1 mb-1">
+                     <span class="font-monospace fw-bold text-primary-emphasis">
+                        #${row.folio}
+                     </span>
+                     ${isUrgente && row.estatus != 'CANCELADO' ? `
+                        <br><span class="fs-8 text-danger" title="Orden Urgente">
+                           <i class="bi bi-lightning-charge-fill text-danger"></i> URGENTE
+                        </span>
+                     ` : ''}
                   </div>
+                  ${getBadgeEstatus(row.estatus)}
+               </td>
 
-                  <!-- Contacto + teléfono -->
-                  <div class="row g-2 mb-2">
-                     <div class="col-7">
-                        <small class="text-muted d-block fs-7">Contacto</small>
-                        <small class="fw-medium text-dark">${row.persona_contacto}</small>
-                     </div>
-                     <div class="col-5 border-start">
-                        <small class="text-muted d-block fs-7">Teléfono</small>
-                        <small class="fw-medium text-dark">${row.telefono_contacto ?? 'S/D'}</small>
-                     </div>
+               <td>
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="${row.paciente_nombre_historico || ''}">
+                     ${row.paciente_nombre_historico || 'Sin nombre'}
                   </div>
-
-                  <!-- Correo -->
-                  <div>
-                     <small class="text-muted d-block fs-7">Correo</small>
-                     <small class="text-dark"><i class="bi bi-envelope me-1 text-success"></i>${row.correo_contacto ?? 'S/D'}</small>
+                  <div class="extra-small text-muted lh-sm mt-1">
+                     <span class="fw-semibold text-secondary text-uppercase">${row.tipo_cliente ?? 'PARTICULAR'}</span>
+                     ${row.convenio_nombre_historico ? ` <span class="opacity-50">|</span> ${row.convenio_nombre_historico}` : ''}
                   </div>
-               </div>
+               </td>
 
-               <!-- Footer -->
-               <div class="card-footer bg-white border-top-0 pb-2">
-                  <div class="d-flex justify-content-end gap-2">
+               <td class="text-center small text-muted">
+                  <span class="d-block"><i class="bi bi-calendar3 me-1 opacity-50"></i>${row.fecha_registro ?? ''}</span>
+                  ${row.hora_registro ? `<span class="extra-small text-secondary"><i class="bi bi-clock me-1 opacity-50"></i>${row.hora_registro}</span>` : ''}
+               </td>
 
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', '${row.id_convenio}', '${row.nombre_comercial}');">
-                        <i class="bi bi-receipt"></i>
-                     </button>
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio('${row.id_convenio}');">
-                        <i class="bi bi-pencil"></i>
-                     </button>
-                     <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio}, '${row.nombre_comercial}');">
-                        <i class="bi bi-trash"></i>
-                     </button>
+               <td class="text-center">
+                  ${getCeldaPago(row.estatus_pago, row.total_neto, row.total_abonado, row.saldo_deudor)}
+               </td>
 
-                  </div>
-               </div>
-            </div>
-         </div>`;
+               <td class="text-center">
+
+                  <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
+                     <i class="bi bi-ticket-detailed"></i>
+                  </a>`;
+
+                  html+=`
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${row.key_query}');">
+                     <i class="bi bi-upc"></i>
+                  </button>`;                  
+
+                  if(row.estatus != 'CANCELADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
+                        <i class="bi bi-currency-dollar"></i>
+                     </button>`;
+                  }
+
+                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO') {
+                     html+=`
+                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
+                        <i class="bi bi-file-earmark-medical"></i>
+                     </a>`;
+                  }
+                  if(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2" title="Cancelar orden" onclick="ModalCancelarOrden(${row.id}, '${row.folio}', 2);">
+                        <i class="bi bi-x-circle"></i>
+                     </button>`;
+                  }
+                  
+                  html+=`
+               </td>
+            </tr>`;
+         });
+         
+         html +=
+         `</tbody>
+      </table>
+   </div>`;
+   
+   $('#listado_ordenes_bandeja').html(html);
+
+   setTimeout(() => {
+      new DataTable('#tableOrdenesBandeja', {   
+         language: {
+            url: "assets/lib/DataTables/es-ES.json",
+         },
+         responsive: true,
+         order: [[0, 'desc']]
       });
-      html += 
-   `</div>`;
-   contenedor.innerHTML = html;
+   }, 200);
    closeLoad();
 }
 
@@ -395,8 +504,10 @@ const eliminar_resultado = async (idConvenio, nomConvenio) => {
 }
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-window.TabBandejas          = TabBandejas;
-window.ModalFormResultado   = ModalFormResultado;
+window.TabBandejas             = TabBandejas;
+window.ModalFormResultado      = ModalFormResultado;
 
-window.registrar_resultado  = registrar_resultado;
-window.eliminar_resultado   = eliminar_resultado;
+window.registrar_resultado     = registrar_resultado;
+window.eliminar_resultado      = eliminar_resultado;
+window.cambiar_estatus_barra   = cambiar_estatus_barra;
+window.obtiene_ordenes_estatus = obtiene_ordenes_estatus;

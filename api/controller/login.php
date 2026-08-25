@@ -63,6 +63,7 @@
             $_SESSION["id_usuario"]   = $res["data"]["id_usuario"];
             $_SESSION["id_sucursal"]  = $res["data"]["id_sucursal_fk"];
             $_SESSION["sucursal"]     = $res["data"]["sucursal"];
+            $_SESSION["matriz"]       = $res["data"]["matriz"];
             $_SESSION["usuario"]      = $res["data"]["usuario"];
             $_SESSION["nombre"]       = $res["data"]["nombre"];
             $_SESSION["perfil"]       = $res["data"]["perfil"];

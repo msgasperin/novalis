@@ -6,7 +6,7 @@ const ModalDatosFacturacion = (tipoReceptor, idReceptor, nomReceptor) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalFormDatosFacturacion" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-fullscreen-md-down">
+      <div class="modal-dialog modal-xl modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">Datos de facturación: ${nomReceptor}</h1>

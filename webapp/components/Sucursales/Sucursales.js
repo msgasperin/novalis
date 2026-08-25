@@ -5,7 +5,7 @@ let arrSucursales = [];
 const TabSucursales = () => {
    let html =
    `<div class="row">
-      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2">
+      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
          <div class="fs-4"> <i class="bi bi-shop-window"></i> Sucursales</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
@@ -37,12 +37,14 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
    let nombre    = '';
    let direccion = '';
    let telefono  = '';
+   let matriz    = 0;
 
    if(idSucursal > 0) {
       titulo    = 'Editar Sucursal: '+ nomSucursal;
       nombre    = sucursalSeleccionada[0].nombre;
       direccion = sucursalSeleccionada[0].direccion;
       telefono  = sucursalSeleccionada[0].telefono;
+      matriz    = sucursalSeleccionada[0].matriz;
    }
    else {
       titulo = 'Registrar Nueva Sucursal';
@@ -50,7 +52,7 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalFormSucursal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-fullscreen-md-down">
+      <div class="modal-dialog modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
                <h1 class="modal-title fs-5">${titulo}</h1>
@@ -72,6 +74,13 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
                      <b>Teléfono</b>
                      <input type="tel" name="telSucursal" id="telSucursal" class="form-control" maxlength="10" value="${telefono}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
+                  <div class="col-12 mt-3">
+                     <b>¿Es una matriz?</b>
+                     <select name="matriz" id="matriz" class="form-select">
+                        <option value="0">No</option>
+                        <option value="1">Sí</option>
+                     </select>
+                  </div>
                </div>
             </div>
             <div class="modal-footer" align="right">
@@ -88,6 +97,7 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
 
    $('#modalAdmin').html(html);
    $('#modalFormSucursal').modal('show');
+   $('#matriz').val(matriz);
 }
 
 const listar_sucursales = async (containerId) => {
@@ -154,6 +164,7 @@ const fn_guardar_sucursal = async (idSucursal) => {
    let nomSucursal       = $('#nomSucursal').val().trim();
    let direccionSucursal = $('#direccionSucursal').val().trim();
    let telSucursal       = $('#telSucursal').val().trim();
+   let matriz            = $('#matriz').val();
    let msjAccion       = '';
 
    if (nomSucursal == '') {
@@ -174,7 +185,7 @@ const fn_guardar_sucursal = async (idSucursal) => {
    }
   
 
-   const objSucursal = { func: 'guardar', idSucursal, nomSucursal, direccionSucursal, telSucursal };
+   const objSucursal = { func: 'guardar', idSucursal, nomSucursal, direccionSucursal, telSucursal, matriz };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la sucursal ' + nomSucursal + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {

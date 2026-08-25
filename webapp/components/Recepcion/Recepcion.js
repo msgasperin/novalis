@@ -14,7 +14,7 @@ let pacienteOrden;
 const TabRecepcion = () => {
    let html =
    `<div class="row">
-      <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2">
+      <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2 fw-bold">
          <div class="fs-4"> <i class="bi bi-clipboard-minus"></i> Recepción</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2 text-end">
@@ -155,7 +155,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
 
    let html = `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
 
-   data.forEach((row, index) => {
+   data.forEach(row => {
 
       color     = (row.tipo_cliente == 'particular') ? 'dark' : 'primary';
       colorPago = (row.estatus_pago == 'PAGADO') ? 'success' : (row.estatus_pago == 'PARCIAL') ? 'primary' : 'danger';
@@ -218,7 +218,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                   ` : ''}
                   <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>
                   
-                  ${((row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) ? `
+                  ${((row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.estatus_pago == 'PAGADO') ? `
                      <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir resultado">
                         <i class="bi bi-file-earmark-medical text-success fs-7"></i>
                      </a>
@@ -318,7 +318,7 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
 
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalPacientesEncontrados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">
 
             <div class="modal-header border-0 pb-0">
@@ -1335,7 +1335,7 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
 
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalOrdenRegistradaExito" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered ">
          <div class="modal-content sombra-modal border-0">
             <div class="modal-body p-4 text-center">
                
@@ -1411,7 +1411,7 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
 const ModalBuscarOrdenes = () => {
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalBuscarOrdenes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">            
 
             <div class="modal-header modal-head-per">
@@ -1638,52 +1638,6 @@ const busqueda_avanzada_ordenes = async (containerId) => {
    }
 }
 
-const getBadgeEstatus = (estatus) => {
-   let bgClass = 'bg-secondary';
-   switch ((estatus || '').toUpperCase()) {
-      case 'RECEPCION': bgClass = 'bg-secondary text-white'; break;
-      case 'PROCESO': bgClass = 'bg-warning text-dark'; break;
-      case 'LISTO': bgClass = 'bg-success'; break;
-      case 'ENTREGADO': bgClass = 'bg-primary'; break;
-      case 'CANCELADO': bgClass = 'bg-danger'; break;
-   }
-   return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
-};
-
-const getCeldaPago = (estatusPago, totalNeto, totalAbonado, saldoDeudor) => {
-   
-   const estatusUpper = (estatusPago || 'PENDIENTE').toUpperCase();
-
-   // 1. Caso PAGADO
-   if (estatusUpper === 'PAGADO') {
-      return `
-         <span class="d-block text-success fw-bold small">
-            <i class="bi bi-check-circle-fill me-1"></i>${fmtMoney(totalNeto)}
-         </span>
-         <span class="extra-small text-muted small">Saldado</span>`;
-   }
-
-   // 2. Caso PARCIAL
-   if (estatusUpper === 'PARCIAL') {
-      return `
-         <span class="d-block text-danger fw-bold small">
-            Resta ${fmtMoney(saldoDeudor)}
-         </span>
-         <span class="extra-small text-secondary small">
-            <i class="bi bi-wallet2 me-1 opacity-50"></i>Abono: ${fmtMoney(totalAbonado)}
-         </span>`;
-   }
-
-   // 3. Caso PENDIENTE
-   return `
-      <span class="d-block text-danger fw-bold small">
-         Debe ${fmtMoney(totalNeto)}
-      </span>
-      <span class="extra-small text-muted small">
-         <i class="bi bi-exclamation-circle me-1 opacity-50"></i>Sin abono
-      </span>`;
-};
-
 const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
 
    let html = 
@@ -1757,7 +1711,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                      </button>`;
                   }
 
-                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO' && row.archivo_pdf_path) {
+                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO') {
                      html+=`
                      <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
                         <i class="bi bi-file-earmark-medical"></i>
@@ -1810,7 +1764,7 @@ const ModalGestionPagos = (idOrden, folio) => {
    
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalGestionPagos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">
             
             <div class="modal-header modal-head-per">
@@ -2275,7 +2229,7 @@ const ModalImpresionEtiquetas = (keyQuery) => {
    
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalImpresionEtiquetas" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">            
             <div class="modal-body py-3">
                <iframe src="reportes/etiqueta_print.php?kq=${keyQuery}" width="100%" height="600"></iframe>

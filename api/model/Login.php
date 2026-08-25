@@ -18,7 +18,7 @@
 		public function login(string $usuario, string $contrasenia) {	
 			try {
 				$sql = $this->dbh->prepare(
-               "SELECT id_usuario, id_sucursal_fk, U.nombre, usuario, correo, perfil, S.nombre AS sucursal
+               "SELECT id_usuario, id_sucursal_fk, U.nombre, usuario, correo, perfil, S.nombre AS sucursal, matriz
                FROM cat_usuarios AS U
                INNER JOIN cat_sucursales AS S ON U.id_sucursal_fk = S.id
                WHERE usuario = ? AND AES_DECRYPT(contrasenia,?) = ?"
@@ -33,6 +33,7 @@
 						'usuario'        => $row["usuario"],
 						'correo'         => $row["correo"],
                   'perfil'         => $row["perfil"],
+                  'matriz'         => $row["matriz"],
                   'id_sucursal_fk' => $row["id_sucursal_fk"],
                   'sucursal'       => $row["sucursal"]
 					];

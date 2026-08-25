@@ -76,6 +76,52 @@ const anterior = new Date();
 anterior.setDate(hoy.getDate() - 15); // Maneja automáticamente cambios de mes/año
 const fechaRangoAtras = anterior.toISOString().split('T')[0];
 
+const getBadgeEstatus = (estatus) => {
+   let bgClass = 'bg-secondary';
+   switch ((estatus || '').toUpperCase()) {
+      case 'RECEPCION': bgClass = 'bg-secondary text-white'; break;
+      case 'PROCESO': bgClass = 'bg-warning text-dark'; break;
+      case 'LISTO': bgClass = 'bg-success'; break;
+      case 'ENTREGADO': bgClass = 'bg-primary'; break;
+      case 'CANCELADO': bgClass = 'bg-danger'; break;
+   }
+   return `<span class="badge ${bgClass} bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">${estatus || 'N/A'}</span>`;
+};
+
+const getCeldaPago = (estatusPago, totalNeto, totalAbonado, saldoDeudor) => {
+  
+  const estatusUpper = (estatusPago || 'PENDIENTE').toUpperCase();
+
+  // 1. Caso PAGADO
+  if (estatusUpper === 'PAGADO') {
+    return `
+        <span class="d-block text-success fw-bold small">
+          <i class="bi bi-check-circle-fill me-1"></i>${fmtMoney(totalNeto)}
+        </span>
+        <span class="extra-small text-muted small">Saldado</span>`;
+  }
+
+  // 2. Caso PARCIAL
+  if (estatusUpper === 'PARCIAL') {
+    return `
+        <span class="d-block text-danger fw-bold small">
+          Resta ${fmtMoney(saldoDeudor)}
+        </span>
+        <span class="extra-small text-secondary small">
+          <i class="bi bi-wallet2 me-1 opacity-50"></i>Abono: ${fmtMoney(totalAbonado)}
+        </span>`;
+  }
+
+  // 3. Caso PENDIENTE
+  return `
+    <span class="d-block text-danger fw-bold small">
+        Debe ${fmtMoney(totalNeto)}
+    </span>
+    <span class="extra-small text-muted small">
+        <i class="bi bi-exclamation-circle me-1 opacity-50"></i>Sin abono
+    </span>`;
+};
+
 export const postJSON = async (url, datos = {}) => {
   try {
     const res = await fetch(url, {
@@ -582,6 +628,8 @@ window.iniciales               = iniciales;
 window.quitarAcentos           = quitarAcentos;
 window.comboMeses              = comboMeses;
 window.fmtMoney                = fmtMoney;
+window.getBadgeEstatus         = getBadgeEstatus;
+window.getCeldaPago            = getCeldaPago;
 window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
 window.USOS_CFDI               = USOS_CFDI;
 
