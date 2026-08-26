@@ -46,6 +46,27 @@
 			return $res;
 		}
 
+		public function obtiene_datos_gestion_resultados(int $id_orden) {
+			$res = ['estudios' => [], 'archivos' => []];
+			try {
+
+				$sqlEstudios = $this->dbh->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
+				$sqlEstudios->execute([$id_orden]);
+
+				$sqlArchivos = $this->dbh->prepare("SELECT descripcion, nombre_original, nombre_servidor, user_cap, DATE_FORMAT(fecha_cap,'%d/%m/%Y %H:%i:%s') AS fecha_cap FROM orden_resultados_pdf WHERE orden_id = ?");
+				$sqlArchivos->execute([$id_orden]);
+								
+				$res = [
+					'estudios' => $sqlEstudios->fetchAll(PDO::FETCH_ASSOC), 
+					'archivos' => $sqlArchivos->fetchAll(PDO::FETCH_ASSOC)
+				];
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
 		
 	}
 ?>

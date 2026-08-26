@@ -1,4 +1,4 @@
-import { busqueda_ordenes_bandeja } from "./BandejasServices.js";
+import { busqueda_ordenes_bandeja, obtiene_datos_gestion_resultados } from "./BandejasServices.js";
 
 const TabBandejas = () => {
    let fechaHoy = new Date().toISOString().split('T')[0];
@@ -204,36 +204,58 @@ const pinta_ordenes_bandejas = (data) => {
 
                <td class="text-center">
 
-                  <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
-                     <i class="bi bi-ticket-detailed"></i>
-                  </a>`;
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Subir / Gestionar PDF" onclick="ModalGestionPDF(${row.id}, '${row.folio}', '${row.estatus}', '${row.paciente_nombre_historico}');">
+                     <i class="bi bi-file-earmark-pdf"></i>
+                  </button>
 
-                  html+=`
-                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${row.key_query}');">
-                     <i class="bi bi-upc"></i>
-                  </button>`;                  
+                  <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2" title="Previsualizar resultados" onclick="ModalPreviewResultados(${row.id}, '${row.folio}');">
+                     <i class="bi bi-eye"></i>
+                  </button>`;
 
-                  if(row.estatus != 'CANCELADO') {
+                  if(row.estatus == 'LISTO' || row.estatus == 'COMPLETADO') {
                      html+=`
-                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Ver abonos / pagos" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
-                        <i class="bi bi-currency-dollar"></i>
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Marcar como entregado" onclick="MarcarComoEntregado(${row.id}, '${row.folio}');">
+                        <i class="bi bi-check2-all"></i>
                      </button>`;
                   }
 
-                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO') {
-                     html+=`
-                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
-                        <i class="bi bi-file-earmark-medical"></i>
-                     </a>`;
-                  }
-                  if(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') {
-                     html+=`
-                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2" title="Cancelar orden" onclick="ModalCancelarOrden(${row.id}, '${row.folio}', 2);">
-                        <i class="bi bi-x-circle"></i>
-                     </button>`;
-                  }
-                  
                   html+=`
+                  <div class="dropdown d-inline-block">
+                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2 dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
+                        <i class="bi bi-three-dots-vertical"></i>
+                     </button>
+                     <ul class="dropdown-menu dropdown-menu-end shadow-sm small">
+                        <li>
+                           <a class="dropdown-item py-1.5" href="#" onclick="ModalDetalleOrden(${row.id}, '${row.folio}'); return false;">
+                              <i class="bi bi-file-text me-2 text-secondary"></i> Ver detalle de orden
+                            </a>
+                        </li>
+                        <li>
+                           <a class="dropdown-item py-1.5" href="reportes/ticket?kq=${row.key_query}" target="_blank">
+                              <i class="bi bi-ticket-detailed me-2 text-secondary"></i> Imprimir ticket
+                            </a>
+                        </li>
+                        <li>
+                           <a class="dropdown-item py-1.5" href="#" onclick="ModalEnviarResultados(${row.id}, '${row.folio}'); return false;">
+                              <i class="bi bi-whatsapp me-2 text-success"></i> Enviar por WhatsApp / Correo
+                            </a>
+                        </li>`;
+
+                     if(row.estatus != 'CANCELADO') {
+                        html+=`
+                           <li><hr class="dropdown-divider my-1"></li>
+                           <li>
+                              <a class="dropdown-item py-1.5 text-danger" href="#" onclick="ModalCancelarOrden(${row.id}, '${row.folio}', 2); return false;">
+                                 <i class="bi bi-x-circle me-2"></i> Cancelar orden
+                              </a>
+                           </li>`;
+                     }
+
+                     html+=`
+                     </ul>
+                  </div>`;
+                
+                html+=`
                </td>
             </tr>`;
          });
@@ -257,117 +279,259 @@ const pinta_ordenes_bandejas = (data) => {
    closeLoad();
 }
 
-const ModalFormResultado = (idConvenio) => {
-
-   let convenioSeleccionado = arrConvenios.filter(convenio => convenio.id_convenio == idConvenio);
-
-   let titulo;
-   let nombre_comercial    = '';
-   let persona_contacto    = '';
-   let telefono_contacto   = '';
-   let correo_contacto     = '';
-   let direccion           = '';
-   let lista_precio_id     = 0;
-   let password_plataforma = '';
-   let tipo                = 'NA';
-
-   if(idConvenio > 0) {
-      titulo              = 'Editar Convenio: '+ convenioSeleccionado[0].nombre_comercial ?? '';
-      nombre_comercial    = convenioSeleccionado[0].nombre_comercial ?? '';
-      persona_contacto    = convenioSeleccionado[0].persona_contacto ?? '';
-      telefono_contacto   = convenioSeleccionado[0].telefono_contacto ?? '';
-      correo_contacto     = convenioSeleccionado[0].correo_contacto ?? '';
-      direccion           = convenioSeleccionado[0].direccion ?? '';
-      lista_precio_id     = convenioSeleccionado[0].lista_precio_id;
-      tipo                = convenioSeleccionado[0].tipo;
-      password_plataforma = convenioSeleccionado[0].password_plataforma ?? '';
-   }
-   else {
-      titulo = 'Registrar Nuevo Convenio';
-   }   
-
+const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
    let html = `
-   <div class="modal fade modal-superior-blur" id="modalFormConvenio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-fullscreen-md-down">
-         <div class="modal-content sombra-modal">
-            
+   <div class="modal fade modal-superior-blur" id="ModalGestionPDF" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+         <div class="modal-content sombra-modal border-0">            
+
             <div class="modal-header modal-head-per">
-               <h1 class="modal-title fs-5">${titulo}</h1>
+               <h1 class="modal-title fs-5 d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-pdf fs-4"></i>
+                  <span>Gestión de Resultados PDF - Orden #${folio}</span>
+               </h1>
                <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
-            </div>
-            
-            <div class="modal-body bg-light">
-               <div class="row">
-                  <div class="col-12 mt-3">
-                     <b>Nombre *</b>
-                     <input type="text" name="nomConvenio" id="nomConvenio" class="form-control" maxlength="200" value="${nombre_comercial}">
+            </div>         
+
+            <div class="modal-body py-3">
+               
+               <!-- Ficha Resumen del Paciente y Estudios Solicitados -->
+               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
+                  <div class="row g-2 align-items-center mb-2">
+                     <div class="col-12 col-md-8">
+                        <span class="text-muted extra-small text-uppercase fw-semibold d-block">Paciente</span>
+                        <span class="fw-bold text-dark fs-6" id="pdf_modal_paciente_nombre">${paciente}</span>
+                     </div>
+                     <div class="col-12 col-md-4 text-md-end">
+                        <span class="text-muted extra-small text-uppercase fw-semibold d-block mb-1">Estatus Orden</span>
+                        <span id="pdf_modal_estatus_badge"><span class="badge bg-secondary">${estatus}</span></span>
+                     </div>
                   </div>
-                  <div class="col-md-3 col-sm-6 col-12 mt-3">
-                     <b>Tipo *</b>
-                     <select name="tipoConvenio" id="tipoConvenio" class="form-select">
-                        <option value="NA">Seleccionar</option>
-                        <option value="LABORATORIO">LABORATORIO</option>
-                        <option value="EMPRESA">EMPRESA</option>
-                        <option value="DOCTOR">DOCTOR</option>
-                     </select>
-                  </div>
-                  <div class="col-md-9 col-sm-5 col-12 mt-3">
-                     <b>Persona de Contacto *</b>
-                     <input type="text" name="personaContactoConvenio" id="personaContactoConvenio" class="form-control" maxlength="200" value="${persona_contacto}">
-                  </div>
-                  <div class="col-md-3 col-sm-3 col-12 mt-3">
-                     <b>Teléfono *</b>
-                     <input type="tel" inputmode="tel" name="telConvenio" id="telConvenio" class="form-control" maxlength="10" onkeypress="return fnValidaNumeros(event);" value="${telefono_contacto}">
-                  </div>
-                  <div class="col-md-5 col-sm-5 col-12 mt-3">
-                     <b>Correo</b>
-                     <input type="mail" inputmode="mail" name="correoConvenio" id="correoConvenio" class="form-control" maxlength="100" value="${correo_contacto}">
-                  </div>
-                  <div class="col-md-4 col-sm-6 col-12 mt-3">
-                     <b>Tipo de precio *</b>
-                     <select name="precioConvenio" id="precioConvenio" class="form-select">
-                        <option value="0">Seleccionar</option>
-                     </select>
-                  </div>
-                  <div class="col-12 mt-3">
-                     <b>Dirección *</b>
-                     <textarea name="direccionConvenio" id="direccionConvenio" class="form-control" rows="3" maxlength="300">${direccion}</textarea>
-                  </div>
-                  <div class="col-md-4 col-sm-6 col-12 mt-3">
-                     <b>Password Plataforma *</b>
-                     <div class="input-group mb-3">
-                        <input type="password" class="form-control form-control-lg rounded-1" name="passwordPlataformaConvenio" id="passwordPlataformaConvenio" placeholder="***" value="${password_plataforma}" maxlength="50">
-                        <span class="input-group-text pointer" id="eyePasswordConvenio" onclick="ver_password('passwordPlataformaConvenio','eyePasswordConvenio');"><i class="bi bi-eye-slash"></i></span>
+
+                  <hr class="my-2 opacity-25">
+
+                  <!-- Resumen de estudios que componen la orden -->
+                  <div>
+                     <span class="text-muted extra-small text-uppercase fw-semibold d-block mb-1">
+                        <i class="bi bi-journal-check me-1"></i>Estudios Solicitados en esta Orden:
+                     </span>
+                     <div id="contenedor_estudios_solicitados" class="d-flex flex-wrap gap-1">
+                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
                      </div>
                   </div>
                </div>
+
+               <!-- Formulario de Carga: Descripción + Selección de PDF -->
+               <div class="card border-0 bg-white rounded-3 p-3 mb-3 shadow-sm border-start border-4 border-primary">
+                  <h6 class="fw-bold text-dark mb-2 small text-uppercase d-flex align-items-center gap-1">
+                     <i class="bi bi-cloud-upload text-primary"></i> Adjuntar Nuevo Documento PDF
+                  </h6>
+                  
+                  <form id="formSubirPDF" enctype="multipart/form-data" onsubmit="guardarNuevoArchivoPDF(event, ${idOrden})">
+                     <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-5">
+                           <label class="form-label small fw-semibold text-muted mb-1">Descripción del Archivo</label>
+                           <input type="text" class="form-control form-control-sm" id="pdf_descripcion" name="pdf_descripcion" placeholder="Ej. Biometría Hematológica / General" required autocomplete="off">
+                        </div>
+
+                        <div class="col-12 col-md-5">
+                           <label class="form-label small fw-semibold text-muted mb-1">Seleccionar Archivo PDF</label>
+                           <input type="file" class="form-control form-control-sm" id="pdf_archivo" name="pdf_archivo" accept=".pdf" required>
+                        </div>
+
+                        <div class="col-12 col-md-2 text-end">
+                           <button type="submit" class="btn btn-success btn-sm btn-redondo w-100" id="btnSubirPDF">
+                              <i class="bi bi-plus-lg me-1"></i> Subir PDF
+                           </button>
+                        </div>
+                     </div>
+                  </form>
+               </div>
+
+               <!-- Tabla de Archivos PDF Adjuntados -->
+               <div class="table-responsive rounded-3 border shadow-sm">
+                  <table class="table table-hover align-middle mb-0" id="tablaArchivosPDF">
+                     <thead class="table-dark text-uppercase small">
+                        <tr>
+                           <th width="35%" class="py-2">Descripción del Documento</th>
+                           <th width="30%" class="py-2">Nombre de Archivo</th>
+                           <th width="15%" class="text-center py-2">Fecha / Hora</th>
+                           <th width="20%" class="text-center py-2">Acciones</th>
+                        </tr>
+                     </thead>
+                     <tbody id="tbodyArchivosPDF">
+                        <!-- Carga dinámica mediante JS -->
+                        <tr>
+                           <td colspan="4" class="text-center py-4 text-muted">
+                              <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                              Cargando archivos de la orden...
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+
             </div>
-            
-            <div class="modal-footer bg-light border-0" align="right">
-               <button type="button" class="btn btn-dark btn-redondo btn-lib" id="btnGuardarConvenio" onclick="fn_guardar_convenio(${idConvenio});">
-                  Guardar
-               </button>
-               <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+
+            <div class="modal-footer border-0 pt-0">
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
                   Cerrar
                </button>
             </div>
+
          </div>
       </div>
    </div>`;
-   $('#modalAdminExt').html(html);
-   $('#modalFormConvenio').modal('show');
 
-   combo_listas_precios('precioConvenio');
+   $('#modalAdmin').html(html);
+   $('#ModalGestionPDF').modal('show');
+   
+   // Cargar resumen de orden y la lista de archivos adjuntos
+   obtenerArchivosOrdenPDF(idOrden);
+};
 
-   if(idConvenio > 0) {
-      setTimeout(() => {
-         $('#tipoConvenio').val(tipo);
-         $('#precioConvenio').val(lista_precio_id);
-      }, 300);
+const obtenerArchivosOrdenPDF = async (idOrden) => {
+   // Loader en el contenedor de estudios
+   $('#contenedor_estudios_solicitados').html(`
+      <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+      <span class="small text-muted">Cargando estudios...</span>
+   `);
+
+   // Loader en la tabla de archivos
+   $('#tbodyArchivosPDF').html(`
+      <tr>
+         <td colspan="4" class="text-center py-4 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            Cargando archivos de la orden...
+         </td>
+      </tr>
+   `);
+
+   try {
+      let respuesta = await obtiene_datos_gestion_resultados(idOrden);
+
+      if (respuesta.estatus == 403) {
+         fnNoSesion();
+         return;
+      }
+
+      if (respuesta.estudios.length == 0) {
+         showMessageSwalTimer('Atención', respuesta.mensaje || respuesta.msg || 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
+         $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
+         $('#tbodyArchivosPDF').html(`
+            <tr>
+               <td colspan="4" class="text-center py-4 text-muted">
+                  <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
+                  <span class="small">No se encontraron datos disponibles para esta orden.</span>
+               </td>
+            </tr>
+         `);
+         return;
+      }
+
+      // Se envían los datos obtenidos a la función renderizadora
+      pinta_archivos_orden_pdf(respuesta, idOrden);
+
+   } catch (error) {
+      showMessageSwalTimer('Ocurrió un error: ', 'No se pudo conectar con el servidor para consultar los archivos.', 'error', 2500);
+      $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
+      $('#tbodyArchivosPDF').html(`
+         <tr>
+            <td colspan="4" class="text-center py-3 text-danger">
+               <i class="bi bi-exclamation-triangle me-1"></i> Error de conexión al recuperar los archivos adjuntos.
+            </td>
+         </tr>
+      `);
    }
-}
+};
+
+const pinta_archivos_orden_pdf = (data, idOrden) => {
+   
+   // 2. Renderizar Badges de Estudios Solicitados
+   let htmlEstudios = '';
+   if (data.estudios && data.estudios.length > 0) {
+
+      console.log(data.estudios);
+
+      data.estudios.forEach((est) => {
+         htmlEstudios += `
+         <span class="badge bg-white text-dark border border-secondary-subtle font-monospace fw-normal py-1 px-2 shadow-sm fs-8">
+            <i class="bi bi-check2 text-primary me-1"></i>${est.nombre_estudio_historico}
+         </span>`;
+      });
+   } else {
+      htmlEstudios = '<span class="text-muted extra-small">No se registraron estudios en esta orden.</span>';
+   }
+   $('#contenedor_estudios_solicitados').html(htmlEstudios);
+
+   // 3. Renderizar Tabla de Archivos PDF Subidos
+   let htmlArchivos = '';
+   if (data.archivos && data.archivos.length > 0) {
+      data.archivos.forEach((file) => {
+         htmlArchivos += `
+         <tr id="filaArchivoPDF_${file.id}">
+            <td>
+               <div class="fw-bold text-dark mb-0">${file.descripcion}</div>
+               <span class="extra-small text-muted">
+                  <i class="bi bi-person me-1"></i>${file.usuario_nombre || 'Sistema'}
+               </span>
+            </td>
+
+            <td>
+               <div class="text-truncate extra-small font-monospace text-secondary" style="max-width: 240px;" title="${file.nombre_original}">
+                  <i class="bi bi-file-earmark-pdf-fill text-danger me-1 fs-6"></i>${file.nombre_original}
+               </div>
+            </td>
+
+            <td class="text-center extra-small text-muted">
+               <div><i class="bi bi-calendar3 me-1 opacity-50"></i>${file.fecha}</div>
+               <div><i class="bi bi-clock me-1 opacity-50"></i>${file.hora}</div>
+            </td>
+
+            <td class="text-center">
+               <div class="d-flex justify-content-center gap-1">
+                  <!-- Previsualizar PDF -->
+                  <button type="button" 
+                          class="btn btn-outline-info btn-redondo btn-sm px-2" 
+                          title="Previsualizar resultado" 
+                          onclick="VerPDFPrevisualizar('${file.nombre_servidor}')">
+                     <i class="bi bi-eye"></i>
+                  </button>
+
+                  <!-- Descargar directamente -->
+                  <a href="${file.nombre_servidor}" 
+                     target="_blank" 
+                     download="${file.nombre_original}"
+                     class="btn btn-outline-dark btn-redondo btn-sm px-2" 
+                     title="Descargar PDF">
+                     <i class="bi bi-download"></i>
+                  </a>
+
+                  <!-- Eliminar PDF cargado -->
+                  <button type="button" 
+                          class="btn btn-outline-danger btn-redondo btn-sm px-2" 
+                          title="Eliminar archivo" 
+                          onclick="EliminarArchivoPDF(${file.id}, ${idOrden})">
+                     <i class="bi bi-trash"></i>
+                  </button>
+               </div>
+            </td>
+         </tr>`;
+      });
+   } else {
+      htmlArchivos = `
+      <tr>
+         <td colspan="4" class="text-center py-4 text-muted">
+            <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
+            <span class="small">Aún no se han adjuntado archivos PDF para esta orden.</span>
+         </td>
+      </tr>`;
+   }
+
+   $('#tbodyArchivosPDF').html(htmlArchivos);
+};
 
 const registrar_resultado = async (idConvenio, origen) => {
 
@@ -505,7 +669,7 @@ const eliminar_resultado = async (idConvenio, nomConvenio) => {
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabBandejas             = TabBandejas;
-window.ModalFormResultado      = ModalFormResultado;
+window.ModalGestionPDF         = ModalGestionPDF;
 
 window.registrar_resultado     = registrar_resultado;
 window.eliminar_resultado      = eliminar_resultado;
