@@ -35,14 +35,99 @@
                echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
             break;
 
-            case 'obtiene_datos_gestion_resultados':
+            case 'obtiene_estudios_orden':
                
                if(empty($_POST["idOrden"])) {
-                  echo json_encode(["estatus" => 500, "mensaje" => 'Debes ingresar el parámetro de búsqueda', "data" => []]);
+                  echo json_encode(["estatus" => 500, "mensaje" => 'Faltaron parámetros importantes', "data" => []]);
                   break;
                }
                
-               $res = $v->obtiene_datos_gestion_resultados($_POST["idOrden"]); 
+               $res = $v->obtiene_estudios_orden($_POST["idOrden"]); 
+               echo json_encode($res);
+            break;
+
+            case 'obtiene_archivos_resultados_orden':
+               
+               if(empty($_POST["idOrden"])) {
+                  echo json_encode(["estatus" => 500, "mensaje" => 'Faltaron parámetros importantes', "data" => []]);
+                  break;
+               }
+               
+               $res = $v->obtiene_archivos_resultados_orden($_POST["idOrden"]); 
+               echo json_encode($res);
+            break;
+
+            case 'subir_pdf_resultado':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) || empty($_POST["descripcion"]) || empty($_FILES["archivo"]["name"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $nombre_archivo = $_FILES['archivo']['name'];	
+               $tmp_archivo    = $_FILES['archivo']['tmp_name'];
+               $tamanio        = $_FILES['archivo']['size'];
+               $ext            = explode(".",$_FILES['archivo']['name']);
+               $extension      = end($ext);
+               $nom_servidor   = $_POST["folio"].'_'.date('ymdhis').'_'.rand(1,100).'.pdf';
+               $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"].'/';
+               $archivador     = $upload_folder.$nom_servidor;
+
+               $extensiones_permitidas = ['pdf'];
+               if (!in_array(strtolower($extension), $extensiones_permitidas)) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Tipo de archivo no permitido', 'data' => []]);
+                  break;
+               }
+
+               if(!file_exists($upload_folder)) { //Si no existe la carpeta
+                  if(mkdir($upload_folder)) {
+                     copy('../../webapp/assets/docs/resultados/index.php', $upload_folder.'/index.php');
+                  }
+               }
+
+               if(move_uploaded_file($tmp_archivo, $archivador)) {
+                  
+                  $res = $v->registrar_resultado_pdf($_POST["idOrden"], $_POST["descripcion"], $nombre_archivo, $nom_servidor, $tamanio, $_SESSION["nombre"]);
+                  
+                  if($res["estatus"] == 200) {
+                     $g->bitacora('Resultado PDF agregado: '.$nombre_archivo.' del folio: '.$_POST["folio"], $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+                  }
+                  else {
+                     $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"];
+                     if(file_exists($upload_folder)) {
+                        unlink($upload_folder);                        
+                     }
+                  }
+               } 
+               else {
+                  $res = ['estatus' => 208, 'mensaje' => 'Hubo un problema con la subida del archivo', 'data' => []];
+               }
+                             
+               echo json_encode($res);
+            break;
+
+            case 'eliminar_pdf_resultado':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["idArchivo"]) || empty($_POST["nomServidor"]) || empty($_POST["nomOriginal"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->eliminar_resultado_pdf($_POST["idArchivo"], $_SESSION["nombre"]);
+                  
+               if($res["estatus"] == 200) {
+
+                  $g->bitacora('Resultado PDF eliminado ('.$_POST["idArchivo"].'): '.$_POST["nomOriginal"].' del folio: '.$_POST["folio"], $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               
+                  $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"].'/'.$_POST["nomServidor"];               
+
+                  if(file_exists($upload_folder)) {
+                     unlink($upload_folder);                        
+                  }
+               }              
+                             
                echo json_encode($res);
             break;
 

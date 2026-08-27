@@ -46,19 +46,53 @@
 			return $res;
 		}
 
-		public function obtiene_datos_gestion_resultados(int $id_orden) {
-			$res = ['estudios' => [], 'archivos' => []];
+		public function obtiene_archivos_resultados_orden(int $id_orden) {
+			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];
 			try {
-
-				$sqlEstudios = $this->dbh->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
-				$sqlEstudios->execute([$id_orden]);
-
-				$sqlArchivos = $this->dbh->prepare("SELECT descripcion, nombre_original, nombre_servidor, user_cap, DATE_FORMAT(fecha_cap,'%d/%m/%Y %H:%i:%s') AS fecha_cap FROM orden_resultados_pdf WHERE orden_id = ?");
-				$sqlArchivos->execute([$id_orden]);
+				$sql = $this->dbh->prepare("SELECT id, descripcion, nombre_original, nombre_servidor, user_cap, DATE_FORMAT(fecha_cap,'%d/%m/%Y') AS fecha,  DATE_FORMAT(fecha_cap,'%H:%i') AS hora FROM orden_resultados_pdf WHERE orden_id = ? AND activo = ?");
+				$sql->execute([$id_orden, 1]);
 								
+				$res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $sql->fetchAll(PDO::FETCH_ASSOC)];
+
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
+		public function obtiene_estudios_orden(int $id_orden) {
+			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];
+			try {
+				$sql = $this->dbh->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
+				$sql->execute([$id_orden]);
+				
+				$res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $sql->fetchAll(PDO::FETCH_ASSOC)];
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
+		public function registrar_resultado_pdf(int $id_orden, string $descripcion, string $nom_original, string $nom_servidor, float $tamanio, string $user ) {
+			$res = ['estatus' => 500, 'mensaje' => 'Error al intentar registrar en bd', 'data' => []];
+			try {
+				$sql = $this->dbh->prepare("INSERT INTO orden_resultados_pdf (orden_id, descripcion, nombre_original, nombre_servidor, tamanio_bytes, user_cap, fecha_cap) VALUES (?,?,?,?,?,?,?)");
+				$sql->execute([$id_orden, $descripcion, $nom_original, $nom_servidor, $tamanio, $user, date('Y-m-d H:i:s')]);
+				
 				$res = [
-					'estudios' => $sqlEstudios->fetchAll(PDO::FETCH_ASSOC), 
-					'archivos' => $sqlArchivos->fetchAll(PDO::FETCH_ASSOC)
+					'estatus' => 200,
+					'mensaje' => 'ok',
+					'data' => [
+						'id'              => $this->dbh->lastInsertId(),
+						'tamanio_bytes'   => $tamanio,
+						'nombre_original' => $nom_original,
+						'nombre_servidor' => $nom_servidor, 
+						'user_cap'        => $user,
+						'fecha'           => date('Y-m-d'),
+						'hora'            => date('H:i:s')
+					]
 				];
 			} catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
@@ -67,6 +101,27 @@
 			return $res;
 		}
 
+		public function eliminar_resultado_pdf(int $id_archivo, string $user) {
+      	$estatus = 500;
+			$mensaje = 'Error al eliminar el estudio';
+			$data    = [0];
+			try {
+				$sql = $this->dbh->prepare("UPDATE orden_resultados_pdf SET activo = ?, fecha_eliminado = ?, user_elimino = ? WHERE id = ?");
+				$ok  = $sql->execute(array(0, date('Y-m-d H:i:s'), $user, $id_archivo));
+				
+				if($ok) {
+					$estatus = 200;
+					$mensaje = 'ok';
+				}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+
+			return $res;
+		}
 		
 	}
 ?>

@@ -1,4 +1,6 @@
-import { busqueda_ordenes_bandeja, obtiene_datos_gestion_resultados } from "./BandejasServices.js";
+import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado } from "./BandejasServices.js";
+
+let arrPdfResultados = [];
 
 const TabBandejas = () => {
    let fechaHoy = new Date().toISOString().split('T')[0];
@@ -327,27 +329,27 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
                <div class="card border-0 bg-white rounded-3 p-3 mb-3 shadow-sm border-start border-4 border-primary">
                   <h6 class="fw-bold text-dark mb-2 small text-uppercase d-flex align-items-center gap-1">
                      <i class="bi bi-cloud-upload text-primary"></i> Adjuntar Nuevo Documento PDF
-                  </h6>
+                  </h6>                  
                   
-                  <form id="formSubirPDF" enctype="multipart/form-data" onsubmit="guardarNuevoArchivoPDF(event, ${idOrden})">
-                     <div class="row g-2 align-items-end">
-                        <div class="col-12 col-md-5">
-                           <label class="form-label small fw-semibold text-muted mb-1">Descripción del Archivo</label>
-                           <input type="text" class="form-control form-control-sm" id="pdf_descripcion" name="pdf_descripcion" placeholder="Ej. Biometría Hematológica / General" required autocomplete="off">
-                        </div>
-
-                        <div class="col-12 col-md-5">
-                           <label class="form-label small fw-semibold text-muted mb-1">Seleccionar Archivo PDF</label>
-                           <input type="file" class="form-control form-control-sm" id="pdf_archivo" name="pdf_archivo" accept=".pdf" required>
-                        </div>
-
-                        <div class="col-12 col-md-2 text-end">
-                           <button type="submit" class="btn btn-success btn-sm btn-redondo w-100" id="btnSubirPDF">
-                              <i class="bi bi-plus-lg me-1"></i> Subir PDF
-                           </button>
-                        </div>
+                  <div class="row g-2 align-items-end">
+                     <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold text-muted mb-1">Descripción del Archivo</label>
+                        <input type="text" class="form-control form-control-sm" id="pdf_descripcion" name="pdf_descripcion" placeholder="Ej. Biometría Hematológica / General" autocomplete="off" maxlength="150">
                      </div>
-                  </form>
+
+                     <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold text-muted mb-1">Seleccionar Archivo PDF</label>
+                        <input type="file" class="form-control form-control-sm" id="pdf_archivo" name="pdf_archivo" accept=".pdf">
+                     </div>
+
+                     <div class="col-12 col-md-2 text-end">
+                        <button type="button" class="btn btn-success btn-sm btn-redondo w-100" id="btnSubirPDF" 
+                        onclick="subir_pdf_resultado(${idOrden}, '${folio}', '${paciente}', '${estatus}');">
+                           <i class="bi bi-plus-lg me-1"></i> Subir PDF
+                        </button>
+                     </div>
+                  </div>
+                  
                </div>
 
                <!-- Tabla de Archivos PDF Adjuntados -->
@@ -389,16 +391,57 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
    $('#ModalGestionPDF').modal('show');
    
    // Cargar resumen de orden y la lista de archivos adjuntos
-   obtenerArchivosOrdenPDF(idOrden);
+   obtenerEstudiosOrdenPDF(idOrden);
+   obtenerArchivosOrdenPDF(idOrden, folio, estatus);
 };
 
-const obtenerArchivosOrdenPDF = async (idOrden) => {
+const obtenerEstudiosOrdenPDF = async (idOrden) => {
    // Loader en el contenedor de estudios
    $('#contenedor_estudios_solicitados').html(`
       <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
       <span class="small text-muted">Cargando estudios...</span>
    `);
 
+   let respuesta = await obtiene_estudios_orden(idOrden);
+
+   if (respuesta.estatus == 403) {
+      fnNoSesion();
+      return;
+   }
+
+   if(respuesta.estatus != 200 || respuesta.data.length == 0) {
+      showMessageSwalTimer('Atención', 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
+      $('#ModalGestionPDF').modal('hide');
+      $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
+      return;
+   }
+
+   // Se envían los datos obtenidos a la función renderizadora
+   pinta_estudios_orden_pdf(respuesta.data, idOrden);
+
+};
+
+const pinta_estudios_orden_pdf = (data, idOrden) => {
+   
+   let html = '';
+   if (data && data.length > 0) {
+
+      data.forEach((est) => {
+         html += `
+         <span class="badge bg-white text-dark border border-secondary-subtle font-monospace fw-normal py-1 px-2 shadow-sm fs-8">
+            <i class="bi bi-check2 text-primary me-1"></i>${est.nombre_estudio_historico}
+         </span>`;
+      });
+   } 
+   else {
+      html = '<span class="text-muted extra-small">No se registraron estudios en esta orden.</span>';
+   }
+   $('#contenedor_estudios_solicitados').html(html);
+
+};
+
+const obtenerArchivosOrdenPDF = async (idOrden, folio, estatus) => {
+   
    // Loader en la tabla de archivos
    $('#tbodyArchivosPDF').html(`
       <tr>
@@ -408,74 +451,41 @@ const obtenerArchivosOrdenPDF = async (idOrden) => {
          </td>
       </tr>
    `);
+   
+   let respuesta = await obtiene_archivos_resultados_orden(idOrden);
+   arrPdfResultados = respuesta.data;
 
-   try {
-      let respuesta = await obtiene_datos_gestion_resultados(idOrden);
-
-      if (respuesta.estatus == 403) {
-         fnNoSesion();
-         return;
-      }
-
-      if (respuesta.estudios.length == 0) {
-         showMessageSwalTimer('Atención', respuesta.mensaje || respuesta.msg || 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
-         $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
-         $('#tbodyArchivosPDF').html(`
-            <tr>
-               <td colspan="4" class="text-center py-4 text-muted">
-                  <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
-                  <span class="small">No se encontraron datos disponibles para esta orden.</span>
-               </td>
-            </tr>
-         `);
-         return;
-      }
-
-      // Se envían los datos obtenidos a la función renderizadora
-      pinta_archivos_orden_pdf(respuesta, idOrden);
-
-   } catch (error) {
-      showMessageSwalTimer('Ocurrió un error: ', 'No se pudo conectar con el servidor para consultar los archivos.', 'error', 2500);
-      $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
+   if (respuesta.estatus == 403) {
+      fnNoSesion();
+      return;
+   }   
+   else if(respuesta.data.length == 0) {
       $('#tbodyArchivosPDF').html(`
          <tr>
-            <td colspan="4" class="text-center py-3 text-danger">
-               <i class="bi bi-exclamation-triangle me-1"></i> Error de conexión al recuperar los archivos adjuntos.
+            <td colspan="4" class="text-center py-4 text-muted">
+               <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
+               <span class="small">No se encontraron archivos disponibles para esta orden.</span>
             </td>
          </tr>
       `);
+      return;
    }
+   // Se envían los datos obtenidos a la función renderizadora
+   pinta_archivos_orden_pdf(arrPdfResultados, idOrden, folio, estatus);   
 };
 
-const pinta_archivos_orden_pdf = (data, idOrden) => {
+const pinta_archivos_orden_pdf = (data, idOrden, folio, estatus) => {
    
-   // 2. Renderizar Badges de Estudios Solicitados
-   let htmlEstudios = '';
-   if (data.estudios && data.estudios.length > 0) {
-
-      console.log(data.estudios);
-
-      data.estudios.forEach((est) => {
-         htmlEstudios += `
-         <span class="badge bg-white text-dark border border-secondary-subtle font-monospace fw-normal py-1 px-2 shadow-sm fs-8">
-            <i class="bi bi-check2 text-primary me-1"></i>${est.nombre_estudio_historico}
-         </span>`;
-      });
-   } else {
-      htmlEstudios = '<span class="text-muted extra-small">No se registraron estudios en esta orden.</span>';
-   }
-   $('#contenedor_estudios_solicitados').html(htmlEstudios);
-
    // 3. Renderizar Tabla de Archivos PDF Subidos
-   let htmlArchivos = '';
-   if (data.archivos && data.archivos.length > 0) {
-      data.archivos.forEach((file) => {
-         htmlArchivos += `
+   let html = '';
+   if (data && data.length > 0) {
+      data.forEach((file) => {
+         html += `
          <tr id="filaArchivoPDF_${file.id}">
             <td>
                <div class="fw-bold text-dark mb-0">${file.descripcion}</div>
                <span class="extra-small text-muted">
-                  <i class="bi bi-person me-1"></i>${file.usuario_nombre || 'Sistema'}
+                  <i class="bi bi-person me-1"></i>${file.user_cap || 'Sistema'}
                </span>
             </td>
 
@@ -492,36 +502,26 @@ const pinta_archivos_orden_pdf = (data, idOrden) => {
 
             <td class="text-center">
                <div class="d-flex justify-content-center gap-1">
-                  <!-- Previsualizar PDF -->
-                  <button type="button" 
-                          class="btn btn-outline-info btn-redondo btn-sm px-2" 
-                          title="Previsualizar resultado" 
-                          onclick="VerPDFPrevisualizar('${file.nombre_servidor}')">
+                  
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Previsualizar resultado" onclick="VerPDFPrevisualizar('${file.nombre_servidor}')">
                      <i class="bi bi-eye"></i>
-                  </button>
+                  </button>`;
 
-                  <!-- Descargar directamente -->
-                  <a href="${file.nombre_servidor}" 
-                     target="_blank" 
-                     download="${file.nombre_original}"
-                     class="btn btn-outline-dark btn-redondo btn-sm px-2" 
-                     title="Descargar PDF">
-                     <i class="bi bi-download"></i>
-                  </a>
+                  if(estatus != 'ENTREGADO' && estatus != 'CANCELADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2 btnEliminarPdfRes" title="Eliminar archivo" onclick="eliminar_resultado(${file.id}, ${idOrden}, '${folio}', '${file.nombre_servidor}', '${file.nombre_original}', '${estatus}')">
+                        <i class="bi bi-trash"></i>
+                     </button>`;
+                  }
 
-                  <!-- Eliminar PDF cargado -->
-                  <button type="button" 
-                          class="btn btn-outline-danger btn-redondo btn-sm px-2" 
-                          title="Eliminar archivo" 
-                          onclick="EliminarArchivoPDF(${file.id}, ${idOrden})">
-                     <i class="bi bi-trash"></i>
-                  </button>
+                  html+=`
                </div>
             </td>
          </tr>`;
       });
-   } else {
-      htmlArchivos = `
+   } 
+   else {
+      html = `
       <tr>
          <td colspan="4" class="text-center py-4 text-muted">
             <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
@@ -530,139 +530,128 @@ const pinta_archivos_orden_pdf = (data, idOrden) => {
       </tr>`;
    }
 
-   $('#tbodyArchivosPDF').html(htmlArchivos);
+   $('#tbodyArchivosPDF').html(html);
 };
 
-const registrar_resultado = async (idConvenio, origen) => {
+const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
 
-   let nomConvenio        = $('#nomConvenio').val().trim();
-   let tipo               = $('#tipoConvenio').val();
-   let personaContacto    = $('#personaContactoConvenio').val().trim();
-   let telefono           = $('#telConvenio').val().trim();
-   let correo             = $('#correoConvenio').val().trim();
-   let precio             = $('#precioConvenio').val();
-   let direccion          = $('#direccionConvenio').val().trim();
-   let passwordPlataforma = $('#passwordPlataformaConvenio').val().trim();
-   let msjAccion;
-
-   if (nomConvenio == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre del cliente del convenio',
-         icon: 'warning'
-      });
-      $('#nomConvenio').focus();
-      return;
-   }
-   else if (tipo == 'NA') {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el tipo de cliente del convenio',
-         icon: 'warning'
-      });
-      $('#tipoConvenio').focus();
-      return;
-   }
-   else if (personaContacto == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre de la persona de contacto',
-         icon: 'warning'
-      });
-      $('#personaContactoConvenio').focus();
-      return;
-   }
-   else if (telefono == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el teléfono de contacto del cliente del convenio',
-         icon: 'warning'
-      });
-      $('#telConvenio').focus();
-      return;
-   }
-   else if(correo != '') {
-      if(!fnValidaMail(correo)) {
-         ToastColor.fire({
-            text: '¡Atención! Debes ingresar una cuenta de correo válida',
-            icon: 'warning'
-         });
-         $('#correoConvenio').focus();
-      return;
-      }
-   }
-   else if (parseInt(precio) == 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el tipo de precio para el cliente',
-         icon: 'warning'
-      });
-      $('#precioConvenio').focus();
-      return;
-   }
-   else if (direccion == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar la dirección del cliente',
-         icon: 'warning'
-      });
-      $('#direccionConvenio').focus();
-      return;
-   }
-   else if (passwordPlataforma == '' && parseInt(idConvenio) == 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar la contraseña para el acceso a la plataforma',
-         icon: 'warning'
-      });
-      $('#passwordPlataformaConvenio').focus();
-      return;
-   }
+   let file0         = document.getElementById('pdf_archivo');
+   let file          = file0.files[0];
+   let descripcion   = $('#pdf_descripcion').val().trim();
    
-   let objConvenio = { 'func': 'guardar', idConvenio, nomConvenio, tipo, personaContacto, telefono, correo, precio, direccion, passwordPlataforma };
-      
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El convenio: ' + nomConvenio + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
-   if (!res.result) {
-      $('#btnGuardarConvenio').prop('disabled', false);
+   if(idOrden == '' || idOrden < 0) {
+      ToastColor.fire({
+         text: '¡Atención! No se obtuvo un parámetro importante para continuar, actualiza y vuelve a intentarlo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      return;
+   }
+   else if(descripcion == '') {
+      ToastColor.fire({
+         text: '¡Atención! Debes ingresar el nombre descriptivo del archivo',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#pdf_descripcion').focus();
+      return;
+   }
+   else if (typeof (file) == "undefined") {
+      ToastColor.fire({text: '¡Atención! Debes seleccionar un archivo.', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
+      $('#pdf_archivo').focus();
+      return;
+   }
+   else if (!(/\.(pdf)$/i).test(file.name)) {
+      ToastColor.fire({ text: '¡Atención! El archivo debe ser un archivo PDF', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
+      $('#pdf_archivo').focus();
       return;
    }
 
-   $('#btnGuardarConvenio').prop('disabled',true);
-   let respuesta = await guardar_convenio(objConvenio);
+   /*
+   let fileReducido  = await reducirImagen(file).then(fr=>{ return fr; });
+
+   if (fileReducido.size > 1000000) {
+      ToastColor.fire({text: '¡Atención! Debes agregar un archivo más ligero, tamaño máximo 1 MB.', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
+      $('#pdf_archivo').focus();
+      return;
+   }
+   */
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El archivo será almacenado', 'question', 'Sí, Subir', 'Cancelar');
+   if (!res.result) {
+      $('#btnGuardarEstudio').prop('disabled', false);
+      return;
+   }
+
+   $('#btnSubirPDF').prop('disabled', true);
+
+   var objSubidaResultado = new FormData();
+   objSubidaResultado.append('func', 'subir_pdf_resultado');
+   objSubidaResultado.append('idOrden', idOrden);
+   objSubidaResultado.append('folio', folio);
+   objSubidaResultado.append('paciente', paciente); 
+   objSubidaResultado.append('descripcion', descripcion);
+   objSubidaResultado.append('archivo', file);
+
+   let respuesta = await sube_pdf_resultado(objSubidaResultado);  
+   
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if(respuesta.estatus == 200) { 
 
-      idConvenio > 0 ? msjAccion = 'Información actualizada correctamente' : msjAccion = 'Convenio guardado correctamente';
+      let objResultado = {
+         id: respuesta.data.id,
+         descripcion: descripcion,
+         nombre_original: respuesta.data.nombre_original,
+         nombre_servidor: respuesta.data.nombre_servidor,
+         user_cap: respuesta.data.user_cap,
+         fecha: respuesta.data.fecha,
+         hora: respuesta.data.hora
+      };
 
-      showMessageSwalTimer(msjAccion, '', 'success', 2500);
-      $('#modalFormConvenio').modal('hide');
-      $('#btnGuardarConvenio').prop('disabled',false);
-      fn_obtiene_convenios('listado_convenios');
+      arrPdfResultados.push(objResultado);
+
+      pinta_archivos_orden_pdf(arrPdfResultados, idOrden, folio, estatus);
+
+      showMessageSwalTimer('¡Archivo almacenado!', '', 'success', 2500);
+      $('#btnSubirPDF').prop('disabled', false);
+      $('#pdf_archivo').val('');
+      $('#pdf_descripcion').val('');
    }
    else {
       showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
-      $('#btnGuardarConvenio').prop('disabled',false);
+      $('#btnSubirPDF').prop('disabled', false);
       return;
    }
 }
 
-const eliminar_resultado = async (idConvenio, nomConvenio) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El Convenio: ' + nomConvenio + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+const eliminar_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOriginal, estatus) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El archivo: ' + nomOriginal + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
-      $('.btnEliminarConvenio').prop('disabled', false);
+      $('.btnEliminarPdfRes').prop('disabled', false);
       return;
    }
 
-   $('.btnEliminarConvenio').prop('disabled', true);
+   $('.btnEliminarPdfRes').prop('disabled', true);
 
-   let respuesta = await eliminar_convenio(idConvenio, nomConvenio);
+   let respuesta = await eliminar_pdf_resultado(idArchivo, idOrden, folio, nomServidor, nomOriginal);
       if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('Convenio eliminado correctamente', '', 'success', 2500);
-      $('#cardConvenio'+idConvenio).remove();
-      arrConvenios = arrConvenios.filter(convenio => convenio.id_convenio != idConvenio);
-      $('.btnEliminarConvenio').prop('disabled', false);
+      showMessageSwalTimer('¡Resultado PDF eliminado!', '', 'success', 2500);
+      
+      arrPdfResultados = arrPdfResultados.filter(pdf => pdf.id != idArchivo);
+      pinta_archivos_orden_pdf(arrPdfResultados, idOrden, estatus)
+      $('.btnEliminarPdfRes').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnEliminarConvenio').prop('disabled', false);
+      $('.btnEliminarPdfRes').prop('disabled', false);
       return;
    }
 }
@@ -671,7 +660,7 @@ const eliminar_resultado = async (idConvenio, nomConvenio) => {
 window.TabBandejas             = TabBandejas;
 window.ModalGestionPDF         = ModalGestionPDF;
 
-window.registrar_resultado     = registrar_resultado;
+window.subir_pdf_resultado     = subir_pdf_resultado;
 window.eliminar_resultado      = eliminar_resultado;
 window.cambiar_estatus_barra   = cambiar_estatus_barra;
 window.obtiene_ordenes_estatus = obtiene_ordenes_estatus;
