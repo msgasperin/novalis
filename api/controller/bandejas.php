@@ -73,10 +73,24 @@
                $nom_servidor   = $_POST["folio"].'_'.date('ymdhis').'_'.rand(1,100).'.pdf';
                $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"].'/';
                $archivador     = $upload_folder.$nom_servidor;
-
+               $max_bytes      = 5 * 1024 * 1024;
                $extensiones_permitidas = ['pdf'];
+
+
+               if ($tamanio > $max_bytes) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'El archivo excede el tamaño máximo permitido de 5 MB.']);
+                  break;
+               }
+
                if (!in_array(strtolower($extension), $extensiones_permitidas)) {
                   echo json_encode(['estatus' => 400, 'mensaje' => 'Tipo de archivo no permitido', 'data' => []]);
+                  break;
+               }
+
+               $mime_real = mime_content_type($tmp_archivo);
+
+               if($mime_real !== 'application/pdf') {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'El contenido del archivo no coincide con un formato PDF válido.', 'data' => []]);
                   break;
                }
 
@@ -86,20 +100,18 @@
                   }
                }
 
-               if(move_uploaded_file($tmp_archivo, $archivador)) {
-                  
-                  $res = $v->registrar_resultado_pdf($_POST["idOrden"], $_POST["descripcion"], $nombre_archivo, $nom_servidor, $tamanio, $_SESSION["nombre"]);
-                  
-                  if($res["estatus"] == 200) {
-                     $g->bitacora('Resultado PDF agregado: '.$nombre_archivo.' del folio: '.$_POST["folio"], $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
-                  }
-                  else {
-                     $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"];
-                     if(file_exists($upload_folder)) {
-                        unlink($upload_folder);                        
+               if (move_uploaded_file($tmp_archivo, $archivador)) {
+
+                  $res = $v->registrar_resultado_pdf($_POST["idOrden"], $_POST["folio"], $_POST["descripcion"], $nombre_archivo, $nom_servidor, $tamanio, $_SESSION["nombre"]);
+
+                  if ($res["estatus"] == 200) {
+                     $g->bitacora('Resultado PDF agregado: ' . $nombre_archivo . ' del folio: ' . $_POST["folio"], $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+                  } else {
+                     if (file_exists($archivador)) {
+                           unlink($archivador);
                      }
                   }
-               } 
+               }
                else {
                   $res = ['estatus' => 208, 'mensaje' => 'Hubo un problema con la subida del archivo', 'data' => []];
                }
@@ -126,6 +138,77 @@
                   if(file_exists($upload_folder)) {
                      unlink($upload_folder);                        
                   }
+               }              
+                             
+               echo json_encode($res);
+            break;
+
+
+            // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIOENS DE CAMBIOS DE ESTATUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+            case 'marcar_orden_como_parcial':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->marcar_orden_como_parcial($_POST["idOrden"]);
+                  
+               if($res["estatus"] == 200) {
+                  $g->bitacora('Orden marcada con resultados parciales ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }              
+                             
+               echo json_encode($res);
+            break;
+
+            case 'marcar_orden_como_completada':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->marcar_orden_como_completada($_POST["idOrden"], $_SESSION["nombre"]);
+                  
+               if($res["estatus"] == 200) {
+                  $g->bitacora('Orden marcada como completada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }              
+                             
+               echo json_encode($res);
+            break;
+
+            case 'marcar_orden_como_entregada':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->marcar_orden_como_entregada($_POST["idOrden"], $_SESSION["nombre"]);
+                  
+               if($res["estatus"] == 200) {
+                  $g->bitacora('Orden marcada como entregada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }              
+                             
+               echo json_encode($res);
+            break;
+
+            case 'marcar_orden_como_publicada':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->marcar_orden_como_publicada($_POST["idOrden"], $_SESSION["nombre"]);
+                  
+               if($res["estatus"] == 200) {
+                  $g->bitacora('Orden marcada como publicada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
                }              
                              
                echo json_encode($res);

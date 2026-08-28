@@ -25,7 +25,7 @@
 				$fecha_ini = date('Y-m-d').' 00:00:00';
 				$fecha_fin = date('Y-m-d').' 23:59:59';
 
-				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, total_neto, total_abonado, saldo_deudor, es_urgente, requiere_factura FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
+				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, total_neto, total_abonado, saldo_deudor, es_urgente, requiere_factura, publicada FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
 				$sql->execute([$fecha_ini, $fecha_fin, $id_sucursal]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -48,7 +48,7 @@
 					$term_boolean = implode('* ', $palabras) . '*';
 
 					$sql = $this->dbh->prepare(
-						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura 
+						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada
 						FROM ordenes_trabajo 
 						WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus"
 					);
@@ -75,7 +75,7 @@
 					}
 
 					$sql = $this->dbh->prepare(
-						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura 
+						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada 
 						FROM ordenes_trabajo 
 						WHERE sucursal_id = ? $condicion $filtro_estatus"
 					);

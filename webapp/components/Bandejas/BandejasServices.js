@@ -23,3 +23,23 @@ export const eliminar_pdf_resultado = async (idArchivo, idOrden, folio, nomServi
    const datos = { func: 'eliminar_pdf_resultado', idArchivo, idOrden, folio, nomServidor, nomOriginal };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
+
+export const marcar_orden_como_parcial = async (idOrden, folio) => {
+   const datos = { func: 'marcar_orden_como_parcial', idOrden, folio };
+   return await postJSON('../api/controller/bandejas.php', datos);
+}
+
+export const marcar_orden_como_completada = async (idOrden, folio) => {
+   const datos = { func: 'marcar_orden_como_completada', idOrden, folio };
+   return await postJSON('../api/controller/bandejas.php', datos);
+}
+
+export const marcar_orden_como_entregada = async (idOrden, folio) => {
+   const datos = { func: 'marcar_orden_como_entregada', idOrden, folio };
+   return await postJSON('../api/controller/bandejas.php', datos);
+}
+
+export const marcar_orden_como_publicada = async (idOrden, folio) => {
+   const datos = { func: 'marcar_orden_como_publicada', idOrden, folio };
+   return await postJSON('../api/controller/bandejas.php', datos);
+}

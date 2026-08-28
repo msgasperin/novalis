@@ -1,4 +1,4 @@
-import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado } from "./BandejasServices.js";
+import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado, marcar_orden_como_parcial, marcar_orden_como_completada, marcar_orden_como_entregada, marcar_orden_como_publicada } from "./BandejasServices.js";
 
 let arrPdfResultados = [];
 
@@ -48,7 +48,7 @@ const TabBandejas = () => {
       </div>
       
       <div class="col-xl col-md-4 col-6">
-         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-PARCIAL" onclick="cambiar_estatus_barra('PARCIAL')">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-PROCESO" onclick="cambiar_estatus_barra('PROCESO')">
             <i class="bi bi-file-earmark-pdf me-sm-1"></i> Resultados Parciales
          </button>
       </div>
@@ -165,11 +165,14 @@ const pinta_ordenes_bandejas = (data) => {
          </thead>
          <tbody>`;
          
+         let labelPublicada = '';
          data.forEach(row => {
             let isUrgente = (row.es_urgente == 1 || row.es_urgente == '1');
 
+            row.publicada == "1" ? labelPublicada = '<span class="badge bg-success bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">Publicada</span>' : labelPublicada  = '';
+
             html +=
-            `<tr id="trBusqueda${row.folio}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
+            `<tr id="trBusqueda${row.id}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
                
                <td class="text-center">
                   <div class="align-items-center justify-content-center gap-1 mb-1">
@@ -183,6 +186,7 @@ const pinta_ordenes_bandejas = (data) => {
                      ` : ''}
                   </div>
                   ${getBadgeEstatus(row.estatus)}
+                  <span id="labelPublicado${row.id}">${labelPublicada}</span>
                </td>
 
                <td>
@@ -206,24 +210,45 @@ const pinta_ordenes_bandejas = (data) => {
 
                <td class="text-center">
 
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Subir / Gestionar PDF" onclick="ModalGestionPDF(${row.id}, '${row.folio}', '${row.estatus}', '${row.paciente_nombre_historico}');">
-                     <i class="bi bi-file-earmark-pdf"></i>
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Subir / Gestionar PDF" onclick="ModalGestionPDF(${row.id}, '${row.folio}', '${row.estatus}', '${row.paciente_nombre_historico}');">
+                     <i class="bi bi-file-arrow-up"></i>
                   </button>
 
-                  <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2" title="Previsualizar resultados" onclick="ModalPreviewResultados(${row.id}, '${row.folio}');">
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Previsualizar resultados" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
                      <i class="bi bi-eye"></i>
                   </button>`;
 
+                  if(row.estatus == 'RECEPCION') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" title="Marcar como resultados parciales" onclick="marcar_como_parcial(${row.id}, '${row.folio}');">
+                        <i class="bi bi-file-earmark-break"></i>
+                     </button>`;
+                  }
+
+                  if(row.estatus == 'RECEPCION' || row.estatus == 'PROCESO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnAcciones" title="Marcar como orden completada" onclick="marcar_como_completada(${row.id}, '${row.folio}');">
+                        <i class="bi bi-check2-all"></i>
+                     </button>`;
+                  }
+
                   if(row.estatus == 'LISTO' || row.estatus == 'COMPLETADO') {
                      html+=`
-                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2" title="Marcar como entregado" onclick="MarcarComoEntregado(${row.id}, '${row.folio}');">
-                        <i class="bi bi-check2-all"></i>
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnAcciones" title="Marcar orden entregada" onclick="marcar_como_entregada(${row.id}, '${row.folio}');">
+                        <i class="bi bi-inbox"></i>
+                     </button>`;
+                  }
+
+                  if((row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.publicada == 0) {
+                     html+=`
+                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Publicar resultados en plataforma" onclick="marcar_como_publicada(${row.id}, '${row.folio}');">
+                        <i class="bi bi-share"></i>
                      </button>`;
                   }
 
                   html+=`
                   <div class="dropdown d-inline-block">
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2 dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
+                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2 dropdown-toggle no-caret btnAcciones" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
                         <i class="bi bi-three-dots-vertical"></i>
                      </button>
                      <ul class="dropdown-menu dropdown-menu-end shadow-sm small">
@@ -236,22 +261,17 @@ const pinta_ordenes_bandejas = (data) => {
                            <a class="dropdown-item py-1.5" href="reportes/ticket?kq=${row.key_query}" target="_blank">
                               <i class="bi bi-ticket-detailed me-2 text-secondary"></i> Imprimir ticket
                             </a>
-                        </li>
-                        <li>
-                           <a class="dropdown-item py-1.5" href="#" onclick="ModalEnviarResultados(${row.id}, '${row.folio}'); return false;">
-                              <i class="bi bi-whatsapp me-2 text-success"></i> Enviar por WhatsApp / Correo
-                            </a>
                         </li>`;
 
-                     if(row.estatus != 'CANCELADO') {
-                        html+=`
+                        if(row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') {
+                           html+=`
                            <li><hr class="dropdown-divider my-1"></li>
                            <li>
-                              <a class="dropdown-item py-1.5 text-danger" href="#" onclick="ModalCancelarOrden(${row.id}, '${row.folio}', 2); return false;">
-                                 <i class="bi bi-x-circle me-2"></i> Cancelar orden
+                              <a class="dropdown-item py-1.5" href="#" onclick="ModalEnviarResultados(${row.id}, '${row.folio}');">
+                                 <i class="bi bi-whatsapp me-2 text-success"></i> Enviar por WhatsApp / Correo
                               </a>
                            </li>`;
-                     }
+                        }
 
                      html+=`
                      </ul>
@@ -333,20 +353,26 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
                   
                   <div class="row g-2 align-items-end">
                      <div class="col-12 col-md-5">
-                        <label class="form-label small fw-semibold text-muted mb-1">Descripción del Archivo</label>
+                        <label class="form-label small fw-semibold text-muted mb-1" for="pdf_descripcion">Descripción del Archivo</label>
                         <input type="text" class="form-control form-control-sm" id="pdf_descripcion" name="pdf_descripcion" placeholder="Ej. Biometría Hematológica / General" autocomplete="off" maxlength="150">
+                        <div class="form-text text-muted small mt-1 fs-8">
+                           <i class="bi bi-info-circle me-1"></i> Breve nombre de lo que reportas.
+                        </div>
                      </div>
 
                      <div class="col-12 col-md-5">
-                        <label class="form-label small fw-semibold text-muted mb-1">Seleccionar Archivo PDF</label>
-                        <input type="file" class="form-control form-control-sm" id="pdf_archivo" name="pdf_archivo" accept=".pdf">
+                        <label class="form-label small fw-semibold text-muted mb-1" for="pdf_archivo">Seleccionar Archivo PDF</label>
+                        <input type="file" class="form-control form-control-sm" id="pdf_archivo" name="pdf_archivo" accept=".pdf,application/pdf">
+                        <div class="form-text text-muted small mt-1 fs-8">
+                           <i class="bi bi-info-circle me-1"></i> Solo formato PDF. Tamaño máximo autorizado: <b>5 MB</b>.
+                        </div>
                      </div>
 
                      <div class="col-12 col-md-2 text-end">
                         <button type="button" class="btn btn-success btn-sm btn-redondo w-100" id="btnSubirPDF" 
-                        onclick="subir_pdf_resultado(${idOrden}, '${folio}', '${paciente}', '${estatus}');">
+                              onclick="subir_pdf_resultado(${idOrden}, '${folio}', '${paciente}', '${estatus}');">
                            <i class="bi bi-plus-lg me-1"></i> Subir PDF
-                        </button>
+                        </button><br><br>
                      </div>
                   </div>
                   
@@ -503,7 +529,7 @@ const pinta_archivos_orden_pdf = (data, idOrden, folio, estatus) => {
             <td class="text-center">
                <div class="d-flex justify-content-center gap-1">
                   
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Previsualizar resultado" onclick="VerPDFPrevisualizar('${file.nombre_servidor}')">
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Previsualizar resultado" onclick="ModalViewerResultado('${file.key_query_pdf}', '${folio}', 1);">
                      <i class="bi bi-eye"></i>
                   </button>`;
 
@@ -538,6 +564,7 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
    let file0         = document.getElementById('pdf_archivo');
    let file          = file0.files[0];
    let descripcion   = $('#pdf_descripcion').val().trim();
+   let maxBytes      = 5 * 1024 * 1024;
    
    if(idOrden == '' || idOrden < 0) {
       ToastColor.fire({
@@ -563,8 +590,13 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
       $('#pdf_archivo').focus();
       return;
    }
-   else if (!(/\.(pdf)$/i).test(file.name)) {
+   if (!(/\.(pdf)$/i).test(file.name) || file.type !== 'application/pdf') {
       ToastColor.fire({ text: '¡Atención! El archivo debe ser un archivo PDF', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
+      $('#pdf_archivo').focus();
+      return;
+   }
+   else if (file.size > maxBytes)  {
+      ToastColor.fire({ text: '¡Atención! El archivo excede el tamaño máximo permitido de 5 MB.', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
       $('#pdf_archivo').focus();
       return;
    }
@@ -604,12 +636,14 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
 
       let objResultado = {
          id: respuesta.data.id,
+         orden_folio: respuesta.data.orden_folio,
          descripcion: descripcion,
          nombre_original: respuesta.data.nombre_original,
          nombre_servidor: respuesta.data.nombre_servidor,
          user_cap: respuesta.data.user_cap,
          fecha: respuesta.data.fecha,
-         hora: respuesta.data.hora
+         hora: respuesta.data.hora,
+         key_query_pdf: respuesta.data.key_query_pdf
       };
 
       arrPdfResultados.push(objResultado);
@@ -656,11 +690,289 @@ const eliminar_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOri
    }
 }
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-window.TabBandejas             = TabBandejas;
-window.ModalGestionPDF         = ModalGestionPDF;
+const ModalViewerResultado = (key_query, folio) => {
+   // 1. Destruir modal previo si existe para liberar memoria
 
-window.subir_pdf_resultado     = subir_pdf_resultado;
-window.eliminar_resultado      = eliminar_resultado;
-window.cambiar_estatus_barra   = cambiar_estatus_barra;
-window.obtiene_ordenes_estatus = obtiene_ordenes_estatus;
+   const modalExistente = $('#modalViewerResultados');
+   if (modalExistente.length) {
+      modalExistente.modal('dispose');
+   }
+
+   let ruta = `reportes/resultado.php?id=${key_query}`;
+
+   const html = `
+   <div class="modal fade modal-superior-blur" id="modalViewerResultados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+         <div class="modal-content sombra-modal border-0">            
+
+            <div class="modal-header modal-head-per">
+               <h1 class="modal-title fs-5 d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-pdf fs-4"></i>
+                  <span>Visor de resultados - Orden #${folio}</span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>         
+
+            <div class="modal-body p-0 position-relative" style="min-height: 70vh;">
+               <!-- Spinner de carga -->
+               <div id="pdfLoader" class="position-absolute top-50 start-50 translate-middle text-center">
+                  <div class="spinner-border text-primary" role="status">
+                     <span class="visually-hidden">Cargando PDF...</span>
+                  </div>
+                  <p class="small text-muted mt-2 mb-0">Cargando documento...</p>
+               </div>
+
+               <!-- Visor iFrame con altura adaptable -->
+               <iframe 
+                  id="iframePdf"
+                  width="100%" 
+                  style="height: 75vh; display: block;" 
+                  src="${ruta}" 
+                  frameborder="0"
+                  onload="$('#pdfLoader').hide();"
+               ></iframe>
+            </div>
+
+            <div class="modal-footer border-0 py-2">
+               <a href="${ruta}" target="_blank" class="btn btn-outline-primary btn-redondo btn-sm">
+                  <i class="bi bi-box-arrow-up-right me-1"></i> Abrir en nueva pestaña
+               </a>
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
+                  Cerrar
+               </button>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   // Inyectar HTML e inicializar modal
+   $('#modalAdminDocs').html(html);
+   const modalElement = document.getElementById('modalViewerResultados');
+   const myModal = new bootstrap.Modal(modalElement);
+   
+   // Evento para vaciar el iframe al cerrar (libera RAM)
+   $(modalElement).on('hidden.bs.modal', function () {
+      $('#iframePdf').attr('src', 'about:blank');
+      $(this).remove();
+   });
+
+   myModal.show();
+};
+
+const ModalViewerResultadosFolio = async (idOrden, folio) => {
+   
+   let respuesta = await obtiene_archivos_resultados_orden(idOrden);
+
+   if (respuesta.estatus == 403) {
+      fnNoSesion();
+      return;
+   }
+   else if(respuesta.data.length == 0) {
+      ToastColor.fire({ text: '¡Atención! No se encontraron archivos ligados a esa orden', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
+      return;
+   }
+     
+   let listaHtml = 
+   `<div class="d-flex gap-2 p-2 bg-light border-bottom overflow-auto">`;
+      respuesta.data.forEach((doc, idx) => {
+         const activeClass = idx === 0 ? 'btn-secondary' : 'btn-outline-secondary';
+         listaHtml += `
+         <button type="button" class="btn ${activeClass} btn-sm text-nowrap btn-tab-pdf btn-redondo text-truncate extra-small font-monospace" style="max-width: 240px;" data-key="${doc.key_query_pdf}">
+            <i class="bi bi-file-earmark-pdf me-1"></i> ${doc.descripcion || 'Estudio ' + (idx + 1)}
+         </button>`;
+      });
+      listaHtml += 
+   `</div>`;
+   
+
+   let primerKey = respuesta.data[0].key_query_pdf;
+
+   const html = `
+   <div class="modal fade modal-superior-blur" id="modalViewerResultados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content sombra-modal border-0">            
+            <div class="modal-header modal-head-per py-2">
+               <h1 class="modal-title fs-5 d-flex align-items-center gap-2">
+                  <i class="bi bi-journal-medical fs-4"></i>
+                  <span>Resultados de Orden #${folio} (${respuesta.data.length} PDF)</span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>         
+
+            ${listaHtml}
+
+            <div class="modal-body p-0 position-relative" style="min-height: 70vh;">
+               <div id="pdfLoader" class="position-absolute top-50 start-50 translate-middle text-center" style="display:none;">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <p class="small text-muted mt-2">Cargando documento...</p>
+               </div>
+
+               <iframe 
+                  id="iframePdf"
+                  width="100%" 
+                  style="height: 75vh; display: block;" 
+                  src="reportes/resultado.php?id=${primerKey}" 
+                  frameborder="0"
+                  onload="$('#pdfLoader').hide();"
+               ></iframe>
+            </div>
+
+            <div class="modal-footer border-0 py-2">
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
+                  Cerrar
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   const modalElement = document.getElementById('modalViewerResultados');
+   const myModal = new bootstrap.Modal(modalElement);
+
+   // Evento para cambiar de PDF dinámicamente sin cerrar el modal
+   $('.btn-tab-pdf').on('click', function() {
+      $('.btn-tab-pdf').removeClass('btn-secondary').addClass('btn-outline-secondary');
+      $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
+      
+      const key = $(this).data('key');
+      $('#pdfLoader').show();
+      $('#iframePdf').attr('src', `reportes/resultado.php?id=${key}`);
+   });
+
+   // Limpieza de memoria al cerrar
+   $(modalElement).on('hidden.bs.modal', function () {
+      $('#iframePdf').attr('src', 'about:blank');
+      $(this).remove();
+   });
+
+   myModal.show();
+}
+
+const marcar_como_parcial = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada con resultados parciales', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_parcial(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2500);
+      let tabla = $('#tableOrdenesBandeja').DataTable();
+      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+const marcar_como_completada = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como completada', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_completada(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como completada!', '', 'success', 2500);
+      let tabla = $('#tableOrdenesBandeja').DataTable();
+      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+const marcar_como_entregada = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como entregada', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_entregada(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como entregada!', '', 'success', 2500);
+      let tabla = $('#tableOrdenesBandeja').DataTable();
+      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+const marcar_como_publicada = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será publicada en la plataforma de cliente', 'question', 'Sí, publicar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_publicada(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden publicada en la plataforma de cliente!', '', 'success', 2500);
+      $('#btnPublicado'+idOrden).remove();
+      $('#labelPublicado'+idOrden).html('<span class="badge bg-success bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">Publicada</span>');
+   } 
+   else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+window.TabBandejas                = TabBandejas;
+window.ModalGestionPDF            = ModalGestionPDF;
+window.ModalViewerResultado       = ModalViewerResultado;
+window.ModalViewerResultadosFolio = ModalViewerResultadosFolio;
+
+window.subir_pdf_resultado        = subir_pdf_resultado;
+window.eliminar_resultado         = eliminar_resultado;
+window.cambiar_estatus_barra      = cambiar_estatus_barra;
+window.obtiene_ordenes_estatus    = obtiene_ordenes_estatus;
+window.marcar_como_parcial        = marcar_como_parcial;
+window.marcar_como_completada     = marcar_como_completada;
+window.marcar_como_entregada      = marcar_como_entregada;
+window.marcar_como_publicada      = marcar_como_publicada;
