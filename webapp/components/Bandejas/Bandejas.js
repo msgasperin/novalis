@@ -1,6 +1,7 @@
-import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado, marcar_orden_como_parcial, marcar_orden_como_completada, marcar_orden_como_entregada, marcar_orden_como_publicada } from "./BandejasServices.js";
+import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado, marcar_orden_como_parcial, marcar_orden_como_completada, procesar_publicacion_notificacion, notificar_mail_resultados } from "./BandejasServices.js";
 
-let arrPdfResultados = [];
+let arrPdfResultados  = [];
+let arrOrdenesBandeja = [];
 
 const TabBandejas = () => {
    let fechaHoy = new Date().toISOString().split('T')[0];
@@ -61,7 +62,7 @@ const TabBandejas = () => {
 
       <div class="col-xl col-md-4 col-6">
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO')">
-            <i class="bi bi-check-circle me-sm-1"></i> Ordenes entregadas
+            <i class="bi bi-check-circle me-sm-1"></i> Publicadas / Entregadas
          </button>
       </div>`;
             
@@ -128,7 +129,8 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
 
 
    activarLoad('Cargando ordenes de trabajo...');
-   let respuesta = await busqueda_ordenes_bandeja(origen, estatus, fechaIni, fechaFin, parametro);
+   let respuesta = await busqueda_ordenes_bandeja(origen, estatus, fechaIni, fechaFin, parametro);   
+   arrOrdenesBandeja = respuesta.data;
    if(respuesta.estatus == 403) {
       fnNoSesion();
    }
@@ -139,8 +141,8 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
       return;
    }
    else {
-      if(respuesta.data.length > 0) {
-         pinta_ordenes_bandejas(respuesta.data);
+      if(arrOrdenesBandeja.length > 0) {
+         pinta_ordenes_bandejas(arrOrdenesBandeja);
       }
       else {
          $('#listado_ordenes_bandeja').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron ordenes de trabajo</div>');
@@ -152,7 +154,7 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
 const pinta_ordenes_bandejas = (data) => {
 
    let html = 
-   `<div class="table-responsive rounded-3 border shadow-sm">
+   `<div class="table-responsive rounded-3 border shadow-sm mh-500">
       <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableOrdenesBandeja">
          <thead class="table-dark text-uppercase small">
             <tr class="border-start border-1 border-dark">
@@ -232,16 +234,9 @@ const pinta_ordenes_bandejas = (data) => {
                      </button>`;
                   }
 
-                  if(row.estatus == 'LISTO' || row.estatus == 'COMPLETADO') {
+                  if(row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') {
                      html+=`
-                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnAcciones" title="Marcar orden entregada" onclick="marcar_como_entregada(${row.id}, '${row.folio}');">
-                        <i class="bi bi-inbox"></i>
-                     </button>`;
-                  }
-
-                  if((row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.publicada == 0) {
-                     html+=`
-                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Publicar resultados en plataforma" onclick="marcar_como_publicada(${row.id}, '${row.folio}');">
+                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Publicar resultados en plataforma" onclick="ModalPublicarNotificar(${row.id}, '${row.folio}', '${row.paciente_nombre_historico}', '${row.correo}', '${row.telefono}', ${row.publicada}, '${row.fecha_publicada}', '${row.key_query}');">
                         <i class="bi bi-share"></i>
                      </button>`;
                   }
@@ -262,17 +257,6 @@ const pinta_ordenes_bandejas = (data) => {
                               <i class="bi bi-ticket-detailed me-2 text-secondary"></i> Imprimir ticket
                             </a>
                         </li>`;
-
-                        if(row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') {
-                           html+=`
-                           <li><hr class="dropdown-divider my-1"></li>
-                           <li>
-                              <a class="dropdown-item py-1.5" href="#" onclick="ModalEnviarResultados(${row.id}, '${row.folio}');">
-                                 <i class="bi bi-whatsapp me-2 text-success"></i> Enviar por WhatsApp / Correo
-                              </a>
-                           </li>`;
-                        }
-
                      html+=`
                      </ul>
                   </div>`;
@@ -300,6 +284,9 @@ const pinta_ordenes_bandejas = (data) => {
    }, 200);
    closeLoad();
 }
+
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE SUBIDA DE RESULTADOS PDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
    let html = `
@@ -690,6 +677,65 @@ const eliminar_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOri
    }
 }
 
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CAMBIOS DE ESTATUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const marcar_como_parcial = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada con resultados parciales', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_parcial(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2500);
+      let tabla = $('#tableOrdenesBandeja').DataTable();
+      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+const marcar_como_completada = async (idOrden, folio) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como completada', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+
+   $('.btnAcciones').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_completada(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como completada!', '', 'success', 2500);
+      let tabla = $('#tableOrdenesBandeja').DataTable();
+      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnAcciones').prop('disabled', false);
+      return;
+   }
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ VISORES DE RESULTADOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 const ModalViewerResultado = (key_query, folio) => {
    // 1. Destruir modal previo si existe para liberar memoria
 
@@ -854,9 +900,179 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
    myModal.show();
 }
 
-const marcar_como_parcial = async (idOrden, folio) => {
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada con resultados parciales', 'question', 'Sí, marcar', 'Cancelar');
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ PUBLICACIÓN Y NOTIFICACIÓN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, estaPublicada, fechaPublicacion = null, keyQuery) => {
+   // Corrección de sintaxis y estado dinámico (evaluando 1 o true)
+   const publicada = (estaPublicada == 1 || estaPublicada === true);
+   
+   const tituloModal = publicada ? `Reenviar Notificación - Orden #${folio}` : `Publicar y Notificar - Orden #${folio}`;
+   const iconoModal = publicada ? 'bi-send-check' : 'bi-globe-americas';
+   const btnTexto = publicada ? 'Reenviar Notificación' : 'Publicar y Enviar';
+   const btnColor = publicada ? 'btn-primary' : 'btn-success';
+
+   let html = `
+   <div class="modal fade modal-superior-blur" id="ModalPublicarNotificar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+         <div class="modal-content sombra-modal border-0">            
+
+            <div class="modal-header modal-head-per">
+               <h1 class="modal-title fs-5 d-flex align-items-center gap-2">
+                  <i class="bi ${iconoModal} fs-4"></i>
+                  <span>${tituloModal}</span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>         
+
+            <div class="modal-body py-3">
+               
+               <!-- Ficha Resumen del Paciente -->
+               <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
+                  <div class="row g-2 align-items-center">
+                     <div class="col-12 col-md-7">
+                        <span class="text-muted extra-small text-uppercase fw-semibold d-block">Paciente</span>
+                        <span class="fw-bold text-dark fs-6">${paciente}</span>
+                     </div>
+                     <div class="col-12 col-md-5 text-md-end">
+                        <span class="text-muted extra-small text-uppercase fw-semibold d-block mb-1">Estatus Portal Cliente</span>
+                        ${publicada 
+                           ? `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fs-8">
+                                 <i class="bi bi-check-circle-fill me-1"></i> Publicado ${fechaPublicacion ? '(' + fechaPublicacion + ')' : ''}
+                              </span>`
+                           : `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fs-8">
+                                 <i class="bi bi-clock-history me-1"></i> No visible en Portal
+                              </span>`
+                        }
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Mensaje Informativo de Acción sobre el Portal (Reemplaza al Checkbox) -->
+               <div class="alert ${publicada ? 'alert-info border-info-subtle' : 'alert-success border-success-subtle'} rounded-3 mb-3 d-flex align-items-center gap-2 py-2 px-3 shadow-sm">
+                  <i class="bi ${publicada ? 'bi-info-circle-fill text-info' : 'bi-globe-americas text-success'} fs-5"></i>
+                  <span class="small text-dark">
+                     ${publicada 
+                        ? 'Esta orden <b>ya se encuentra publicada</b> en el portal del cliente. Selecciona los canales para reenviar la notificación.' 
+                        : 'Al confirmar, la orden <b>se publicará automáticamente</b> en el portal de clientes para su consulta.'}
+                  </span>
+               </div>
+
+               <!-- Canales de Notificación Directa -->
+               <div class="card border-0 bg-white rounded-3 p-3 shadow-sm border-start border-4 border-info">
+                  <h6 class="fw-bold text-dark mb-3 small text-uppercase d-flex align-items-center gap-1">
+                     <i class="bi bi-chat-left-dots text-info"></i> Canales de Notificación Directa (Opcional)
+                  </h6>
+
+                  <!-- WhatsApp -->
+                  <div class="row g-2 align-items-center mb-3">
+                     <div class="col-12 col-md-5">
+                        <div class="form-check">
+                           <input class="form-check-input" type="checkbox" id="chk_enviar_wa" ${telefono ? 'checked' : 'disabled'}>
+                           <label class="form-check-label fw-semibold text-dark small" for="chk_enviar_wa">
+                              <i class="bi bi-whatsapp text-success me-1"></i> Enviar WhatsApp
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-12 col-md-7">
+                        <div class="input-group input-group-sm">
+                           <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                           <input type="text" class="form-control" id="txt_whatsapp" value="${telefono || ''}" placeholder="Sin teléfono registrado" ${!telefono ? 'disabled' : ''}>
+                        </div>
+                     </div>
+                  </div>
+
+                  <hr class="my-2 opacity-25">
+
+                  <!-- Correo Electrónico -->
+                  <div class="row g-2 align-items-center">
+                     <div class="col-12 col-md-5">
+                        <div class="form-check">
+                           <input class="form-check-input" type="checkbox" id="chk_enviar_email" ${correo ? 'checked' : 'disabled'}>
+                           <label class="form-check-label fw-semibold text-dark small" for="chk_enviar_email">
+                              <i class="bi bi-envelope-at text-danger me-1"></i> Enviar Correo
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-12 col-md-7">
+                        <div class="input-group input-group-sm">
+                           <span class="input-group-text bg-light"><i class="bi bi-at"></i></span>
+                           <input type="email" class="form-control" id="txt_correo" value="${correo || ''}" placeholder="Sin correo registrado" ${!correo ? 'disabled' : ''}>
+                        </div>
+                     </div>
+                  </div>
+
+               </div>
+
+            </div>
+
+            <div class="modal-footer border-0 pt-1">
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-3" data-bs-dismiss="modal">
+                  Cancelar
+               </button>
+               <button type="button" class="btn ${btnColor} btn-redondo btn-sm px-4" id="btnEjecutarPublicacion"
+                  onclick="procesa_publicacion_notificacion(${idOrden}, '${keyQuery}', '${folio}');">
+                  <i class="bi ${iconoModal} me-1"></i> ${btnTexto}
+               </button>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#ModalPublicarNotificar').modal('show');
+};
+
+const procesa_publicacion_notificacion = async (idOrden, keyQuery, folio) => {
+
+   let enviarWhats    = $('#chk_enviar_wa').prop('checked') ? 1 : 0;
+   let enviarMail     = $('#chk_enviar_email').prop('checked') ? 1 : 0;
+   let txt_whatsapp   = $('#txt_whatsapp').val().trim();
+   let txt_correo     = $('#txt_correo').val().trim();
+   
+   // Construcción del mensaje con etiquetas HTML
+   let mensajeConfirm = '<div style="text-align: left; margin-top: 10px;">';
+   mensajeConfirm += '<ul>';
+   mensajeConfirm += '  <li>Publicar el resultado en la plataforma del paciente.</li>';
+
+   if (enviarWhats === 1) {
+      mensajeConfirm += `  <li>Enviar resultado por WhatsApp al número: <strong>${txt_whatsapp}</strong></li>`;
+   }
+   if (enviarMail === 1) {
+      mensajeConfirm += `  <li>Enviar resultado por correo a: <strong>${txt_correo}</strong></li>`;
+   }
+
+   if(enviarWhats == 1 && (txt_whatsapp == '' || txt_whatsapp.length != 10)) {
+      ToastColor.fire({
+         text: '¡Atención! Si vas a enviar el resultado por WhatsApp necesitas ingresar un número válido de 10 dígitos',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#txt_whatsapp')
+      return;
+   }
+   else if(enviarMail == 1 && ( txt_correo == '' || !fnValidaMail(txt_correo)  )) {
+      ToastColor.fire({
+         text: '¡Atención! Si vas a enviar el resultado por correo necesitas ingresar una cuenta de correo válido',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#txt_correo')
+      return;
+   }
+
+   const res = await showMessageSwalQuestion(
+      `Acciones sobre la orden <strong>#${folio}</strong>`, 
+      mensajeConfirm, 
+      'info', 
+      'Sí, publicar', 
+      'Cancelar'
+   );
    
    if (!res.result) {
       $('.btnAcciones').prop('disabled', false);
@@ -865,95 +1081,28 @@ const marcar_como_parcial = async (idOrden, folio) => {
 
    $('.btnAcciones').prop('disabled', true);
 
-   let respuesta = await marcar_orden_como_parcial(idOrden, folio);
+   let respuesta = await procesar_publicacion_notificacion(idOrden, folio);
       if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2500);
-      let tabla = $('#tableOrdenesBandeja').DataTable();
-      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
+
+      showMessageSwalTimer('¡Publicación y notificación correcta!', '', 'success', 2500);
+      $('#ModalPublicarNotificar').modal('hide');
       
-   } else {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-}
+      let orden = arrOrdenesBandeja.find(o => o.id == idOrden);
+      if (orden) {
+         orden.publicada       = 1;
+         orden.fecha_publicada = respuesta.data[0];
+      }
+      pinta_ordenes_bandejas(arrOrdenesBandeja);
+      if(enviarWhats == 1) {
+         console.log('Enviando resultados por whatsApp');
+      }
 
-const marcar_como_completada = async (idOrden, folio) => {
-
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como completada', 'question', 'Sí, marcar', 'Cancelar');
-   
-   if (!res.result) {
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-
-   $('.btnAcciones').prop('disabled', true);
-
-   let respuesta = await marcar_orden_como_completada(idOrden, folio);
-      if(respuesta.estatus == 403) {
-      fnNoSesion();
-   }
-   else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Orden marcada como completada!', '', 'success', 2500);
-      let tabla = $('#tableOrdenesBandeja').DataTable();
-      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
-      
-   } else {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-}
-
-const marcar_como_entregada = async (idOrden, folio) => {
-
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como entregada', 'question', 'Sí, marcar', 'Cancelar');
-   
-   if (!res.result) {
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-
-   $('.btnAcciones').prop('disabled', true);
-
-   let respuesta = await marcar_orden_como_entregada(idOrden, folio);
-      if(respuesta.estatus == 403) {
-      fnNoSesion();
-   }
-   else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Orden marcada como entregada!', '', 'success', 2500);
-      let tabla = $('#tableOrdenesBandeja').DataTable();
-      tabla.row($('#trBusqueda' + idOrden)).remove().draw();
-      
-   } else {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-}
-
-const marcar_como_publicada = async (idOrden, folio) => {
-
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será publicada en la plataforma de cliente', 'question', 'Sí, publicar', 'Cancelar');
-   
-   if (!res.result) {
-      $('.btnAcciones').prop('disabled', false);
-      return;
-   }
-
-   $('.btnAcciones').prop('disabled', true);
-
-   let respuesta = await marcar_orden_como_publicada(idOrden, folio);
-      if(respuesta.estatus == 403) {
-      fnNoSesion();
-   }
-   else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Orden publicada en la plataforma de cliente!', '', 'success', 2500);
-      $('#btnPublicado'+idOrden).remove();
-      $('#labelPublicado'+idOrden).html('<span class="badge bg-success bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">Publicada</span>');
+      if(enviarMail == 1) {
+         notif_mail_resultados(keyQuery, txt_correo);
+      }
    } 
    else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
@@ -962,17 +1111,39 @@ const marcar_como_publicada = async (idOrden, folio) => {
    }
 }
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-window.TabBandejas                = TabBandejas;
-window.ModalGestionPDF            = ModalGestionPDF;
-window.ModalViewerResultado       = ModalViewerResultado;
-window.ModalViewerResultadosFolio = ModalViewerResultadosFolio;
+const notif_mail_resultados = async (keyQuery, correo) => {
+   
+   let respuesta = await notificar_mail_resultados(keyQuery, correo);
+      
+   if(respuesta.estatus == 200) {
+      ToastColor.fire({
+         text: '¡Resultados enviados por correo!',
+         icon: 'success',
+         position: 'top',
+         timerProgressBar: false
+      });
+   }
+   else {
+      ToastColor.fire({
+         text: '¡Atención! '+respuesta.mensaje,
+         icon: 'error',
+         position: 'top',
+         timerProgressBar: false
+      });
+   }
+}
 
-window.subir_pdf_resultado        = subir_pdf_resultado;
-window.eliminar_resultado         = eliminar_resultado;
-window.cambiar_estatus_barra      = cambiar_estatus_barra;
-window.obtiene_ordenes_estatus    = obtiene_ordenes_estatus;
-window.marcar_como_parcial        = marcar_como_parcial;
-window.marcar_como_completada     = marcar_como_completada;
-window.marcar_como_entregada      = marcar_como_entregada;
-window.marcar_como_publicada      = marcar_como_publicada;
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+window.TabBandejas                       = TabBandejas;
+window.ModalGestionPDF                   = ModalGestionPDF;
+window.ModalViewerResultado              = ModalViewerResultado;
+window.ModalViewerResultadosFolio        = ModalViewerResultadosFolio;
+window.ModalPublicarNotificar            = ModalPublicarNotificar;
+
+window.subir_pdf_resultado               = subir_pdf_resultado;
+window.eliminar_resultado                = eliminar_resultado;
+window.cambiar_estatus_barra             = cambiar_estatus_barra;
+window.obtiene_ordenes_estatus           = obtiene_ordenes_estatus;
+window.marcar_como_parcial               = marcar_como_parcial;
+window.marcar_como_completada            = marcar_como_completada;
+window.procesa_publicacion_notificacion  = procesa_publicacion_notificacion;

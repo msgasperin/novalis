@@ -317,5 +317,26 @@
 			return $res;
 		}
 
+		public function marcar_orden_como_entregada(int $id_orden, string $user) {
+      	$estatus = 500;
+			$mensaje = 'Error al cambiar el estatus a entregada';
+			$data    = [0];
+			try {
+				$sql = $this->dbh->prepare("UPDATE ordenes_trabajo SET estatus = ?, fecha_entregado = ?, user_entrego = ?, fecha_publicada = ?, user_publico = ?, publicada = ? WHERE id = ?");
+				$ok  = $sql->execute(array('ENTREGADO', date('Y-m-d H:i:s'), $user, date('Y-m-d H:i:s'), $user, 1, $id_orden));
+				
+				if($ok) {
+					$estatus = 200;
+					$mensaje = 'ok';
+				}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+
+			return $res;
+		}
 	}
 ?>

@@ -180,7 +180,7 @@
                echo json_encode($res);
             break;
 
-            case 'marcar_orden_como_entregada':
+            case 'procesar_publicacion_notificacion':
 
                if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
                   $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
@@ -188,24 +188,7 @@
                   break;
                }
                
-               $res = $v->marcar_orden_como_entregada($_POST["idOrden"], $_SESSION["nombre"]);
-                  
-               if($res["estatus"] == 200) {
-                  $g->bitacora('Orden marcada como entregada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
-               }              
-                             
-               echo json_encode($res);
-            break;
-
-            case 'marcar_orden_como_publicada':
-
-               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
-                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
-                  echo json_encode($res);
-                  break;
-               }
-               
-               $res = $v->marcar_orden_como_publicada($_POST["idOrden"], $_SESSION["nombre"]);
+               $res = $v->procesar_publicacion_notificacion($_POST["idOrden"], $_SESSION["nombre"]);
                   
                if($res["estatus"] == 200) {
                   $g->bitacora('Orden marcada como publicada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);

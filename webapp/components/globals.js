@@ -415,10 +415,9 @@ const showMessageSwalAction = async (title, message, type) => {
 }
 
 const showMessageSwalQuestion = async (title, message, type, textAceptar, textCancelar) => {
-  let vResult = {};
-  vResult = await swal.fire({
+  const result = await swal.fire({
     title: title,
-    html: message,
+    html: message, // <-- Renderiza HTML sin problemas
     icon: type,
     customClass: {
       popup: 'sweetAlert2Popup',
@@ -433,17 +432,13 @@ const showMessageSwalQuestion = async (title, message, type, textAceptar, textCa
     cancelButtonColor: '#d33',
     confirmButtonColor: '#3085d6',
     confirmButtonText: textAceptar,
-    cancelButtonText: textCancelar ?? "cancelar",
+    cancelButtonText: textCancelar ?? "Cancelar",
     allowOutsideClick: false,
     allowEscapeKey: false
-  })
-    .then((result) => {
-      // se envia el valor de respuesta de acuerdo al boton seleccionado
-      // boton aceptar devuelve boleano true, cancelar devuelve undefined
-      vResult.result = result.value
-      return vResult;
-    });
-  return vResult;
+  });
+
+  // Retorna directamente el valor booleano (true si dio clic en aceptar, false/undefined si canceló)
+  return { result: !!result.isConfirmed };
 }
 
 // Funciones para el toast de SweetAlert2

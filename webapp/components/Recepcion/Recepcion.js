@@ -1,4 +1,4 @@
-import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden, elimina_abono, cancela_orden } from "./RecepcionServices.js";
+import { obtiene_estudios_recepcion, agregar_estudio_carrito, borrar_carrito_recepcion, borrar_estudio_carrito, registrar_orden, obtiene_ordenes_hoy, buscar_ordenes_avanzado, obtener_abonos_orden, registra_abono, obtener_saldos_orden, elimina_abono, cancela_orden, marcar_orden_como_entregada } from "./RecepcionServices.js";
 import { busca_paciente_coincidencia, busca_paciente_fecha_nac } from "../Pacientes/PacientesServices.js";
 import { obtiene_convenios } from "../Convenios/ConveniosServices.js";
 import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
@@ -165,7 +165,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
       let borderClass = row.estatus == 'CANCELADO' ? 'border-danger' : isUrgente ? 'border-danger shadow' : `border-${colorPago}`;
 
       html += `      
-      <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 ${borderClass} ${row.estatus == 'CANCELADO' ? 'opacity-75 bg-light' : ''}">
+      <div class="card border-0 shadow-sm mb-2 text-start border-start border-4 ${borderClass} ${row.estatus == 'CANCELADO' ? 'opacity-75 bg-light' : ''}" id="cardOrdP${row.id}">
          <div class="card-body p-3">
             
             <div class="row align-items-center mb-2">
@@ -180,7 +180,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                   </span>
                   
                   <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir ticket">
-                     <i class="bi bi-printer text-primary fs-7"></i>
+                     <i class="bi bi-receipt text-primary fs-7"></i>
                   </a>
 
                   <button type="button" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${row.key_query}');">
@@ -209,7 +209,15 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                <div class="col-5">
                   <small class="text-muted"><i class="bi bi-clock me-1"></i> ${row.hora_registro}</small>
                </div>
-               <div class="col-7 text-end d-flex align-items-center justify-content-end gap-1">
+               <div class="col-7 text-end d-flex align-items-center justify-content-end gap-1">`
+
+                  if(row.estatus == 'LISTO' || row.estatus == 'COMPLETADO') {
+                     html+=`
+                     <button type="button" class="btn btn-sm btn-light border p-1 lh-1" id="btnOrdenEntregada" title="Marcar orden entregada" onclick="marcar_como_entregada(${row.id}, '${row.folio}', 1);">
+                        <i class="bi bi-check-circle text-success fs-7"></i>
+                     </button>`;
+                  }
+                  html+=`
                   <!-- BADGE DE URGENTE -->
                   ${isUrgente && row.estatus != 'CANCELADO' ? `
                      <span class="badge bg-danger text-white rounded-pill small text-uppercase" title="Atención Prioritaria">
@@ -1723,6 +1731,13 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                         <i class="bi bi-x-circle"></i>
                      </button>`;
                   }
+
+                  if(row.estatus == 'LISTO' || row.estatus == 'COMPLETADO') {
+                     html+=`
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnOrdenEntregada" title="Marcar orden entregada" onclick="marcar_como_entregada(${row.id}, '${row.folio}', 2);">
+                        <i class="bi bi-check-circle text-success fs-7"></i>
+                     </button>`;
+                  }
                   
                   html+=`
                </td>
@@ -2208,7 +2223,6 @@ const cancelar_orden_trabajo = async (idOrden, folioOrden, origen) => {
          let orden = arrOrdenesBusAvanzada.find(o => o.id == idOrden);
          if (orden) orden.estatus = 'CANCELADO';
          pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, 'contenedor_resultados_busqueda');
-         
       }
       else {         
          let orden = arrOrdenesHoy.find(o => o.id == idOrden);
@@ -2223,6 +2237,41 @@ const cancelar_orden_trabajo = async (idOrden, folioOrden, origen) => {
    }
 }
 
+const marcar_como_entregada = async (idOrden, folio, origen) => {
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como entregada', 'question', 'Sí, marcar', 'Cancelar');
+   
+   if (!res.result) {
+      $('.btnOrdenEntregada').prop('disabled', false);
+      return;
+   }
+
+   $('.btnOrdenEntregada').prop('disabled', true);
+
+   let respuesta = await marcar_orden_como_entregada(idOrden, folio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Orden marcada como entregada!', '', 'success', 2500);
+
+      if(origen == 2) {
+         let orden = arrOrdenesBusAvanzada.find(o => o.id == idOrden);
+         if (orden) orden.estatus = 'ENTREGADO';
+         pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, 'contenedor_resultados_busqueda');
+      }
+      else {         
+         let orden = arrOrdenesHoy.find(o => o.id == idOrden);
+         if (orden) orden.estatus = 'ENTREGADO';         
+         pinta_ordenes_del_dia(arrOrdenesHoy, 'ordenes_del_dia');
+      }
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('.btnOrdenEntregada').prop('disabled', false);
+      return;
+   }
+}
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ IMPRESIÓN DE ETIQUETAS  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const ModalImpresionEtiquetas = (keyQuery) => {
@@ -2288,5 +2337,6 @@ window.registrar_abono                 = registrar_abono;
 window.eliminar_abono                  = eliminar_abono;
 
 window.cancelar_orden_trabajo          = cancelar_orden_trabajo;
+window.marcar_como_entregada           = marcar_como_entregada;
 
 

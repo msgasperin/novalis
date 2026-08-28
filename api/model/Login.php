@@ -25,6 +25,10 @@
             );
 				$sql->execute(array($usuario, $this->key, $contrasenia));
 
+            $sqlDataEmpresa = $this->dbh->prepare("SELECT nombre, logo, direccion, rfc, telefono, correo FROM datos_empresa");
+            $sqlDataEmpresa->execute();
+            $rowEmpresa = $sqlDataEmpresa->fetch(PDO::FETCH_ASSOC);
+
 				if($sql->rowCount() == 1) {
 					$row = $sql->fetch(PDO::FETCH_ASSOC);					
 					$datos = [
@@ -35,7 +39,14 @@
                   'perfil'         => $row["perfil"],
                   'matriz'         => $row["matriz"],
                   'id_sucursal_fk' => $row["id_sucursal_fk"],
-                  'sucursal'       => $row["sucursal"]
+                  'sucursal'       => $row["sucursal"],
+                  // Datos de la empresa cliente
+                  'emp_nombre'     => $rowEmpresa["nombre"],
+                  'emp_logo'       => $rowEmpresa["logo"],
+                  'emp_direccion'  => $rowEmpresa["direccion"],
+                  'emp_rfc'        => $rowEmpresa["rfc"],
+                  'emp_telefono'   => $rowEmpresa["telefono"],
+                  'emp_correo'     => $rowEmpresa["correo"]
 					];
 					$res = array(
 						'estatus' => 200,

@@ -57,17 +57,24 @@
       $v = new Conexion($bd_cliente);
       $v->conectar();
 
-      $sqlDatosEmpresa = $v->dbh->prepare("SELECT nombre, logo, direccion, rfc, telefono, correo, 'www.novalis-lab.com' AS web FROM datos_empresa");
-      $sqlDatosEmpresa->execute();      
-      $empresa = $sqlDatosEmpresa->fetch(PDO::FETCH_ASSOC);
+      $empresa = [
+         'nombre'    => $_SESSION["emp_nombre"],
+         'logo'      => $_SESSION["emp_logo"],            
+         'direccion' => $_SESSION["emp_direccion"],
+         'rfc'       => $_SESSION["emp_rfc"],
+         'telefono'  => $_SESSION["emp_telefono"],
+         'correo'    => $_SESSION["emp_correo"]
+      ];
 
       // Opción de respaldo (Fallback) por si la tabla datos_empresa está vacía
       if (!$empresa) {
          $empresa = [
             'nombre'    => 'LABORATORIO CLÍNICO NOVALIS',
             'logo'      => '',            
+            'direccion' => '',
             'rfc'       => 'XAXX010101000',
-            'web'       => 'www.novalis-lab.com'
+            'telefono'  => '00-00-00',
+            'correo'    => 'correo@correo'
          ];
       }
 
@@ -111,7 +118,7 @@
       $sqlEstudios->execute([$orden["id"]]);
       $estudios = $sqlEstudios->fetchAll(PDO::FETCH_ASSOC);
 
-      $rutaLogo = __DIR__ . '/../assets/images/favicon.png'; // Ruta física en el servidor
+      $rutaLogo = __DIR__ . '/../assets/images/'.$_SESSION["emp_logo"]; // Ruta física en el servidor
       $logoBase64 = obtenerLogoBase64($rutaLogo);
 
       $rutaQr = __DIR__ . '/../assets/images/qr_resultados.png'; // Ruta física en el servidor

@@ -68,6 +68,14 @@
             $_SESSION["nombre"]       = $res["data"]["nombre"];
             $_SESSION["perfil"]       = $res["data"]["perfil"];
 
+            // Datos de la empresa cliente
+            $_SESSION["emp_nombre"]    = $res["data"]["emp_nombre"];
+            $_SESSION["emp_logo"]      = $res["data"]["emp_logo"];
+            $_SESSION["emp_direccion"] = $res["data"]["emp_direccion"];
+            $_SESSION["emp_rfc"]       = $res["data"]["emp_rfc"];
+            $_SESSION["emp_telefono"]  = $res["data"]["emp_telefono"];
+            $_SESSION["emp_correo"]    = $res["data"]["emp_correo"];
+
             $g->bitacora('Inicio de sesión', $res["data"]["id_usuario"], $res["data"]["id_usuario"], $res["data"]["nombre"]);
             echo json_encode(['estatus' => $res["estatus"], 'mensaje' => 'ok', 'data' => []]);
           } else {

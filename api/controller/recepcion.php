@@ -196,7 +196,7 @@
         break;
 
 
-        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE ABONOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CANCELAR ORDEN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         case 'cancela_orden':
           if(empty($_POST["idOrden"]) || empty($_POST["folioOrden"]) || empty($_POST["motivo"])) {
@@ -212,6 +212,26 @@
           }            
           echo json_encode($res);
         break;
+
+
+        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ENTREGAR ORDEN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        
+        case 'marcar_orden_como_entregada':
+
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) ) {
+                  $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+               
+               $res = $v->marcar_orden_como_entregada($_POST["idOrden"], $_SESSION["nombre"]);
+                  
+               if($res["estatus"] == 200) {
+                  $g->bitacora('Orden marcada como entregada ('.$_POST["folio"].')', $_POST["idOrden"] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }              
+                             
+               echo json_encode($res);
+            break;
 
         default:
           echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", "data" => []]);

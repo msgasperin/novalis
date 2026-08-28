@@ -63,3 +63,10 @@ export const cancela_orden = async (idOrden, folioOrden, motivo) => {
    const datos = { func: 'cancela_orden', idOrden, folioOrden, motivo };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ORDEN ENTREGADA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export const marcar_orden_como_entregada = async (idOrden, folio) => {
+   const datos = { func: 'marcar_orden_como_entregada', idOrden, folio };
+   return await postJSON('../api/controller/recepcion.php', datos);
+}

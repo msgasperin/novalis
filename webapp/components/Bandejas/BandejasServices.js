@@ -34,12 +34,12 @@ export const marcar_orden_como_completada = async (idOrden, folio) => {
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const marcar_orden_como_entregada = async (idOrden, folio) => {
-   const datos = { func: 'marcar_orden_como_entregada', idOrden, folio };
+export const procesar_publicacion_notificacion = async (idOrden, folio, paciente, correo, telefono) => {
+   const datos = { func: 'procesar_publicacion_notificacion', idOrden, folio, paciente, correo, telefono };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const marcar_orden_como_publicada = async (idOrden, folio) => {
-   const datos = { func: 'marcar_orden_como_publicada', idOrden, folio };
-   return await postJSON('../api/controller/bandejas.php', datos);
+export const notificar_mail_resultados = async (keyQuery, correo) => {
+   const datos = { func: 'notificar_mail_resultados', keyQuery, correo };
+   return await postJSON('../api/controller/enviar_resultados_mail.php', datos);
 }
