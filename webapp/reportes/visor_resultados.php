@@ -1,61 +1,47 @@
 <?php
-// visor_resultados.php
-require_once('../config/class.pdo.php');
 
-/** @var string $bd_cliente */
-$v = new Conexion($bd_cliente);
-$v->conectar();
+require('../../api/config/class.pdo.php');
 
-$token = isset($_GET['token']) ? trim($_GET['token']) : '';
+$token           = isset($_GET['token']) ? trim($_GET['token']) : '';
 $ordenEncontrada = false;
-$mensajeError = '';
-$datosOrden = [];
-$archivosPDF = [];
+$datosOrden      = [];
+$archivosPDF     = [];
+$_SESSION['id_usuario'] = 1;
 
-if (!empty($token)) {
-   // Consulta para validar el token y traer los datos de la orden
-   $stmt = $v->dbh->prepare("
-      SELECT 
-         id_orden,
-         folio,
-         paciente_nombre_historico,
-         fecha_orden,
-         token_expiracion
-      FROM ordenes_trabajo 
-      WHERE token_notificacion = ? AND estatus = 1
-      LIMIT 1
-   ");
-   $stmt->execute([$token]);
+if($mensajeError == '') {
+   if (!empty($token)) {
 
-   if ($stmt->rowCount() > 0) {
-      $datosOrden = $stmt->fetch(PDO::FETCH_ASSOC);
+      /** @var string $bd_cliente */
+      $v = new Conexion($bd_cliente);
+      $v->conectar();
 
-      // Validación opcional de expiración (ejemplo: 60 días)
-      if (!empty($datosOrden['token_expiracion']) && strtotime($datosOrden['token_expiracion']) < time()) {
-         $mensajeError = 'El enlace de consulta ha expirado por razones de seguridad. Por favor solicite una reexpedición al laboratorio.';
+      $tiempo_limite_consulta = time() - (30 * 24 * 60 * 60);
+
+      // Consulta para validar el token y traer los datos de la orden
+      $stmt = $v->dbh->prepare("SELECT id, folio, paciente_nombre_historico, fecha_cap, DATE_FORMAT(fecha_cap,'%d-%m-%Y') AS fecha_cap_format FROM ordenes_trabajo WHERE key_query = ? AND publicada = 1 AND estatus <> 'CANCELADO' LIMIT 1");
+      $stmt->execute([$token]);
+
+      if ($stmt->rowCount() > 0) {
+         $datosOrden = $stmt->fetch(PDO::FETCH_ASSOC);
+
+         // Validación opcional de expiración (ejemplo: 60 días)
+         if (!empty($datosOrden['fecha_cap']) && strtotime($datosOrden['fecha_cap']) < $tiempo_limite_consulta) {
+            $mensajeError = 'El enlace de consulta ha expirado por razones de seguridad. Por favor solicite una reexpedición al laboratorio.';
+         } else {
+            $ordenEncontrada = true;
+
+            // Consultar los PDF adjuntos/asociados a esta orden de trabajo
+            // Ajusta la tabla y campos según tu estructura de base de datos
+            $stmtPdf = $v->dbh->prepare("SELECT id, nombre_original, descripcion, nombre_servidor, fecha_cap, key_query_pdf FROM orden_resultados_pdf WHERE orden_id = ? ORDER BY id ASC");
+            $stmtPdf->execute([$datosOrden['id']]);
+            $archivosPDF = $stmtPdf->fetchAll(PDO::FETCH_ASSOC);
+         }
       } else {
-         $ordenEncontrada = true;
-
-         // Consultar los PDF adjuntos/asociados a esta orden de trabajo
-         // Ajusta la tabla y campos según tu estructura de base de datos
-         $stmtPdf = $v->dbh->prepare("
-               SELECT 
-                  id_resultado,
-                  nombre_estudio,
-                  nombre_archivo_pdf,
-                  fecha_subida
-               FROM resultados_pdf 
-               WHERE id_orden = ? AND disponible_paciente = 1
-               ORDER BY id_resultado ASC
-         ");
-         $stmtPdf->execute([$datosOrden['id_orden']]);
-         $archivosPDF = $stmtPdf->fetchAll(PDO::FETCH_ASSOC);
+         $mensajeError = 'El enlace de consulta es inválido o el código de acceso ya no existe.';
       }
    } else {
-      $mensajeError = 'El enlace de consulta es inválido o el código de acceso ya no existe.';
+      $mensajeError = 'No se proporcionó ningún token de consulta válido.';
    }
-} else {
-   $mensajeError = 'No se proporcionó ningún token de consulta válido.';
 }
 ?>
 <!DOCTYPE html>
@@ -65,14 +51,14 @@ if (!empty($token)) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Consulta de Resultados | Laboratorio Clínico</title>
       <!-- Bootstrap 5 CSS & FontAwesome Icons -->
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+      <link rel="stylesheet" type="text/css" href="../assets/lib/bootstrap-5.3.2/css/bootstrap.css"/>
+      <link rel="stylesheet" type="text/css" href="../assets/lib/bootstrap-icons-1.13.1/bootstrap-icons.min.css"/>
       <style>
          body { background-color: #f4f6f9; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-         .header-brand { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; }
+         .header-brand { background: linear-gradient(135deg, #0F2744 0%, #0F2744 100%); color: white; }
          .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
          .pdf-frame { width: 100%; height: 680px; border: none; border-radius: 8px; }
-         .list-group-item.active { background-color: #0d6efd; border-color: #0d6efd; }
+         .list-group-item.active { background-color: #0F2744; border-color: #0F2744; }
       </style>
    </head>
    <body>
@@ -89,6 +75,7 @@ if (!empty($token)) {
       </header>
 
       <div class="container pb-5">
+
          <?php if (!$ordenEncontrada): ?>
             <!-- Vista de Error o Enlace Invalido -->
             <div class="row justify-content-center mt-5">
@@ -104,22 +91,23 @@ if (!empty($token)) {
                   </div>
             </div>
          <?php else: ?>
+
             <!-- Encabezado con datos del Paciente -->
             <div class="card card-custom p-4 mb-4">
-                  <div class="row align-items-center">
-                     <div class="col-md-8">
-                        <span class="badge bg-light text-dark border mb-2">Orden #<?= htmlspecialchars($datosOrden['folio']); ?></span>
-                        <h2 class="h3 fw-bold text-dark mb-1"><?= htmlspecialchars($datosOrden['paciente_nombre_historico']); ?></h2>
-                        <p class="text-muted mb-0 small">
-                              <i class="bi bi-calendar3 me-1"></i> Fecha de Atención: <?= date('d/m/Y', strtotime($datosOrden['fecha_orden'])); ?>
-                        </p>
-                     </div>
-                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 border border-success-subtle">
-                              <i class="bi bi-check-circle-fill me-1"></i> Estudios Concluidos
-                        </span>
-                     </div>
+               <div class="row align-items-center">
+                  <div class="col-md-8">
+                     <span class="badge bg-light text-dark border mb-2">Orden #<?= htmlspecialchars($datosOrden['folio']); ?></span>
+                     <h2 class="h3 fw-bold text-dark mb-1"><?= htmlspecialchars($datosOrden['paciente_nombre_historico']); ?></h2>
+                     <p class="text-muted mb-0 small">
+                           <i class="bi bi-calendar3 me-1"></i> Fecha de Atención: <?= date('d/m/Y', strtotime($datosOrden['fecha_cap_format'])); ?>
+                     </p>
                   </div>
+                  <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                     <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 border border-success-subtle">
+                           <i class="bi bi-check-circle-fill me-1"></i> Estudios Concluidos
+                     </span>
+                  </div>
+               </div>
             </div>
 
             <!-- Listado y Visor de PDF -->
@@ -136,17 +124,17 @@ if (!empty($token)) {
                               <h3 class="h6 fw-bold text-uppercase text-muted mb-3 px-2">Documentos de la Orden</h3>
                               <div class="list-group list-group-flush" id="pdfTabs" role="tablist">
                                  <?php foreach ($archivosPDF as $index => $pdf): 
-                                    $rutaPdf = "../uploads/resultados/" . htmlspecialchars($pdf['nombre_archivo_pdf']);
+                                    $rutaPdf = "resultado.php?id=" . htmlspecialchars($pdf['key_query_pdf']);
                                     $isFirst = ($index === 0);
                                  ?>
                                     <div class="list-group-item list-group-item-action p-3 rounded-3 mb-2 <?= $isFirst ? 'active' : ''; ?>" 
-                                          id="list-<?= $pdf['id_resultado']; ?>-list" 
+                                          id="list-<?= $pdf['id']; ?>-list" 
                                           data-bs-toggle="list" 
-                                          href="#list-<?= $pdf['id_resultado']; ?>" 
+                                          href="#list-<?= $pdf['id']; ?>" 
                                           role="tab"
                                           onclick="cambiarPdf('<?= $rutaPdf; ?>')">
                                           <div class="d-flex w-100 justify-content-between align-items-center">
-                                             <h4 class="h6 mb-1 fw-bold text-truncate me-2"><?= htmlspecialchars($pdf['nombre_estudio']); ?></h4>
+                                             <h4 class="h6 mb-1 fw-bold text-truncate me-2"><?= htmlspecialchars($pdf['nombre_original']); ?></h4>
                                              <i class="bi bi-file-pdf fs-4"></i>
                                           </div>
                                           <p class="mb-2 small opacity-75">PDF Disponible</p>
@@ -171,12 +159,12 @@ if (!empty($token)) {
                         <div class="card card-custom p-3">
                               <div class="d-flex justify-content-between align-items-center mb-3 px-2">
                                  <span class="fw-semibold text-muted" id="tituloVisor">Vista previa del documento</span>
-                                 <a id="btnDescargar" href="../uploads/resultados/<?= htmlspecialchars($archivosPDF[0]['nombre_archivo_pdf']); ?>" download class="btn btn-outline-primary btn-sm">
+                                 <a id="btnDescargar" href="resultado.php?id=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>" download class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-download me-1"></i> Descargar este PDF
                                  </a>
                               </div>
                               <div class="bg-light rounded text-center">
-                                 <iframe id="visorIframe" class="pdf-frame" src="../uploads/resultados/<?= htmlspecialchars($archivosPDF[0]['nombre_archivo_pdf']); ?>#toolbar=1"></iframe>
+                                 <iframe id="visorIframe" class="pdf-frame" src="resultado.php?id=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>"></iframe>
                               </div>
                         </div>
                      </div>
@@ -186,15 +174,14 @@ if (!empty($token)) {
       </div>
 
       <!-- Script de Interacción -->
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
       <script>
          function cambiarPdf(rutaArchivo) {
             const iframe = document.getElementById('visorIframe');
             const btnDescargar = document.getElementById('btnDescargar');
             
             if (iframe && btnDescargar) {
-                  iframe.src = rutaArchivo + '#toolbar=1';
-                  btnDescargar.href = rutaArchivo;
+               iframe.src = rutaArchivo + '#toolbar=1';
+               btnDescargar.href = rutaArchivo;
             }
          }
       </script>

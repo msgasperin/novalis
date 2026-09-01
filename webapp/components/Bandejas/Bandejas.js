@@ -248,7 +248,7 @@ const pinta_ordenes_bandejas = (data) => {
                      </button>
                      <ul class="dropdown-menu dropdown-menu-end shadow-sm small">
                         <li>
-                           <a class="dropdown-item py-1.5" href="#" onclick="ModalDetalleOrden(${row.id}, '${row.folio}'); return false;">
+                           <a class="dropdown-item py-1.5" href="#" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
                               <i class="bi bi-file-text me-2 text-secondary"></i> Ver detalle de orden
                             </a>
                         </li>
@@ -696,12 +696,12 @@ const marcar_como_parcial = async (idOrden, folio) => {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2500);
+      showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2000);
       let tabla = $('#tableOrdenesBandeja').DataTable();
       tabla.row($('#trBusqueda' + idOrden)).remove().draw();
       
    } else {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 3000);
       $('.btnAcciones').prop('disabled', false);
       return;
    }
@@ -734,7 +734,7 @@ const marcar_como_completada = async (idOrden, folio) => {
    }
 }
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ VISORES DE RESULTADOS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++ VISORES DE RESULTADOS / DETALLE DE LA ORDEN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const ModalViewerResultado = (key_query, folio) => {
    // 1. Destruir modal previo si existe para liberar memoria
@@ -900,6 +900,372 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
    myModal.show();
 }
 
+const ModalViewDetallesOrden = async (idOrden, folio) => {
+   
+   let ordenSelected = arrOrdenesBandeja.find(orden => orden.id == idOrden);
+   
+   // Helpers visuales para badges
+   const bannerUrgente = ordenSelected.es_urgente == 1 
+      ? `
+      <div class="alert alert-danger border-danger-subtle d-flex mb-3 shadow-sm rounded-3 p-2" role="alert">
+         <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+         <div class="text-center">
+            <strong>¡ORDEN URGENTE!</strong> Esta orden requiere atención prioritaria en el flujo de laboratorio.
+         </div>
+      </div>` 
+      : '';
+      
+   const badgePublicada = ordenSelected.publicada == 1
+      ? '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-cloud-check me-1"></i>Publicada</span>'
+      : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"><i class="bi bi-cloud-slash me-1"></i>No publicada</span>';
+
+   const badgeFactura = ordenSelected.requiere_factura == 1
+      ? '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"><i class="bi bi-receipt me-1"></i>Requiere Factura</span>'
+      : '';
+
+   const html = `
+   <div class="modal fade modal-superior-blur" id="modalViewDetallesOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content sombra-modal border-0">            
+            
+            <div class="modal-header modal-head-per py-2">
+               <h1 class="modal-title fs-5 d-flex align-items-center gap-2">
+                  <i class="bi bi-journal-medical fs-4"></i>
+                  <span>Detalles de la Orden #${folio}</span>
+               </h1>
+               <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal">
+                  <i class="bi bi-x-lg"></i>
+               </button>
+            </div>         
+
+            <div class="modal-body bg-light">
+               <div class="container-fluid p-0">
+                  
+                  <!-- Banner Urgente (si aplica) -->
+                  ${bannerUrgente}
+
+                  <div class="row g-3">
+                     
+                     <!-- COLUMNA IZQUIERDA: Información del Paciente, Orden, Estudios y Archivos -->
+                     <div class="col-12 col-lg-7">
+                        
+                        <!-- Tarjeta Paciente -->
+                        <div class="card border-0 shadow-sm mb-3">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-person-vcard text-primary"></i> Información del Paciente
+                              </h6>
+                              <div class="row g-2">
+                                 <div class="col-12">
+                                    <span class="text-muted d-block extra-small">Nombre Completo</span>
+                                    <span class="fw-semibold text-dark fs-6">${ordenSelected.paciente_nombre_historico || 'Sin registro'}</span>
+                                 </div>
+                                 <div class="col-12 col-sm-6">
+                                    <span class="text-muted d-block extra-small">Teléfono</span>
+                                    <span class="fw-medium text-dark">
+                                       <i class="bi bi-telephone text-muted me-1"></i>${ordenSelected.telefono || 'N/A'}
+                                    </span>
+                                 </div>
+                                 <div class="col-12 col-sm-6">
+                                    <span class="text-muted d-block extra-small">Correo Electrónico</span>
+                                    <span class="fw-medium text-dark text-truncate d-block">
+                                       <i class="bi bi-envelope text-muted me-1"></i>${ordenSelected.correo || 'N/A'}
+                                    </span>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tarjeta Contexto de la Orden -->
+                        <div class="card border-0 shadow-sm mb-3">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-info-circle text-primary"></i> Datos Generales
+                              </h6>
+                              <div class="row g-3">
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Sucursal</span>
+                                    <span class="fw-medium text-dark">${ordenSelected.sucursal_historico || 'N/A'}</span>
+                                 </div>
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Convenio</span>
+                                    <span class="fw-medium text-dark">${ordenSelected.convenio_nombre_historico || 'Particular'}</span>
+                                 </div>
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Estatus Orden</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-medium">
+                                       ${ordenSelected.estatus || 'N/A'}
+                                    </span>
+                                 </div>
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Fecha Registro</span>
+                                    <span class="fw-medium text-dark">${ordenSelected.fecha_registro || 'N/A'}</span>
+                                 </div>
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Hora Registro</span>
+                                    <span class="fw-medium text-dark">${ordenSelected.hora_registro || 'N/A'}</span>
+                                 </div>
+                                 <div class="col-6 col-sm-4">
+                                    <span class="text-muted d-block extra-small">Publicación</span>
+                                    <div>${badgePublicada}</div>
+                                 </div>
+                                 ${badgeFactura ? `<div class="col-12"><div>${badgeFactura}</div></div>` : ''}
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tarjeta Estudios Asignados -->
+                        <div class="card border-0 shadow-sm mb-3">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-file-earmark-medical text-primary"></i> Estudios Solicitados
+                              </h6>
+                              <div id="estudios_detalle_orden" class="row g-2">
+                                 <!-- Se llena dinámicamente con pinta_estudios_orden_detalle -->
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tarjeta Archivos Adjuntos -->
+                        <div class="card border-0 shadow-sm">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-paperclip text-primary"></i> Archivos y Resultados PDF
+                              </h6>
+                              <div id="container_archivos_detalle" class="row g-2">
+                                 <!-- Se llena dinámicamente con pinta_archivos_orden_detalle -->
+                              </div>
+                           </div>
+                        </div>
+
+                     </div>
+
+                     <!-- COLUMNA DERECHA: Financiero y Trazabilidad -->
+                     <div class="col-12 col-lg-5">
+                        
+                        <!-- Tarjeta Financiera -->
+                        <div class="card border-0 shadow-sm mb-3">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-cash-stack text-success"></i> Estado Financiero
+                              </h6>
+                              <div class="row g-2 align-items-center mb-3">
+                                 <div class="col-6">
+                                    <span class="text-muted d-block extra-small">Estatus Pago</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-medium">
+                                       ${ordenSelected.estatus_pago || 'Pendiente'}
+                                    </span>
+                                 </div>
+                                 <div class="col-6 text-end">
+                                    <span class="text-muted d-block extra-small">Total Neto</span>
+                                    <span class="fs-5 fw-bold text-dark">$${parseFloat(ordenSelected.total_neto || 0).toFixed(2)}</span>
+                                 </div>
+                              </div>
+
+                              <div class="border-top pt-2">
+                                 <div class="d-flex justify-content-between py-1">
+                                    <span class="text-muted small">Total Abonado:</span>
+                                    <span class="fw-semibold text-success">$${parseFloat(ordenSelected.total_abonado || 0).toFixed(2)}</span>
+                                 </div>
+                                 <div class="d-flex justify-content-between py-1">
+                                    <span class="text-muted small">Saldo Deudor:</span>
+                                    <span class="fw-semibold text-danger">$${parseFloat(ordenSelected.saldo_deudor || 0).toFixed(2)}</span>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tarjeta Trazabilidad / Auditoría -->
+                        <div class="card border-0 shadow-sm">
+                           <div class="card-body">
+                              <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
+                                 <i class="bi bi-clock-history text-secondary"></i> Historial y Eventos
+                              </h6>
+                              
+                              <ul class="list-group list-group-flush extra-small">
+                                 
+                                 <!-- Completada -->
+                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
+                                    <div>
+                                       <span class="fw-bold d-block text-dark"><i class="bi bi-check-circle me-1 text-success"></i>Completada</span>
+                                       <span class="text-muted">${ordenSelected.user_completo || 'N/A'}</span>
+                                    </div>
+                                    <span class="text-muted text-end">${ordenSelected.fecha_completada || '-'}</span>
+                                 </li>
+
+                                 <!-- Entregada -->
+                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
+                                    <div>
+                                       <span class="fw-bold d-block text-dark"><i class="bi bi-box-seam me-1 text-primary"></i>Entregada</span>
+                                       <span class="text-muted">${ordenSelected.user_entrego || 'N/A'}</span>
+                                    </div>
+                                    <span class="text-muted text-end">${ordenSelected.fecha_entregado || '-'}</span>
+                                 </li>
+
+                                 <!-- Publicada -->
+                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
+                                    <div>
+                                       <span class="fw-bold d-block text-dark"><i class="bi bi-cloud-upload me-1 text-info"></i>Publicada</span>
+                                       <span class="text-muted">${ordenSelected.user_publico || 'N/A'}</span>
+                                    </div>
+                                    <span class="text-muted text-end">${ordenSelected.fecha_publicada || '-'}</span>
+                                 </li>
+
+                                 <!-- Cancelación (si aplica) -->
+                                 ${ordenSelected.fecha_cancelacion ? `
+                                 <li class="list-group-item px-0 bg-danger-subtle rounded p-2 mt-2">
+                                    <span class="fw-bold d-block text-danger"><i class="bi bi-x-circle me-1"></i>Cancelada</span>
+                                    <span class="text-dark d-block">Por: ${ordenSelected.user_cancela || 'N/A'}</span>
+                                    <span class="text-muted d-block">Fecha: ${ordenSelected.fecha_cancelacion}</span>
+                                    <span class="text-muted d-block italic">Motivo: ${ordenSelected.motivo_cancela || 'Sin especificación'}</span>
+                                 </li>
+                                 ` : ''}
+
+                              </ul>
+                           </div>
+                        </div>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="modal-footer border-0 py-2 bg-light">
+               <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-4" data-bs-dismiss="modal">
+                  Cerrar
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#modalViewDetallesOrden').modal('show');
+   obtenerEstudiosOrdenDetalle(idOrden);
+   obtenerArchivosOrdenDetalle(idOrden, folio);
+}
+
+const obtenerEstudiosOrdenDetalle = async (idOrden) => {
+   // Loader en el contenedor de estudios
+   $('#estudios_detalle_orden').html(`
+      <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+      <span class="small text-muted">Cargando estudios...</span>
+   `);
+
+   let respuesta = await obtiene_estudios_orden(idOrden);
+
+   if (respuesta.estatus == 403) {
+      fnNoSesion();
+      return;
+   }
+
+   if(respuesta.estatus != 200 || respuesta.data.length == 0) {
+      showMessageSwalTimer('Atención', 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
+      $('#ModalGestionPDF').modal('hide');
+      $('#estudios_detalle_orden').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
+      return;
+   }
+   pinta_estudios_orden_detalle(respuesta.data, idOrden);
+};
+
+const pinta_estudios_orden_detalle = (data, idOrden) => {
+   
+   let html = '';
+   if (data && data.length > 0) {
+      data.forEach((est) => {
+         html += `
+         <div class="col-12 col-sm-6">
+            <div class="p-2 border rounded bg-white shadow-sm d-flex align-items-center h-100">
+               <i class="bi bi-flask text-primary me-2 fs-5"></i>
+               <span class="fw-medium text-dark small text-truncate" title="${est.nombre_estudio_historico}">
+                  ${est.nombre_estudio_historico}
+               </span>
+            </div>
+         </div>`;
+      });
+   } 
+   else {
+      html = `
+      <div class="col-12">
+         <div class="alert alert-secondary py-2 px-3 mb-0 small text-center" role="alert">
+            <i class="bi bi-info-circle me-1"></i> No se registraron estudios en esta orden.
+         </div>
+      </div>`;
+   }
+   $('#estudios_detalle_orden').html(html);
+};
+
+const obtenerArchivosOrdenDetalle = async (idOrden, folio) => {
+        
+   let respuesta = await obtiene_archivos_resultados_orden(idOrden);
+
+   if (respuesta.estatus == 403) {
+      fnNoSesion();
+      return;
+   }   
+   else if(!respuesta.data || respuesta.data.length == 0) {
+      $('#container_archivos_detalle').html(`
+         <div class="col-12">
+            <div class="alert alert-secondary py-2 px-3 mb-0 small text-center" role="alert">
+               <i class="bi bi-folder2-open me-1 opacity-75"></i> Aún no se han adjuntado archivos PDF para esta orden.
+            </div>
+         </div>
+      `);
+      return;
+   }
+   
+   pinta_archivos_orden_detalle(respuesta.data, folio);   
+};
+
+const pinta_archivos_orden_detalle = (data, folio) => {
+   
+   let html = '';
+   if (data && data.length > 0) {
+      data.forEach((file) => {
+         html += `
+         <div class="col-12">
+            <div class="p-2 border rounded bg-white shadow-sm d-flex align-items-center justify-content-between">
+               
+               <!-- Info del Archivo -->
+               <div class="d-flex align-items-center overflow-hidden me-2 pointer" onclick="ModalViewerResultado('${file.key_query_pdf}', '${folio}', 1);">
+                  <div class="bg-danger-subtle text-danger rounded p-2 me-2 d-flex align-items-center justify-content-center">
+                     <i class="bi bi-file-earmark-pdf fs-4"></i>
+                  </div>
+                  <div class="text-truncate">
+                     <div class="fw-semibold text-dark small text-truncate" title="${file.descripcion || file.nombre_original}">
+                        ${file.descripcion || 'Archivo adjunto'}
+                     </div>
+                     <div class="extra-small text-muted text-truncate" title="${file.nombre_original}">
+                        ${file.nombre_original}
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Metadata (Usuario y Fecha/Hora) -->
+               <div class="text-end text-nowrap extra-small text-muted border-start ps-2">
+                  <div>
+                     <i class="bi bi-person me-1 opacity-75"></i>${file.user_cap || 'Sistema'}
+                  </div>
+                  <div>
+                     <i class="bi bi-calendar3 me-1 opacity-75"></i>${file.fecha || '-'} <span class="ms-1">${file.hora || ''}</span>
+                  </div>
+               </div>
+
+            </div>
+         </div>`;
+      });
+   } 
+   else {
+      html = `
+      <div class="col-12">
+         <div class="alert alert-secondary py-2 px-3 mb-0 small text-center" role="alert">
+            <i class="bi bi-folder2-open me-1 opacity-75"></i> No se encontraron archivos disponibles para esta orden.
+         </div>
+      </div>`;
+   }
+
+   $('#container_archivos_detalle').html(html);
+};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ PUBLICACIÓN Y NOTIFICACIÓN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1139,6 +1505,7 @@ window.ModalGestionPDF                   = ModalGestionPDF;
 window.ModalViewerResultado              = ModalViewerResultado;
 window.ModalViewerResultadosFolio        = ModalViewerResultadosFolio;
 window.ModalPublicarNotificar            = ModalPublicarNotificar;
+window.ModalViewDetallesOrden            = ModalViewDetallesOrden;
 
 window.subir_pdf_resultado               = subir_pdf_resultado;
 window.eliminar_resultado                = eliminar_resultado;

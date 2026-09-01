@@ -31,7 +31,7 @@
 					$term_boolean = implode('* ', $palabras) . '*';
 
 					$sql = $this->dbh->prepare(
-						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono
+						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, DATE_FORMAT(O.fecha_publicada, '%d-%m-%Y') AS fecha_publicada, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
 						FROM ordenes_trabajo AS O
 						INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id
 						WHERE (MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) OR folio = ?) $filtro_matriz LIMIT 0,100"
@@ -46,7 +46,7 @@
 					$post["estatus"] == 'ENTREGADO' ? $filtro_estatus = '(estatus = "ENTREGADO" OR publicada = 1)' : $filtro_estatus = 'estatus = "'.$post["estatus"].'"';
 
 					$sql = $this->dbh->prepare(
-						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono
+						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, DATE_FORMAT(O.fecha_publicada, '%d-%m-%Y') AS fecha_publicada, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
 						FROM ordenes_trabajo AS O
 						INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id
 						WHERE $filtro_estatus AND (O.fecha_cap >= ? AND O.fecha_cap <= ?) $filtro_matriz"
@@ -147,6 +147,22 @@
 		}
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES DE CAMBIOS DE ESTATUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+		public function valida_tenga_estudios(int $id_orden) {
+      	$res = false;
+			try {
+				$sql = $this->dbh->prepare("SELECT id FROM orden_resultados_pdf WHERE orden_id = ?");
+				$sql->execute(array($id_orden));
+				if($sql->rowCount() > 0) {
+					$res = true;
+				}
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			return $res;
+		}
 
 		public function marcar_orden_como_parcial(int $id_orden) {
       	$estatus = 500;

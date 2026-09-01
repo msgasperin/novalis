@@ -153,6 +153,13 @@
                   echo json_encode($res);
                   break;
                }
+
+               $tieneResultados = $v->valida_tenga_estudios($_POST["idOrden"]);
+               if(!$tieneResultados) {
+                  $res = ['estatus' => 500, 'mensaje' => 'La orden no tiene resultados adjuntos, primero sube algún resultado', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
                
                $res = $v->marcar_orden_como_parcial($_POST["idOrden"]);
                   
@@ -171,6 +178,13 @@
                   break;
                }
                
+               $tieneResultados = $v->valida_tenga_estudios($_POST["idOrden"]);
+               if(!$tieneResultados) {
+                  $res = ['estatus' => 500, 'mensaje' => 'La orden no tiene resultados adjuntos, primero sube algún resultado', 'data' => []];
+                  echo json_encode($res);
+                  break;
+               }
+
                $res = $v->marcar_orden_como_completada($_POST["idOrden"], $_SESSION["nombre"]);
                   
                if($res["estatus"] == 200) {

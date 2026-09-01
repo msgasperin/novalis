@@ -63,7 +63,8 @@
          'direccion' => $_SESSION["emp_direccion"],
          'rfc'       => $_SESSION["emp_rfc"],
          'telefono'  => $_SESSION["emp_telefono"],
-         'correo'    => $_SESSION["emp_correo"]
+         'correo'    => $_SESSION["emp_correo"],
+         'web'       => $_SESSION["emp_web"]
       ];
 
       // Opción de respaldo (Fallback) por si la tabla datos_empresa está vacía
@@ -74,7 +75,8 @@
             'direccion' => '',
             'rfc'       => 'XAXX010101000',
             'telefono'  => '00-00-00',
-            'correo'    => 'correo@correo'
+            'correo'    => 'correo@correo',
+            'web'       => ''
          ];
       }
 

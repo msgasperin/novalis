@@ -3,7 +3,9 @@
 	ini_set('session.cookie_httponly', 1);   // no accesible desde JS
 	ini_set('session.cookie_samesite', 'Strict'); // bloquea CSRF adicional
 	session_start();
-	$_SESSION["cliente_masg"] = $_GET["cliente_masg"];
+	
+	$_SESSION["emp_key"] = $_GET["cliente"];
+	
 		// ── CSRF ──────────────────────────────────────────────
 	if (empty($_SESSION['csrf_token'])) {
 		$_SESSION['csrf_token'] = bin2hex(random_bytes(32));

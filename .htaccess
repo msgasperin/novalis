@@ -8,6 +8,7 @@ RewriteRule ^webapp/reportes/ticket webapp/reportes/ticket_pdf.php
 RewriteRule ^webapp/guia1 webapp/test_guia1.php
 RewriteRule ^webapp/guia5 webapp/test_guia5.php
 RewriteRule ^webapp/plataforma webapp/plataforma.php
+RewriteRule ^webapp/reportes/visor_resultados webapp/reportes/visor_resultados.php
 
 # ── Headers de seguridad HTTP ────────────────────────────────
 <IfModule mod_headers.c>

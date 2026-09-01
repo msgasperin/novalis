@@ -17,7 +17,7 @@
    $estatus = 500;
    $mensaje = 'Petición no válida';
 
-   if (isset($_POST["func"]) && $_POST["func"] == "notificar_mail_resultados") {      
+   if (!empty($_POST["func"]) && $_POST["func"] == "notificar_mail_resultados" && !empty($_SESSION["emp_key"])) {
       // Validamos que keyQuery no esté vacío
       if (!empty($_POST["keyQuery"]) && !empty($_POST["correo"])) {
 
@@ -37,7 +37,7 @@
             $tokenAcceso = bin2hex(random_bytes(16)); // O usa $row['key_query']
             
             // URL PROVISIONAL para el acceso directo a los PDF del paciente
-            $urlConsulta = "http://localhost/sis_11/api/controller/visor_resultados.php?token=" . $row['key_query'] . "&ord=" . urlencode($row["folio"]);
+            $urlConsulta = "http://localhost/sis_11/api/controller/visor_resultados.php?token=" . $row['key_query'] . "&client=" . urlencode($_SESSION["emp_key"]);
 
             // Plantilla de correo médica y responsiva
             $contenido = '
