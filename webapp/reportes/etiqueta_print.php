@@ -69,8 +69,7 @@
       require_once('../../api/config/class.pdo.php'); 
       require_once('../../api/config/seguridad.php');
       
-      /** @var string $bd_cliente */
-      $v = new Conexion($bd_cliente);
+      $v = new Conexion();
       $v->conectar();   
 
       $keyQuery = $_GET["kq"] ?? '';

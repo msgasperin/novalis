@@ -4,30 +4,20 @@
  * Valida la sesión del usuario y sirve el archivo PDF de forma interna.
  */
 
-// 1. Inicializar la sesión y comprobar que el usuario esté logueado
 require_once('../../api/config/class.pdo.php');
-require_once('../../api/config/seguridad.php');
 
 $v = new Conexion();
 $v->conectar();
 
-if (!isset($_SESSION['id_usuario'])) {
-    header("HTTP/1.1 403 Forbidden");
-    echo "Acceso denegado. No tienes una sesión activa.";
-    exit;
-}
-
 // 2. Validar que se haya recibido un ID de adjunto válido
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    header("HTTP/1.1 400 Bad Request");
-    echo "Falta el parámetro del documento.";
-    exit;
+if (!isset($_GET['token']) || empty($_GET['token'])) {
+   header("HTTP/1.1 400 Bad Request");
+   echo '<center><h4>Falta el parámetro del documento.</h4></center>';
+   exit;
 }
 
-$key_query = $_GET['id'];
+$key_query = $_GET['token'];
 
-// 4. Consultar la información del archivo en la Base de Datos
-// Ajusta los nombres de las columnas y tabla a tu base de datos real
 try {
     $sql = $v->dbh->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
     $sql->execute([$key_query]);
@@ -40,9 +30,9 @@ try {
 
 // Si no existe el registro en la BD, terminamos
 if (!$archivo_db) {
-    header("HTTP/1.1 404 Not Found");
-    echo "El documento solicitado no existe en nuestros registros.";
-    exit;
+   header("HTTP/1.1 404 Not Found");
+   echo "El documento solicitado no existe en nuestros registros.";
+   exit;
 }
 
 // 5. Construir la ruta física real en el servidor

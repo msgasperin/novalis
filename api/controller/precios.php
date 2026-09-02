@@ -1,9 +1,9 @@
 <?php
    require_once('../model/Precios.php');
    require_once('../model/Globales.php');
-   /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-   $v = new Precios($bd_cliente);
-   $g = new Globales($bd_cliente);
+   
+   $v = new Precios();
+   $g = new Globales();
 
    $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
    if (strpos($contentType, "application/json") !== false) {

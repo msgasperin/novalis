@@ -1,5 +1,5 @@
 <?php
-if (isset($_SESSION["login_akuris"]) && $_SESSION["login_akuris"] === "SI") {
+if (isset($_SESSION["login_novalis"]) && $_SESSION["login_novalis"] === "SI") {
 
     // ── Protección contra session hijacking ──────────────────────────────
 
@@ -14,7 +14,7 @@ if (isset($_SESSION["login_akuris"]) && $_SESSION["login_akuris"] === "SI") {
 
     // Si cambia el navegador durante la sesión, cerrarla
     if ($agente_guardado !== $agente_actual) {
-        header('Location: ../inicio?cliente_masg='.$_SESSION["cliente_masg"]);
+        header('Location: ../inicio');
         session_destroy();
         exit;
     }
@@ -55,6 +55,6 @@ if (isset($_SESSION["login_akuris"]) && $_SESSION["login_akuris"] === "SI") {
      */
 
 } else {
-    header('Location: ../inicio?cliente_masg='.$_SESSION["cliente_masg"]);
+    header('Location: ../inicio');
     exit;
 }

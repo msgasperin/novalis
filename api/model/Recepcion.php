@@ -2,8 +2,8 @@
 	require_once('../config/class.pdo.php');
 	class Recepcion extends Conexion {
 		//Objeto principal del constructor de la clase
-		public function __construct(string $base_datos) {
-	   	parent::__construct($base_datos);
+		public function __construct() {
+	   	parent::__construct();
 	   	$this->conectar();
 	  	}
 	
@@ -135,7 +135,7 @@
 				
 				$folio = 'O-' . date('y') . '-' . $id_sucursal . '-' . $consecutivo;
 
-				$key_query = 'OD'. date('y').$id_sucursal.$consecutivo.$this->generarCadena(5);
+				$key_query = 'OD'. date('y').$id_sucursal.$consecutivo.$this->generarCadena(15);
 			
 				// Nota: Los campos financieros (total, subtotal, etc.) no se envían porque inician en 0 por DEFAULT
 				$sqlOrden = $this->dbh->prepare("INSERT INTO ordenes_trabajo (anio, mes, id_folio, folio, sucursal_id, sucursal_historico, paciente_id, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, tipo_cliente, convenio_id, convenio_nombre_historico, lista_precio_id, lista_precio_nombre_historico, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, total_neto, es_urgente, requiere_factura, key_query, observaciones, user_cap) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

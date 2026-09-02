@@ -1,9 +1,9 @@
 <?php
   require_once('../model/Recepcion.php');
   require_once('../model/Globales.php');
-  /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-   $v = new Recepcion($bd_cliente);
-   $g = new Globales($bd_cliente);
+  
+   $v = new Recepcion();
+   $g = new Globales();
   $_POST = json_decode(file_get_contents("php://input"), true);
   
   if(isset($_SESSION["id_usuario"]) && $_SESSION["id_usuario"] != '') {

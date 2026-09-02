@@ -2,8 +2,8 @@
 	require_once('../config/class.pdo.php');
 	class Bandejas extends Conexion {
 		//Objeto principal del constructor de la clase
-		public function __construct(string $base_datos) {
-	   	parent::__construct($base_datos);
+		public function __construct() {
+	   	parent::__construct();
 	   	$this->conectar();
 	  	}
 
@@ -96,7 +96,7 @@
 			$res = ['estatus' => 500, 'mensaje' => 'Error al intentar registrar en bd', 'data' => []];
 			try {
 
-				$key_query = $folio.$this->generarCadena(10);
+				$key_query = $folio.$this->generarCadena(20);
 
 				$sql = $this->dbh->prepare("INSERT INTO orden_resultados_pdf (orden_id, orden_folio, descripcion, nombre_original, nombre_servidor, tamanio_bytes, user_cap, fecha_cap, key_query_pdf) VALUES (?,?,?,?,?,?,?,?,?)");
 				$sql->execute([$id_orden, $folio, $descripcion, $nom_original, $nom_servidor, $tamanio, $user, date('Y-m-d H:i:s'), $key_query]);

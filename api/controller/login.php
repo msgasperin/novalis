@@ -1,11 +1,10 @@
 <?php
   header('Content-Type: application/json');
-  require_once('../config/class.pdo.php');
   require_once('../model/Login.php');
   require_once('../model/Globales.php');
   /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
-  $v = new Login($bd_cliente);
-  $g = new Globales($bd_cliente);
+  $v = new Login();
+  $g = new Globales();
 
   // ── Obtener IP real del cliente ───────────────────────
   function get_ip(): string {
@@ -59,14 +58,14 @@
             // ── Regenerar ID de sesión — invalida IDs previos ────
             session_regenerate_id(true);
             // ───
-            $_SESSION["login_akuris"] = "SI";
-            $_SESSION["id_usuario"]   = $res["data"]["id_usuario"];
-            $_SESSION["id_sucursal"]  = $res["data"]["id_sucursal_fk"];
-            $_SESSION["sucursal"]     = $res["data"]["sucursal"];
-            $_SESSION["matriz"]       = $res["data"]["matriz"];
-            $_SESSION["usuario"]      = $res["data"]["usuario"];
-            $_SESSION["nombre"]       = $res["data"]["nombre"];
-            $_SESSION["perfil"]       = $res["data"]["perfil"];
+            $_SESSION["login_novalis"] = "SI";
+            $_SESSION["id_usuario"]    = $res["data"]["id_usuario"];
+            $_SESSION["id_sucursal"]   = $res["data"]["id_sucursal_fk"];
+            $_SESSION["sucursal"]      = $res["data"]["sucursal"];
+            $_SESSION["matriz"]        = $res["data"]["matriz"];
+            $_SESSION["usuario"]       = $res["data"]["usuario"];
+            $_SESSION["nombre"]        = $res["data"]["nombre"];
+            $_SESSION["perfil"]        = $res["data"]["perfil"];
 
             // Datos de la empresa cliente
             $_SESSION["emp_nombre"]    = $res["data"]["emp_nombre"];
@@ -76,7 +75,6 @@
             $_SESSION["emp_telefono"]  = $res["data"]["emp_telefono"];
             $_SESSION["emp_correo"]    = $res["data"]["emp_correo"];
             $_SESSION["emp_web"]       = $res["data"]["emp_web"];
-            $_SESSION["emp_key"]       = $res["data"]["emp_key"];
 
             $g->bitacora('Inicio de sesión', $res["data"]["id_usuario"], $res["data"]["id_usuario"], $res["data"]["nombre"]);
             echo json_encode(['estatus' => $res["estatus"], 'mensaje' => 'ok', 'data' => []]);

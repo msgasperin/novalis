@@ -63,7 +63,7 @@ const fn_cerrar_sesion = async () => {
   let respuesta = await cerrar_sesion();
   if(respuesta.estatus == 200) {
     showMessageSwalTimer('Sesión finalizada correctamente', '', 'success', 2500);
-    redireccionar("../inicio?cliente="+clienteMasg, 1000);
+    redireccionar("../inicio", 1000);
   }
   else {
     showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');

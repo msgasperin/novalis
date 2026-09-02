@@ -242,25 +242,10 @@ const pinta_ordenes_bandejas = (data) => {
                   }
 
                   html+=`
-                  <div class="dropdown d-inline-block">
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2 dropdown-toggle no-caret btnAcciones" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
-                        <i class="bi bi-three-dots-vertical"></i>
-                     </button>
-                     <ul class="dropdown-menu dropdown-menu-end shadow-sm small">
-                        <li>
-                           <a class="dropdown-item py-1.5" href="#" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
-                              <i class="bi bi-file-text me-2 text-secondary"></i> Ver detalle de orden
-                            </a>
-                        </li>
-                        <li>
-                           <a class="dropdown-item py-1.5" href="reportes/ticket?kq=${row.key_query}" target="_blank">
-                              <i class="bi bi-ticket-detailed me-2 text-secondary"></i> Imprimir ticket
-                            </a>
-                        </li>`;
-                     html+=`
-                     </ul>
-                  </div>`;
-                
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
+                     <i class="bi bi-file-text"></i> 
+                  </button>`;
+
                 html+=`
                </td>
             </tr>`;
@@ -284,7 +269,6 @@ const pinta_ordenes_bandejas = (data) => {
    }, 200);
    closeLoad();
 }
-
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE SUBIDA DE RESULTADOS PDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

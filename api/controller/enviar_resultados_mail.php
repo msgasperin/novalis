@@ -1,5 +1,8 @@
 <?php
 
+   $host  = $_SERVER['HTTP_HOST'] ?? '';
+   $ruta  = 'http://'.$host.'/webapp/reportes/visor_resultados.php';
+   
    if (empty($_POST)) {
       $inputJSON = file_get_contents('php://input');
       $inputData = json_decode($inputJSON, true);
@@ -8,6 +11,7 @@
       }
    }
 
+   require_once('../config/class.pdo.php');
    require('../../webapp/assets/lib/PHPMailer/Exception.php');
    require('../../webapp/assets/lib/PHPMailer/PHPMailer.php');
    require('../../webapp/assets/lib/PHPMailer/SMTP.php');
@@ -15,16 +19,13 @@
    use PHPMailer\PHPMailer\PHPMailer;
 
    $estatus = 500;
-   $mensaje = 'Petición no válida';
+   $mensaje = 'Petición no válida';  
 
-   if (!empty($_POST["func"]) && $_POST["func"] == "notificar_mail_resultados" && !empty($_SESSION["emp_key"])) {
+   if (!empty($_POST["func"]) && $_POST["func"] == "notificar_mail_resultados" && $host != '') {
       // Validamos que keyQuery no esté vacío
       if (!empty($_POST["keyQuery"]) && !empty($_POST["correo"])) {
-
-         require_once('../config/class.pdo.php');
          
-         /** @var string $bd_cliente */
-         $v = new Conexion($bd_cliente);
+         $v = new Conexion();
          $v->conectar(); 
 
          $sql = $v->dbh->prepare("SELECT paciente_nombre_historico, folio, key_query FROM ordenes_trabajo WHERE key_query = ?");
@@ -37,7 +38,7 @@
             $tokenAcceso = bin2hex(random_bytes(16)); // O usa $row['key_query']
             
             // URL PROVISIONAL para el acceso directo a los PDF del paciente
-            $urlConsulta = "http://localhost/sis_11/api/controller/visor_resultados.php?token=" . $row['key_query'] . "&client=" . urlencode($_SESSION["emp_key"]);
+            $urlConsulta = $ruta.'?token='. $row['key_query'] .'&lab='.urlencode($_SESSION["emp_nombre"]);
 
             // Plantilla de correo médica y responsiva
             $contenido = '
@@ -56,7 +57,7 @@
                            
                            <!-- Encabezado -->
                            <tr>
-                              <td align="center" style="background-color: #0d6efd; padding: 30px 20px;">
+                              <td align="center" style="background-color: #0F2744; padding: 30px 20px;">
                                  <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; tracking-spacing: 0.5px;">'.$_SESSION["emp_nombre"].'</h1>
                                  <p style="color: #e0eafd; margin: 5px 0 0 0; font-size: 14px;">Centro de Notificaciones</p>
                               </td>
@@ -74,7 +75,7 @@
                                  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 30px 0;">
                                     <tr>
                                        <td align="center">
-                                          <a href="'.$urlConsulta.'" target="_blank" style="background-color: #0d6efd; color: #ffffff; display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 6px; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);">
+                                          <a href="'.$urlConsulta.'" target="_blank" style="background-color: #0F2744; color: #ffffff; display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 6px; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);">
                                              Ver y Descargar Resultados
                                           </a>
                                        </td>

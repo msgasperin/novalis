@@ -2,8 +2,8 @@
 	require_once('../config/class.pdo.php');
 	class Convenios extends Conexion {
 		//Objeto principal del constructor de la clase
-		public function __construct(string $base_datos) {
-	   	parent::__construct($base_datos);
+		public function __construct() {
+	   	parent::__construct();
 	   	$this->conectar();
 	  	}
 

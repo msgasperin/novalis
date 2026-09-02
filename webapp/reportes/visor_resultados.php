@@ -30,8 +30,12 @@ if($mensajeError == '') {
          } else {
             $ordenEncontrada = true;
 
+            // Consultamos los estudios solicitados
+            $sqlEstudios = $v->dbh->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
+            $sqlEstudios->execute([$datosOrden['id']]);
+            $estudiosSolicitados = $sqlEstudios->fetchAll(PDO::FETCH_ASSOC);
+
             // Consultar los PDF adjuntos/asociados a esta orden de trabajo
-            // Ajusta la tabla y campos según tu estructura de base de datos
             $stmtPdf = $v->dbh->prepare("SELECT id, nombre_original, descripcion, nombre_servidor, fecha_cap, key_query_pdf FROM orden_resultados_pdf WHERE orden_id = ? ORDER BY id ASC");
             $stmtPdf->execute([$datosOrden['id']]);
             $archivosPDF = $stmtPdf->fetchAll(PDO::FETCH_ASSOC);
@@ -49,8 +53,7 @@ if($mensajeError == '') {
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Consulta de Resultados | Laboratorio Clínico</title>
-      <!-- Bootstrap 5 CSS & FontAwesome Icons -->
+      <title>Consulta de Resultados | <?php echo htmlspecialchars($_GET["lab"]); ?> </title>
       <link rel="stylesheet" type="text/css" href="../assets/lib/bootstrap-5.3.2/css/bootstrap.css"/>
       <link rel="stylesheet" type="text/css" href="../assets/lib/bootstrap-icons-1.13.1/bootstrap-icons.min.css"/>
       <style>
@@ -60,6 +63,7 @@ if($mensajeError == '') {
          .pdf-frame { width: 100%; height: 680px; border: none; border-radius: 8px; }
          .list-group-item.active { background-color: #0F2744; border-color: #0F2744; }
       </style>
+      <link rel="shortcut icon" href="../assets/images/favicon.png"/>
    </head>
    <body>
 
@@ -67,8 +71,8 @@ if($mensajeError == '') {
       <header class="header-brand py-3 mb-4 shadow-sm">
          <div class="container d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-file-earmark-medical fs-2"></i>
-                  <h1 class="h4 m-0 fw-bold">Portal de Resultados</h1>
+               <i class="bi bi-file-earmark-medical fs-2"></i>
+               <h1 class="h4 m-0 fw-bold">Portal de Resultados <?php echo htmlspecialchars($_GET["lab"]); ?></h1>
             </div>
             <span class="badge bg-white text-primary px-3 py-2 fw-semibold">Consulta Segura</span>
          </div>
@@ -79,16 +83,16 @@ if($mensajeError == '') {
          <?php if (!$ordenEncontrada): ?>
             <!-- Vista de Error o Enlace Invalido -->
             <div class="row justify-content-center mt-5">
-                  <div class="col-md-6">
-                     <div class="card card-custom p-4 text-center">
-                        <div class="text-danger mb-3">
-                              <i class="bi bi-exclamation-triangle-fill display-1"></i>
-                        </div>
-                        <h3 class="h4 text-gray-800 mb-2">Acceso No Disponible</h3>
-                        <p class="text-muted mb-4"><?= htmlspecialchars($mensajeError); ?></p>
-                        <p class="small text-secondary mb-0">Si requiere sus estudios, comuníquese con el personal de recepción de su sucursal.</p>
+               <div class="col-md-6">
+                  <div class="card card-custom p-4 text-center">
+                     <div class="text-danger mb-3">
+                           <i class="bi bi-exclamation-triangle-fill display-1"></i>
                      </div>
+                     <h3 class="h4 text-gray-800 mb-2">Acceso No Disponible</h3>
+                     <p class="text-muted mb-4"><?= htmlspecialchars($mensajeError); ?></p>
+                     <p class="small text-secondary mb-0">Si requiere sus estudios, comuníquese con el personal de recepción de su sucursal.</p>
                   </div>
+               </div>
             </div>
          <?php else: ?>
 
@@ -108,80 +112,103 @@ if($mensajeError == '') {
                      </span>
                   </div>
                </div>
+               <div class="border-top pt-3 mt-3">
+                  <div class="mb-2">
+                     <span><i class="bi bi-journal-medical me-1"></i> Estudios Incluidos en esta Orden</span>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2">
+                     <?php foreach ($estudiosSolicitados as $estudio): ?>
+                        <span class="badge bg-body-tertiary text-dark border p-2 fw-normal">
+                           <i class="bi bi-check-circle-fill text-success me-1"></i>
+                           <?= htmlspecialchars($estudio['nombre_estudio_historico']); ?>
+                        </span>
+                     <?php endforeach; ?>
+                  </div>
+               </div>
             </div>
 
             <!-- Listado y Visor de PDF -->
             <?php if (count($archivosPDF) === 0): ?>
-                  <div class="alert alert-warning text-center card-custom p-4">
-                     <i class="bi bi-hourglass-split fs-2 d-block mb-2"></i>
-                     Sus resultados están procesándose. En breve se adjuntarán los reportes correspondientes.
-                  </div>
+               <div class="alert alert-warning text-center card-custom p-4">
+                  <i class="bi bi-hourglass-split fs-2 d-block mb-2"></i>
+                  Sus resultados están procesándose. En breve se adjuntarán los reportes correspondientes.
+               </div>
             <?php else: ?>
-                  <div class="row g-4">
-                     <!-- Panel Izquierdo: Lista de PDF disponibles -->
-                     <div class="col-lg-4">
-                        <div class="card card-custom p-3">
-                              <h3 class="h6 fw-bold text-uppercase text-muted mb-3 px-2">Documentos de la Orden</h3>
-                              <div class="list-group list-group-flush" id="pdfTabs" role="tablist">
-                                 <?php foreach ($archivosPDF as $index => $pdf): 
-                                    $rutaPdf = "resultado.php?id=" . htmlspecialchars($pdf['key_query_pdf']);
-                                    $isFirst = ($index === 0);
-                                 ?>
-                                    <div class="list-group-item list-group-item-action p-3 rounded-3 mb-2 <?= $isFirst ? 'active' : ''; ?>" 
-                                          id="list-<?= $pdf['id']; ?>-list" 
-                                          data-bs-toggle="list" 
-                                          href="#list-<?= $pdf['id']; ?>" 
-                                          role="tab"
-                                          onclick="cambiarPdf('<?= $rutaPdf; ?>')">
-                                          <div class="d-flex w-100 justify-content-between align-items-center">
-                                             <h4 class="h6 mb-1 fw-bold text-truncate me-2"><?= htmlspecialchars($pdf['nombre_original']); ?></h4>
-                                             <i class="bi bi-file-pdf fs-4"></i>
-                                          </div>
-                                          <p class="mb-2 small opacity-75">PDF Disponible</p>
-                                          
-                                          <!-- Botones para vista móvil -->
-                                          <div class="d-lg-none d-flex gap-2 mt-2">
-                                             <a href="<?= $rutaPdf; ?>" target="_blank" class="btn btn-sm btn-light text-primary w-50">
-                                                <i class="bi bi-eye"></i> Ver
-                                             </a>
-                                             <a href="<?= $rutaPdf; ?>" download class="btn btn-sm btn-primary w-50">
-                                                <i class="bi bi-download"></i> Descargar
-                                             </a>
-                                          </div>
-                                    </div>
-                                 <?php endforeach; ?>
+               <div class="row g-4">
+                  <!-- Panel Izquierdo: Lista de PDF disponibles -->
+                  <div class="col-lg-4">
+                     <div class="card card-custom p-3">
+                        <h3 class="h6 fw-bold text-uppercase text-muted mb-3 px-2">Documentos de la Orden</h3>
+                        <div class="list-group list-group-flush" id="pdfTabs" role="tablist">
+                           
+                           <?php foreach ($archivosPDF as $index => $pdf): 
+                              $rutaPdf = "resultado_visor.php?token=" . htmlspecialchars($pdf['key_query_pdf']);
+                              $isFirst = ($index === 0);
+                           ?>
+                              <div class="list-group-item list-group-item-action p-3 rounded-3 mb-2 pdf-item <?= $isFirst ? 'active' : ''; ?>" 
+                                 id="list<?= $pdf['id']; ?>"
+                                 style="cursor: pointer;"
+                                 onclick="cambiarPdf('<?= $rutaPdf; ?>', this)">
+                                 
+                                 <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <h4 class="h6 mb-1 fw-bold text-truncate me-2"><?= htmlspecialchars($pdf['descripcion']); ?></h4>
+                                    <i class="bi bi-file-pdf fs-4"></i>
+                                 </div>
+                                 <p class="mb-2 small opacity-75">PDF Disponible</p>
+                                 
+                                 <!-- Botones para vista móvil -->
+                                 <div class="d-lg-none d-flex gap-2 mt-2" onclick="event.stopPropagation();">
+                                    <a href="<?= $rutaPdf; ?>" target="_blank" class="btn btn-sm btn-light text-primary w-50">
+                                       <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <a href="<?= $rutaPdf; ?>" download class="btn btn-sm btn-primary w-50">
+                                       <i class="bi bi-download"></i> Descargar
+                                    </a>
+                                 </div>
                               </div>
-                        </div>
-                     </div>
-
-                     <!-- Panel Derecho: Visor Integrado para Computadoras/Tablets -->
-                     <div class="col-lg-8 d-none d-lg-block">
-                        <div class="card card-custom p-3">
-                              <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                                 <span class="fw-semibold text-muted" id="tituloVisor">Vista previa del documento</span>
-                                 <a id="btnDescargar" href="resultado.php?id=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>" download class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-download me-1"></i> Descargar este PDF
-                                 </a>
-                              </div>
-                              <div class="bg-light rounded text-center">
-                                 <iframe id="visorIframe" class="pdf-frame" src="resultado.php?id=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>"></iframe>
-                              </div>
+                           <?php endforeach; ?>
                         </div>
                      </div>
                   </div>
+
+                  <!-- Panel Derecho: Visor Integrado para Computadoras/Tablets -->
+                  <div class="col-lg-8 d-none d-lg-block">
+                     <div class="card card-custom p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                           <span class="fw-semibold text-muted" id="tituloVisor">Vista previa del documento</span>
+                           <a id="btnDescargar" href="resultado_visor.php?token=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>" download class="btn btn-outline-primary btn-sm">
+                              <i class="bi bi-download me-1"></i> Descargar este PDF
+                           </a>
+                        </div>
+                        <div class="bg-light rounded text-center">
+                           <iframe id="visorIframe" class="pdf-frame" src="resultado_visor.php?token=<?= htmlspecialchars($archivosPDF[0]['key_query_pdf']); ?>"></iframe>
+                        </div>
+                     </div>
+                  </div>
+               </div>
             <?php endif; ?>
          <?php endif; ?>
       </div>
 
       <!-- Script de Interacción -->
       <script>
-         function cambiarPdf(rutaArchivo) {
-            const iframe = document.getElementById('visorIframe');
+         function cambiarPdf(rutaArchivo, elemento) {
+            
+            const iframe       = document.getElementById('visorIframe');
             const btnDescargar = document.getElementById('btnDescargar');
             
             if (iframe && btnDescargar) {
                iframe.src = rutaArchivo + '#toolbar=1';
                btnDescargar.href = rutaArchivo;
+            }
+
+            document.querySelectorAll('.pdf-item').forEach(item => {
+               item.classList.remove('active');
+            });
+
+            const elementoSeleccionado = document.getElementById(elemento.id);
+            if (elementoSeleccionado) {
+               elementoSeleccionado.classList.add('active');
             }
          }
       </script>
