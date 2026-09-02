@@ -2,7 +2,6 @@
   header('Content-Type: application/json');
   require_once('../model/Login.php');
   require_once('../model/Globales.php');
-  /** @var string $bd_cliente */ // <- Esto le dice a VS Code de qué tipo es
   $v = new Login();
   $g = new Globales();
 

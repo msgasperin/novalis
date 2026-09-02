@@ -59,7 +59,7 @@
 
             case 'subir_pdf_resultado':
 
-               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) || empty($_POST["descripcion"]) || empty($_FILES["archivo"]["name"]) ) {
+               if( empty($_POST["idOrden"]) || empty($_POST["folio"]) || empty($_POST["descripcion"]) || empty($_FILES["archivo"]["name"]) || empty($_SESSION["tenant_subdomain"]) ) {
                   $res = ['estatus' => 500, 'mensaje' => 'Faltan campos obligatorios', 'data' => []];
                   echo json_encode($res);
                   break;
@@ -71,7 +71,7 @@
                $ext            = explode(".",$_FILES['archivo']['name']);
                $extension      = end($ext);
                $nom_servidor   = $_POST["folio"].'_'.date('ymdhis').'_'.rand(1,100).'.pdf';
-               $upload_folder  = '../../webapp/assets/docs/resultados/'.$_POST["folio"].'/';
+               $upload_folder  = '../../webapp/assets/docs/resultados/'.$_SESSION["tenant_subdomain"].'/'.$_POST["folio"].'/';
                $archivador     = $upload_folder.$nom_servidor;
                $max_bytes      = 5 * 1024 * 1024;
                $extensiones_permitidas = ['pdf'];
@@ -108,7 +108,7 @@
                      $g->bitacora('Resultado PDF agregado: ' . $nombre_archivo . ' del folio: ' . $_POST["folio"], $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
                   } else {
                      if (file_exists($archivador)) {
-                           unlink($archivador);
+                        unlink($archivador);
                      }
                   }
                }

@@ -11,8 +11,7 @@ $_SESSION['id_usuario'] = 1;
 if($mensajeError == '') {
    if (!empty($token)) {
 
-      /** @var string $bd_cliente */
-      $v = new Conexion($bd_cliente);
+      $v = new Conexion();
       $v->conectar();
 
       $tiempo_limite_consulta = time() - (30 * 24 * 60 * 60);
