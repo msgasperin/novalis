@@ -30,7 +30,27 @@
             $rowEmpresa = $sqlDataEmpresa->fetch(PDO::FETCH_ASSOC);
 
 				if($sql->rowCount() == 1) {
-					$row = $sql->fetch(PDO::FETCH_ASSOC);					
+					$row = $sql->fetch(PDO::FETCH_ASSOC);
+
+               $estatus_caja   = 'no_aplica';
+               $id_caja        = 0;
+               $fecha_apertura = null;
+               $fecha_cierre   = null;
+               
+               if($row["perfil"] == 'RECEPCION') {
+                  $sqlCaja = $this->dbh->prepare("SELECT id_caja, estatus, DATE(fecha_apertura) AS fecha_apertura, DATE(fecha_cierre) AS fecha_cierre FROM cajas_sesiones WHERE id_usuario = ? ORDER BY id_caja DESC LIMIT 1");
+                  $sqlCaja->execute([$row["id_usuario"]]);
+                  
+
+                  if($sqlCaja->rowCount() > 0) {
+                     $rowCaja = $sqlCaja->fetch(PDO::FETCH_ASSOC);
+                     $estatus_caja   = $rowCaja["estatus"];
+                     $id_caja        = $rowCaja["id_caja"];
+                     $fecha_apertura = $rowCaja["fecha_apertura"];
+                     $fecha_cierre   = $rowCaja["fecha_cierre"];
+                  }
+               }
+
 					$datos = [
 						'id_usuario' 	  => $row["id_usuario"], 
 						'nombre'         => $row["nombre"], 
@@ -49,6 +69,11 @@
                   'emp_correo'     => $rowEmpresa["correo"],
                   'emp_web'        => $rowEmpresa["web"],
                   'emp_key'        => $rowEmpresa["key_client"],
+                  // Datos de caja
+                  'id_caja'        => $id_caja,
+                  'estatus_caja'   => $estatus_caja,
+                  'fecha_apertura' => $fecha_apertura,
+                  'fecha_cierre'   => $fecha_cierre
 					];
 					$res = array(
 						'estatus' => 200,

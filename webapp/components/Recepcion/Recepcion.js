@@ -12,15 +12,54 @@ let comboDescuentos        = '';
 let pacienteOrden;
 
 const TabRecepcion = () => {
-   let html =
-   `<div class="row">
-      <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2 fw-bold">
-         <div class="fs-4"> <i class="bi bi-clipboard-minus"></i> Recepción</div>
-      </div>
-      <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2 text-end">
-         <button class="btn btn-dark btn-lib btn-redondo fs-6" type="button" id="btnNuevaOrden" onclick="TabRecepcion();">
-            <i class="bi bi-plus-lg"></i>
+
+   let estatusCaja  = $('#estatusCaja').val().trim();
+   let idCaja       = $('#idCaja').val().trim();
+   let aperturaCaja = $('#aperturaCaja').val().trim();
+   let cierreCaja   = $('#idCaja').val().trim();
+   let perfilUs     = $('#perfilUs').val().trim();
+   let btnAcciones  = '';
+
+   if(perfilUs == 'RECEPCION') {
+
+      if(estatusCaja == 'cerrada' || idCaja == 0) {
+         ModalAbrirCaja();
+         return;
+      }
+      else if(estatusCaja == 'abierta' && fecActual > aperturaCaja) {
+        ModalCerrarCaja();
+        return;
+      }
+      else {
+         btnAcciones+=`
+         <button class="btn btn-outline-secondary btn-redondo fs-6" type="button" id="btnMovimientoCaja" onclick="ModalMovimientoCaja();">
+            <i class="bi bi-arrow-down-up"></i> Movimiento
+         </button>           
+
+         <button class="btn btn-outline-dark btn-redondo fs-6" type="button" id="btnCerrarCaja" onclick="ModalCerrarCaja();">
+            <i class="bi bi-key-fill"></i> Cerrar Caja
          </button>
+
+         <button class="btn btn-success btn-redondo fs-6" type="button" id="btnNuevaOrden" onclick="TabRecepcion();">
+            <i class="bi bi-plus-lg"></i> Nueva orden
+         </button>`
+      }      
+   }
+
+   let html =
+   `<div class="row align-items-center mb-3">
+      <!-- Título de la sección -->
+      <div class="col-xl-6 col-lg-5 col-md-4 col-12 mt-2">
+         <div class="fs-4 fw-bold text-dark">
+            <i class="bi bi-clipboard-minus text-primary me-1"></i> Recepción
+         </div>
+      </div>
+
+      <!-- Acciones de Caja y Órdenes -->
+      <div class="col-xl-6 col-lg-7 col-md-8 col-12 mt-2">
+         <div class="d-flex flex-wrap justify-content-md-end gap-2">
+            ${btnAcciones}
+         </div>
       </div>
    </div>
    <div class="row mt-3">
@@ -100,7 +139,6 @@ const TabRecepcion = () => {
             </div>
          </div>
       </div>
-
    </div>`;
 
    $('#containerMain').html(html);

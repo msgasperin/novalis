@@ -57,23 +57,29 @@
             // ── Regenerar ID de sesión — invalida IDs previos ────
             session_regenerate_id(true);
             // ───
-            $_SESSION["login_novalis"] = "SI";
-            $_SESSION["id_usuario"]    = $res["data"]["id_usuario"];
-            $_SESSION["id_sucursal"]   = $res["data"]["id_sucursal_fk"];
-            $_SESSION["sucursal"]      = $res["data"]["sucursal"];
-            $_SESSION["matriz"]        = $res["data"]["matriz"];
-            $_SESSION["usuario"]       = $res["data"]["usuario"];
-            $_SESSION["nombre"]        = $res["data"]["nombre"];
-            $_SESSION["perfil"]        = $res["data"]["perfil"];
+            $_SESSION["login_novalis"]  = "SI";
+            $_SESSION["id_usuario"]     = $res["data"]["id_usuario"];
+            $_SESSION["id_sucursal"]    = $res["data"]["id_sucursal_fk"];
+            $_SESSION["sucursal"]       = $res["data"]["sucursal"];
+            $_SESSION["matriz"]         = $res["data"]["matriz"];
+            $_SESSION["usuario"]        = $res["data"]["usuario"];
+            $_SESSION["nombre"]         = $res["data"]["nombre"];
+            $_SESSION["perfil"]         = $res["data"]["perfil"];
 
             // Datos de la empresa cliente
-            $_SESSION["emp_nombre"]    = $res["data"]["emp_nombre"];
-            $_SESSION["emp_logo"]      = $res["data"]["emp_logo"];
-            $_SESSION["emp_direccion"] = $res["data"]["emp_direccion"];
-            $_SESSION["emp_rfc"]       = $res["data"]["emp_rfc"];
-            $_SESSION["emp_telefono"]  = $res["data"]["emp_telefono"];
-            $_SESSION["emp_correo"]    = $res["data"]["emp_correo"];
-            $_SESSION["emp_web"]       = $res["data"]["emp_web"];
+            $_SESSION["emp_nombre"]     = $res["data"]["emp_nombre"];
+            $_SESSION["emp_logo"]       = $res["data"]["emp_logo"];
+            $_SESSION["emp_direccion"]  = $res["data"]["emp_direccion"];
+            $_SESSION["emp_rfc"]        = $res["data"]["emp_rfc"];
+            $_SESSION["emp_telefono"]   = $res["data"]["emp_telefono"];
+            $_SESSION["emp_correo"]     = $res["data"]["emp_correo"];
+            $_SESSION["emp_web"]        = $res["data"]["emp_web"];
+            
+            // Datos de caja
+            $_SESSION["id_caja"]        = $res["data"]["id_caja"];
+            $_SESSION["estatus_caja"]   = $res["data"]["estatus_caja"];
+            $_SESSION["fecha_apertura"] = $res["data"]["fecha_apertura"];
+            $_SESSION["fecha_cierre"]   = $res["data"]["fecha_cierre"];
 
             $g->bitacora('Inicio de sesión', $res["data"]["id_usuario"], $res["data"]["id_usuario"], $res["data"]["nombre"]);
             echo json_encode(['estatus' => $res["estatus"], 'mensaje' => 'ok', 'data' => []]);

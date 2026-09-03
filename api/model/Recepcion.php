@@ -116,7 +116,7 @@
 			return $res;
 		}
 
-		public function registrar_orden(array $post, array $carrito, string $user_cap, int $id_sucursal, string $sucursal) {
+		public function registrar_orden(array $post, array $carrito, int $id_usuario, string $user_cap, int $id_sucursal, string $sucursal) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Hubo un problema procesar el pedido';
@@ -197,8 +197,8 @@
 				}
 
 				if(floatval($post["abonoOrden"]) > 0) {
-					$sqlAbono = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, monto, metodo_pago, referencia_pago, usuario_recibio) VALUES (?, ?, ?, ?, ?, ?)");
-					$ok = $sqlAbono->execute([$id_orden, $id_sucursal, $post["abonoOrden"], $post["metodoPagoOrden"], 'RECEPCIÓN', $user_cap]);
+					$sqlAbono = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, monto, metodo_pago, referencia_pago, id_usuario_recibio, usuario_recibio) VALUES (?, ?, ?, ?, ?, ?, ?)");
+					$ok = $sqlAbono->execute([$id_orden, $id_sucursal, $post["abonoOrden"], $post["metodoPagoOrden"], 'RECEPCIÓN', $id_usuario, $user_cap]);
 					if(!$ok) {
 						throw new Exception("Error al insertar el abono");
 					}
@@ -252,13 +252,13 @@
 			return $res;
 		}
 
-		public function registrar_abono(int $id_orden, float $monto, string $metodo_pago, int $sucursal, string $user_cap) {
+		public function registrar_abono(int $id_orden, float $monto, string $metodo_pago, int $sucursal, int $id_usuario, string $user_cap, int $id_caja) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Error al registrar abono';
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, monto, metodo_pago, referencia_pago, usuario_recibio) VALUES (?,?,?,?,?,?)");
-				$ok = $sql->execute(array($id_orden, $sucursal, $monto, $metodo_pago, 'ABONO', $user_cap));
+				$sql = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, caja_id, monto, metodo_pago, referencia_pago, id_usuario_recibido, usuario_recibio) VALUES (?,?,?,?,?,?,?,?)");
+				$ok = $sql->execute(array($id_orden, $sucursal, $id_caja, $monto, $metodo_pago, 'ABONO', $id_usuario, $user_cap));
 
 				if($ok) {
 					$idAbono = $this->dbh->lastInsertId();

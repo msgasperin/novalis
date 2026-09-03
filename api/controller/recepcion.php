@@ -139,7 +139,7 @@
             $_POST["total_neto"]      = $total_neto;
             $_POST["cargoExtra"]      = $cargoExtra;
             
-            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["nombre"], $_SESSION["id_sucursal"], $_SESSION["sucursal"]);
+            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["id_usuario"], $_SESSION["nombre"], $_SESSION["id_sucursal"], $_SESSION["sucursal"]);
             if($res["estatus"] == 200) {
               $g->bitacora('Orden registrada con folio: '.$res["data"][1], $res["data"][0] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }
@@ -160,13 +160,14 @@
         break;       
 
         case 'registra_abono':
-          if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"])) {
+
+          if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"]) || empty($_SESSION["id_caja"]) ) {
             $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
             echo json_encode($res);
             break;
           }
 
-          $res = $v->registrar_abono($_POST["idOrden"], $_POST["monto"], $_POST["metodoPago"], $_SESSION["id_sucursal"], $_SESSION["nombre"]);
+          $res = $v->registrar_abono($_POST["idOrden"], $_POST["monto"], $_POST["metodoPago"], $_SESSION["id_sucursal"], $_SESSION["id_usuario"], $_SESSION["nombre"], $_SESSION["id_caja"]);
 
           if($res["estatus"] == 200) {
             $g->bitacora('Abono registrado con ID: '.$res["data"][0].' a la orden: ', $_POST["idOrden"], $_SESSION["id_usuario"], $_SESSION["nombre"]);

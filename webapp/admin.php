@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionBandejas'); TabBandejas(); /* obtiene_alerta_pagos(); */">
+	<body onload="opcionActive('opcionRecepcion'); TabRecepcion(); /* obtiene_alerta_pagos(); */">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>
@@ -44,6 +44,10 @@
 			<div id="modalAdminDocs"></div>
 			<div id="modalLoader"></div>
 			<input type="hidden" id="perfilUs"  value="<?php echo $_SESSION["perfil"]; ?>" />
+			<input type="hidden" id="idCaja"  value="<?php echo $_SESSION["id_caja"]; ?>" />
+			<input type="hidden" id="estatusCaja"  value="<?php echo $_SESSION["estatus_caja"]; ?>" />
+			<input type="hidden" id="aperturaCaja"  value="<?php echo $_SESSION["fecha_apertura"]; ?>" />
+			<input type="hidden" id="cierreCaja"  value="<?php echo $_SESSION["fecha_cierre"]; ?>" />
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
@@ -79,6 +83,7 @@
 		<script type="module" src="components/Descuentos/Descuentos.js?<?=time()?>"></script>
 		<script type="module" src="components/DatosFacturacion/DatosFacturacion.js?<?=time()?>"></script>
 		<script type="module" src="components/Bandejas/Bandejas.js?<?=time()?>"></script>
+		<script type="module" src="components/Caja/Caja.js?<?=time()?>"></script>
 
 		<script>
 			$(document).on('select2:open', function() {
