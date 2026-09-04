@@ -95,7 +95,7 @@
         
         case 'registrar_orden':
 
-            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["sexo"]) || empty($_POST["tipoCliente"]) || !isset($_POST["idPrecio"]) || !isset($_POST["abonoOrden"]) || !isset($_POST["metodoPagoOrden"])) {
+            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["sexo"]) || empty($_POST["tipoCliente"]) || !isset($_POST["idPrecio"]) || !isset($_POST["abonoOrden"]) || !isset($_POST["metodoPagoOrden"]) || empty($_SESSION["id_caja"])) {
               $res = ['estatus' => 406, 'mensaje' => 'Faltan parámetros necesarios y obligatorios', 'data' => []];
               echo json_encode($res);
               break;
@@ -139,7 +139,7 @@
             $_POST["total_neto"]      = $total_neto;
             $_POST["cargoExtra"]      = $cargoExtra;
             
-            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["id_usuario"], $_SESSION["nombre"], $_SESSION["id_sucursal"], $_SESSION["sucursal"]);
+            $res = $v->registrar_orden($_POST, $_SESSION["carrito_orden"], $_SESSION["id_usuario"], $_SESSION["nombre"], $_SESSION["id_sucursal"], $_SESSION["sucursal"], $_SESSION["id_caja"]);
             if($res["estatus"] == 200) {
               $g->bitacora('Orden registrada con folio: '.$res["data"][1], $res["data"][0] , $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }

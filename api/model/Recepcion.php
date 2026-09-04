@@ -116,7 +116,7 @@
 			return $res;
 		}
 
-		public function registrar_orden(array $post, array $carrito, int $id_usuario, string $user_cap, int $id_sucursal, string $sucursal) {
+		public function registrar_orden(array $post, array $carrito, int $id_usuario, string $user_cap, int $id_sucursal, string $sucursal, int $id_caja) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Hubo un problema procesar el pedido';
@@ -197,8 +197,8 @@
 				}
 
 				if(floatval($post["abonoOrden"]) > 0) {
-					$sqlAbono = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, monto, metodo_pago, referencia_pago, id_usuario_recibio, usuario_recibio) VALUES (?, ?, ?, ?, ?, ?, ?)");
-					$ok = $sqlAbono->execute([$id_orden, $id_sucursal, $post["abonoOrden"], $post["metodoPagoOrden"], 'RECEPCIÓN', $id_usuario, $user_cap]);
+					$sqlAbono = $this->dbh->prepare("INSERT INTO orden_pagos (orden_id, sucursal_id, caja_id, monto, metodo_pago, referencia_pago, id_usuario_recibio, usuario_recibio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+					$ok = $sqlAbono->execute([$id_orden, $id_sucursal, $id_caja, $post["abonoOrden"], $post["metodoPagoOrden"], 'RECEPCIÓN', $id_usuario, $user_cap]);
 					if(!$ok) {
 						throw new Exception("Error al insertar el abono");
 					}

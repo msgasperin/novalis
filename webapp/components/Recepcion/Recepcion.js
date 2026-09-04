@@ -16,7 +16,6 @@ const TabRecepcion = () => {
    let estatusCaja  = $('#estatusCaja').val().trim();
    let idCaja       = $('#idCaja').val().trim();
    let aperturaCaja = $('#aperturaCaja').val().trim();
-   let cierreCaja   = $('#idCaja').val().trim();
    let perfilUs     = $('#perfilUs').val().trim();
    let btnAcciones  = '';
 
@@ -32,17 +31,21 @@ const TabRecepcion = () => {
       }
       else {
          btnAcciones+=`
-         <button class="btn btn-outline-secondary btn-redondo fs-6" type="button" id="btnMovimientoCaja" onclick="ModalMovimientoCaja();">
-            <i class="bi bi-arrow-down-up"></i> Movimiento
-         </button>           
-
-         <button class="btn btn-outline-dark btn-redondo fs-6" type="button" id="btnCerrarCaja" onclick="ModalCerrarCaja();">
-            <i class="bi bi-key-fill"></i> Cerrar Caja
+         <button class="btn btn-outline-secondary" type="button" id="btnMiCorte" onclick="ModalMiCorte();" title="Mi Corte">
+            <i class="bi bi-receipt-cutoff"></i>
          </button>
 
-         <button class="btn btn-success btn-redondo fs-6" type="button" id="btnNuevaOrden" onclick="TabRecepcion();">
-            <i class="bi bi-plus-lg"></i> Nueva orden
-         </button>`
+         <button class="btn btn-outline-secondary" type="button" id="btnMovimientoCaja" onclick="ModalMovimientosCaja();" title="Movimientos">
+            <i class="bi bi-arrow-down-up"></i>
+         </button>           
+
+         <button class="btn btn-outline-dark" type="button" id="btnCerrarCaja" onclick="ModalCerrarCaja();" title="Cerrar Caja">
+            <i class="bi bi-lock-fill"></i>
+         </button>
+
+         <button class="btn btn-success" type="button" id="btnNuevaOrden" onclick="TabRecepcion();" title="Nueva orden">
+            <i class="bi bi-plus-lg"></i>
+         </button>`;
       }      
    }
 
@@ -1123,11 +1126,11 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
 
                <!-- Acciones -->
                <div class="text-center mt-4 pt-2">
-                  <button type="button" class="btn btn-dark btn-redondo px-4 me-2 shadow-sm" id="btnRegistrarOrden" onclick="registra_orden();">
-                     <i class="bi bi-check-lg me-1"></i> Registrar orden
-                  </button>
                   <button type="button" class="btn btn-outline-secondary btn-redondo px-4" data-bs-dismiss="modal">
                      <i class="bi bi-x-lg me-1"></i> No, cancelar
+                  </button>
+                  <button type="button" class="btn btn-dark btn-redondo px-4 me-2 shadow-sm" id="btnRegistrarOrden" onclick="registra_orden();">
+                     <i class="bi bi-check-lg me-1"></i> Registrar orden
                   </button>
                </div>
 

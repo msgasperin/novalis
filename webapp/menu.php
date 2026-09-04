@@ -31,7 +31,7 @@
         </div>
         <div class="mt-cel">
 
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE' || $_SESSION["perfil"] == 'RECEPCION') { ?>
             <div class="opciones_menu align-menu" id="opcionRecepcion" onclick="opcionActive('opcionRecepcion'), TabRecepcion(), cerrarMenu();">
               <i class="bi bi-clipboard-minus icon-menu"></i>
               <div>Recepción</div>
@@ -52,14 +52,14 @@
             </div>
           <?php } ?>
           
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE' || $_SESSION["perfil"] == 'RECEPCION') { ?>
             <div class="opciones_menu align-menu" id="opcionPacientes" onclick="opcionActive('opcionPacientes'), TabPacientes(), cerrarMenu();">
               <i class="bi bi-people icon-menu"></i>
               <div>Pacientes</div>
             </div>
           <?php } ?>
 
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE' || $_SESSION["perfil"] == 'RECEPCION') { ?>
             <div class="opciones_menu align-menu" id="opcionConvenio" onclick="opcionActive('opcionConvenio'), TabConvenios(), cerrarMenu();">
               <i class="bi bi-building-gear icon-menu"></i>
               <div>Convenios</div>

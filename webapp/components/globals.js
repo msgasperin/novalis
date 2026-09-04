@@ -64,7 +64,9 @@ const USOS_CFDI = [
 const arrayMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const hoy = new Date();
-const fecActual = hoy.toISOString().split('T')[0];
+// Opción con es-MX configurado para dar YYYY-MM-DD
+const opciones = { year: 'numeric', month: '2-digit', day: '2-digit' };
+const fecActual = hoy.toLocaleDateString('es-MX', opciones).split('/').reverse().join('-');
 
 // 2. Obtener la fecha con +7 días
 const futura = new Date();
