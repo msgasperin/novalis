@@ -25,7 +25,14 @@
 				$fecha_ini = date('Y-m-d').' 00:00:00';
 				$fecha_fin = date('Y-m-d').' 23:59:59';
 
-				$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, total_neto, total_abonado, saldo_deudor, es_urgente, requiere_factura, publicada FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
+				$sql = $this->dbh->prepare(
+					"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, DATE_FORMAT(O.fecha_publicada, '%d-%m-%Y') AS fecha_publicada, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
+					FROM ordenes_trabajo AS O
+					INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id
+					WHERE (O.fecha_cap >= ? AND O.fecha_cap <= ?) AND sucursal_id = ? ORDER BY O.id DESC"
+				);
+
+				//$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, total_neto, total_abonado, saldo_deudor, es_urgente, requiere_factura, publicada FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
 				$sql->execute([$fecha_ini, $fecha_fin, $id_sucursal]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -48,8 +55,9 @@
 					$term_boolean = implode('* ', $palabras) . '*';
 
 					$sql = $this->dbh->prepare(
-						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada
-						FROM ordenes_trabajo 
+						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, DATE_FORMAT(O.fecha_publicada, '%d-%m-%Y') AS fecha_publicada, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
+						FROM ordenes_trabajo AS O
+						INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id 
 						WHERE sucursal_id = ? AND MATCH(paciente_nombre_historico) AGAINST(? IN BOOLEAN MODE) $filtro_estatus"
 					);
 					$sql->execute([$id_sucursal, $term_boolean]);
@@ -75,8 +83,9 @@
 					}
 
 					$sql = $this->dbh->prepare(
-						"SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada 
-						FROM ordenes_trabajo 
+						"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, DATE_FORMAT(O.fecha_publicada, '%d-%m-%Y') AS fecha_publicada, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
+						FROM ordenes_trabajo AS O
+						INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id 
 						WHERE sucursal_id = ? $condicion $filtro_estatus"
 					);
 					$sql->execute([$id_sucursal]);

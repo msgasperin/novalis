@@ -32,3 +32,9 @@ export const obtener_mis_cortes_caja = async (fecha) => {
    let respuesta = await postJSON('../api/controller/caja.php', datos);
    return respuesta;
 };
+
+export const obtener_movimientos_corte = async (idCaja) => {
+   let datos = { func: 'obtener_movimientos_corte', idCaja }
+   let respuesta = await postJSON('../api/controller/caja.php', datos);
+   return respuesta;
+};

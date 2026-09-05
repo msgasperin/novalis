@@ -7,14 +7,29 @@
 	   	$this->conectar();
 	  	}
 		
+		public function generarCadena(int $longitud = 10) {
+			$caracteres = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+			$max = strlen($caracteres) - 1;
+			$cadena = '';
+
+			for ($i = 0; $i < $longitud; $i++) {
+				$cadena .= $caracteres[random_int(0, $max)];
+			}
+
+			return $cadena;
+		}
+
 		public function abrir_caja(float $fondo_inicial, int $id_usuario, int $id_sucursal) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Error al abrir caja';
 
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO cajas_sesiones (id_sucursal, id_usuario, fondo_inicial, fecha_apertura) VALUES (?,?,?,?)");
-				$ok = $sql->execute([$id_sucursal, $id_usuario, $fondo_inicial, date('Y-m-d H:i:s')]);
+
+				$key_query = $this->generarCadena(20);
+
+				$sql = $this->dbh->prepare("INSERT INTO cajas_sesiones (id_sucursal, id_usuario, fondo_inicial, fecha_apertura, key_query) VALUES (?,?,?,?,?)");
+				$ok = $sql->execute([$id_sucursal, $id_usuario, $fondo_inicial, date('Y-m-d H:i:s'), $key_query]);
 
 				if($ok) {
 					$id_caja = $this->dbh->lastInsertId();
@@ -69,36 +84,77 @@
 					
 					$rowMontos = $sqlMontos->fetch(PDO::FETCH_ASSOC);
 
+					$ingresos_efectivo      = $rowMontos['cobros_efectivo'] + $rowMontos['ingresos_efectivo'];
+					$ingresos_tarjeta       = $rowMontos['cobros_tarjeta'] + $rowMontos['ingresos_tarjeta'];
+					$ingresos_transferencia = $rowMontos['cobros_transferencia'] + $rowMontos['ingresos_transferencia'];
 
 					// Totales finales de sistema por método de pago (El efectivo incluye el Fondo Inicial):
-					$sistema_efectivo      = ($rowMontos['fondo_inicial'] + $rowMontos['cobros_efectivo'] + $rowMontos['ingresos_efectivo']) - $rowMontos['egresos_efectivo'];
-					$sistema_tarjeta       = ($rowMontos['cobros_tarjeta'] + $rowMontos['ingresos_tarjeta']) - $rowMontos['egresos_tarjeta'];
-					$sistema_transferencia = ($rowMontos['cobros_transferencia'] + $rowMontos['ingresos_transferencia']) - $rowMontos['egresos_transferencia'];
+					$neto_efectivo      = $ingresos_efectivo - $rowMontos['egresos_efectivo'];
+					$neto_tarjeta       = $ingresos_tarjeta - $rowMontos['egresos_tarjeta'];
+					$neto_transferencia = $ingresos_transferencia - $rowMontos['egresos_transferencia'];
 
 					// Total esperado global por el sistema:
-					$total_esperado_sistema  = $sistema_efectivo + $sistema_tarjeta + $sistema_transferencia;
+					$total_esperado_sistema  = $rowMontos["fondo_inicial"] + $neto_efectivo + $neto_tarjeta + $neto_transferencia;
 
 					// Total declarado por el usuario:
 					$total_declarado_usuario = $dec_efectivo + $dec_tarjeta + $dec_transferencia;
 
 					// Total general de egresos (para registro de auditoría):
-					$sistema_egresos         = $rowMontos['egresos_efectivo'] + $rowMontos['egresos_tarjeta'] + $rowMontos['egresos_transferencia'];
+					$sistema_ingresos = $rowMontos['fondo_inicial'] + $ingresos_efectivo + $ingresos_tarjeta + $ingresos_transferencia;
+					$sistema_egresos  = $rowMontos['egresos_efectivo'] + $rowMontos['egresos_tarjeta'] + $rowMontos['egresos_transferencia'];
 
 					// Diferencia global real (Declarado - Esperado):
-					$diferencia              = $total_declarado_usuario - $total_esperado_sistema;
+					$diferencia       = $total_declarado_usuario - $total_esperado_sistema;
 
-					$sql = $this->dbh->prepare("UPDATE cajas_sesiones SET fecha_cierre = ?, declarado_efectivo = ?, declarado_tarjeta = ?, declarado_transferencia = ?, sistema_efectivo = ?, sistema_tarjeta = ?, sistema_transferencia = ?, sistema_egresos = ?, diferencia = ?, observaciones = ?, estatus = ? WHERE id_caja = ? AND id_usuario = ? AND estatus = ?");
+					$sql = $this->dbh->prepare("UPDATE cajas_sesiones SET 
+						fecha_cierre = ?, 
+						declarado_efectivo = ?, 
+						declarado_tarjeta = ?, 
+						declarado_transferencia = ?,
+						ingresos_efectivo = ?, 
+						egresos_efectivo = ?, 
+						sistema_efectivo = ?, 
+						ingresos_tarjeta = ?, 
+						egresos_tarjeta = ?, 
+						sistema_tarjeta = ?, 
+						ingresos_transferencia = ?, 
+						egresos_transferencia = ?, 
+						sistema_transferencia = ?, 
+						sistema_ingresos = ?, 
+						sistema_egresos = ?, 
+						total_declarado = ?, 
+						total_esperado_sistema = ?,
+						diferencia = ?, 
+						observaciones = ?, 
+						estatus = ? 
+						WHERE id_caja = ? AND id_usuario = ? AND estatus = ?"
+					);
 					$ok = $sql->execute(
 						[
 							date('Y-m-d H:i:s'),
 							$dec_efectivo,
 							$dec_tarjeta,
 							$dec_transferencia,
-							$sistema_efectivo,
-							$sistema_tarjeta,
-							$sistema_transferencia,
+
+							$ingresos_efectivo,
+							$rowMontos["egresos_efectivo"],
+							$neto_efectivo,
+
+							$ingresos_tarjeta,
+							$rowMontos["egresos_tarjeta"],
+							$neto_tarjeta,
+
+							$ingresos_transferencia,
+							$rowMontos["egresos_transferencia"],
+							$neto_transferencia,
+
+							$sistema_ingresos,
 							$sistema_egresos,
+
+							$total_declarado_usuario,
+							$total_esperado_sistema,
 							$diferencia,
+
 							$observaciones,
 							'cerrada',
 							$id_caja,
@@ -203,9 +259,37 @@
 		public function obtener_mis_cortes_caja(string $fecha) {
 			$res = [];
 			try {				
-				$sql = $this->dbh->prepare("SELECT id_caja, id_sucursal, fondo_inicial, DATE_FORMAT(fecha_apertura, '%H:%i %p') AS hora_apertura, DATE_FORMAT(fecha_cierre, '%H:%i %p') AS hora_cierre, declarado_efectivo, declarado_tarjeta, declarado_transferencia, sistema_efectivo, sistema_tarjeta, sistema_transferencia, sistema_egresos, diferencia, observaciones, estatus FROM cajas_sesiones WHERE DATE(fecha_apertura) = ?");
+				$sql = $this->dbh->prepare("SELECT id_caja, id_sucursal, fondo_inicial, DATE_FORMAT(fecha_apertura, '%H:%i %p') AS hora_apertura, DATE_FORMAT(fecha_cierre, '%H:%i %p') AS hora_cierre, declarado_efectivo, declarado_tarjeta, declarado_transferencia, ingresos_efectivo, egresos_efectivo, sistema_efectivo, ingresos_tarjeta, egresos_tarjeta,sistema_tarjeta, ingresos_transferencia, egresos_transferencia, sistema_transferencia, sistema_ingresos, sistema_egresos, total_declarado, total_esperado_sistema, diferencia, observaciones, estatus, key_query FROM cajas_sesiones WHERE DATE(fecha_apertura) = ?");
 				$sql->execute([$fecha]);				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
+			} catch (Exception $error) {
+        		error_log($error->getMessage());
+			}
+						
+			return $res;
+		}
+
+		public function obtener_movimientos_corte(int $id_caja) {
+			$res = [
+				'movimientos_manuales' => [],
+				'pagos' => []
+			];
+			try {
+
+				// Obtenemos los movimientos manuales de caja
+				$sqlMovimientos = $this->dbh->prepare("SELECT id_movimiento, tipo, concepto, monto, forma_pago, comprobante, DATE_FORMAT(fecha_movimiento, '%d-%m-%Y %H:%i %p') AS fecha_movimiento, usuario_registro FROM caja_movimientos WHERE activo = ? AND caja_id = ? ORDER BY id_movimiento");
+				$sqlMovimientos->execute([1, $id_caja]);				
+				$resMovimientos = $sqlMovimientos->fetchAll(PDO::FETCH_ASSOC);
+
+				$res["movimientos_manuales"] = $resMovimientos;
+
+				// Obtenemos abonos registrados
+				$sqlPagos = $this->dbh->prepare("SELECT monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago,'%d-%m-%Y %H:%i %p') AS fecha_pago FROM orden_pagos WHERE estatus = ? AND caja_id = ?");
+				$sqlPagos->execute([1, $id_caja]);
+				$resPagos = $sqlPagos->fetchAll(PDO::FETCH_ASSOC);
+
+				$res["pagos"] = $resPagos;
+
 			} catch (Exception $error) {
         		error_log($error->getMessage());
 			}

@@ -107,6 +107,18 @@
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 
+         case 'obtener_movimientos_corte':
+
+            if(empty($_POST["idCaja"])) {
+               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+               echo json_encode($res);
+               break;
+            }
+
+            $res = $v->obtener_movimientos_corte($_POST["idCaja"]);
+            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+         break;
+
          default:
             echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", 'data' => []]); // Función no encontrada
          break;

@@ -182,6 +182,7 @@ const obtener_ordenes_hoy = async (containerId) => {
    else {
       let res = await respuesta.data;
       arrOrdenesHoy = res;
+      arrOrdenesBandeja = res;
       pinta_ordenes_del_dia(arrOrdenesHoy, containerId);
    }
 }
@@ -216,10 +217,10 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                   </span>
                </div>
                <div class="col-6 text-end d-flex align-items-center justify-content-end gap-1">
-                  <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded border">
+                  <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded border pointer" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');" title="Ver detalles de la orden">
                      #${row.folio}
                   </span>
-                  
+
                   <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir ticket">
                      <i class="bi bi-receipt text-primary fs-7"></i>
                   </a>
@@ -610,7 +611,7 @@ const combo_listas_convenios = async (containerId) => {
          let res = await respuesta.data;
          if(res.length > 0) {
             res.map((convenio) => {
-               comboConvenios +=`<option value="${convenio.id_convenio}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}" data-nom-precio="${convenio.nombre}">${convenio.razon_social}</option>`;
+               comboConvenios +=`<option value="${convenio.id_convenio}" data-tipo="${convenio.tipo}" data-lista-precio="${convenio.lista_precio_id}" data-nom-precio="${convenio.nombre}">${convenio.nombre_comercial}</option>`;
             });
             $('#'+containerId).html(comboConvenios);
          }      
@@ -894,10 +895,6 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
    let tipoCliente    = $('input[name="optionTipoCliente"]:checked').val();
    let selectConvenio = document.getElementById("selectConvenioEmpresa");
    let idConvenio     = selectConvenio.value;
-   let tipoConvenio   = $('option:selected', selectConvenio).attr('data-tipo');
-   let nomConvenio    = $('#selectConvenioEmpresa option:selected').text();
-   let idPrecio       = $('option:selected', selectConvenio).attr('data-lista-precio');
-   let nomPrecio      = $('option:selected', selectConvenio).attr('data-nom-precio');  
    total              = parseFloat(total) || 0;
 
    if(parseFloat(idPaciente) == 0 || nomPaciente == '' || sexo == '' || tipoCliente == '' || edad == '') {      
@@ -1683,6 +1680,7 @@ const busqueda_avanzada_ordenes = async (containerId) => {
    else {
       let res = respuesta.data;
       arrOrdenesBusAvanzada = res;
+      arrOrdenesBandeja     = res;
       pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, containerId);
    }
 }
@@ -1695,10 +1693,10 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
          <thead class="table-dark text-uppercase small">
             <tr class="border-start border-1 border-dark">
                <th width="15%" class="text-center py-2">Orden</th>
-               <th width="35%" class="py-2">Paciente / Convenio</th>
+               <th width="30%" class="py-2">Paciente / Convenio</th>
                <th width="15%" class="text-center py-2">Registro</th>
                <th width="20%" class="text-center py-2">Estado Pago</th>
-               <th width="15%" class="text-center py-2">Acciones</th>
+               <th width="20%" class="text-center py-2">Acciones</th>
             </tr>
          </thead>
          <tbody>`;
@@ -1779,6 +1777,11 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                         <i class="bi bi-check-circle text-success fs-7"></i>
                      </button>`;
                   }
+
+                  html+=`
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
+                     <i class="bi bi-file-text"></i> 
+                  </button>`;
                   
                   html+=`
                </td>

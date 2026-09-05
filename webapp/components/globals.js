@@ -1,3 +1,5 @@
+let arrOrdenesBandeja = [];
+
 const comboMeses = `
 <option value="1">Enero</option>
 <option value="2">Febrero</option>
@@ -629,5 +631,6 @@ window.getBadgeEstatus         = getBadgeEstatus;
 window.getCeldaPago            = getCeldaPago;
 window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
 window.USOS_CFDI               = USOS_CFDI;
+window.arrOrdenesBandeja       = arrOrdenesBandeja;
 
 

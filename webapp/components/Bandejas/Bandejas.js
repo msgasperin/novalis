@@ -1,11 +1,9 @@
 import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado, marcar_orden_como_parcial, marcar_orden_como_completada, procesar_publicacion_notificacion, notificar_mail_resultados } from "./BandejasServices.js";
 
 let arrPdfResultados  = [];
-let arrOrdenesBandeja = [];
 
 const TabBandejas = () => {
-   let fechaHoy = new Date().toISOString().split('T')[0];
-
+   
    let html = `
    <div class="row">
       <div class="col-12 mt-2">
@@ -34,8 +32,8 @@ const TabBandejas = () => {
             <span class="input-group-text bg-white">
                <i class="bi bi-calendar-range text-muted"></i>
             </span>
-            <input type="date" name="filtroFechaInicio" id="filtroFechaInicio" class="form-control" value="${fechaHoy}">
-            <input type="date" name="filtroFechaFin" id="filtroFechaFin" class="form-control" value="${fechaHoy}">
+            <input type="date" name="filtroFechaInicio" id="filtroFechaInicio" class="form-control" value="${fecActual}">
+            <input type="date" name="filtroFechaFin" id="filtroFechaFin" class="form-control" value="${fecActual}">
          </div>
       </div>
    </div>
@@ -1123,7 +1121,7 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
       </div>
    </div>`;
 
-   $('#modalAdmin').html(html);
+   $('#modalAdminExt').html(html);
    $('#modalViewDetallesOrden').modal('show');
    obtenerEstudiosOrdenDetalle(idOrden);
    obtenerArchivosOrdenDetalle(idOrden, folio);
