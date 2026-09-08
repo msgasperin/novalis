@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionRecepcion'); TabRecepcion(); /* obtiene_alerta_pagos(); */">
+	<body onload="opcionActive('opcionRecepcion'); TabReportes(); /* obtiene_alerta_pagos(); */">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>
@@ -84,6 +84,7 @@
 		<script type="module" src="components/DatosFacturacion/DatosFacturacion.js?<?=time()?>"></script>
 		<script type="module" src="components/Bandejas/Bandejas.js?<?=time()?>"></script>
 		<script type="module" src="components/Caja/Caja.js?<?=time()?>"></script>
+		<script type="module" src="components/Reportes/Reportes.js?<?=time()?>"></script>
 
 		<script>
 			$(document).on('select2:open', function() {

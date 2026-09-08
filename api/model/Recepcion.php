@@ -32,7 +32,6 @@
 					WHERE (O.fecha_cap >= ? AND O.fecha_cap <= ?) AND sucursal_id = ? ORDER BY O.id DESC"
 				);
 
-				//$sql = $this->dbh->prepare("SELECT id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, key_query, total_neto, total_abonado, saldo_deudor, es_urgente, requiere_factura, publicada FROM ordenes_trabajo WHERE fecha_cap >= ? AND fecha_cap <= ? AND sucursal_id = ? ORDER BY id DESC");
 				$sql->execute([$fecha_ini, $fecha_fin, $id_sucursal]);				
 				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);

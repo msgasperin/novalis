@@ -753,10 +753,10 @@ const pinta_mis_cortes_caja = (data, containerId) => {
          badgeDifEfectivo = `<span class="badge bg-success-subtle text-success border border-success-subtle fs-7">$0.00</span>`;
       } 
       else if (row.diferencia < 0) {
-         badgeDifEfectivo = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-7">$${row.diferencia}</span>`;
+         badgeDifEfectivo = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-7">$${row.diferencia ?? 0}</span>`;
       } 
       else {
-         badgeDifEfectivo = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fs-7">+$${row.diferencia}</span>`;
+         badgeDifEfectivo = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fs-7">+$${row.diferencia ?? 0}</span>`;
       }
 
       html += 

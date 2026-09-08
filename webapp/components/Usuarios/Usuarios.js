@@ -331,10 +331,11 @@ const fn_buscar_usuario = () => {
 }
 
 // Interfaces
-window.TabUsuarios          = TabUsuarios;
-window.ModalFormUsuario     = ModalFormUsuario;
+window.TabUsuarios             = TabUsuarios;
+window.ModalFormUsuario        = ModalFormUsuario;
 
 // Funciones
-window.fn_eliminar_usuario  = fn_eliminar_usuario;
-window.fn_guardar_usuario   = fn_guardar_usuario;
-window.fn_buscar_usuario    = fn_buscar_usuario;
+window.fn_eliminar_usuario     = fn_eliminar_usuario;
+window.fn_guardar_usuario      = fn_guardar_usuario;
+window.fn_buscar_usuario       = fn_buscar_usuario;
+window.combo_listas_sucursales = combo_listas_sucursales;

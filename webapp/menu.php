@@ -47,8 +47,8 @@
 
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
             <div class="opciones_menu align-menu" id="opcionFinanciero" onclick="opcionActive('opcionFinanciero'), TabRecepcion(), cerrarMenu();">
-              <i class="bi bi-currency-dollar icon-menu"></i>
-              <div>Gestión Financiera</div>
+              <i class="bi bi-bar-chart icon-menu"></i>
+              <div>Reportes y Estadísticas</div>
             </div>
           <?php } ?>
           

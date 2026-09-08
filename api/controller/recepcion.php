@@ -95,7 +95,13 @@
         
         case 'registrar_orden':
 
-            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["sexo"]) || empty($_POST["tipoCliente"]) || !isset($_POST["idPrecio"]) || !isset($_POST["abonoOrden"]) || !isset($_POST["metodoPagoOrden"]) || empty($_SESSION["id_caja"])) {
+            if(empty($_SESSION["id_caja"]) ) {
+              $res = ['estatus' => 500, 'mensaje' => 'No hay una sesión de caja activa, es necesaria para realizar esta acción', 'data' => []];
+              echo json_encode($res);
+              break;
+            }
+
+            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["sexo"]) || empty($_POST["tipoCliente"]) || !isset($_POST["idPrecio"]) || !isset($_POST["abonoOrden"]) || !isset($_POST["metodoPagoOrden"])) {
               $res = ['estatus' => 406, 'mensaje' => 'Faltan parámetros necesarios y obligatorios', 'data' => []];
               echo json_encode($res);
               break;
@@ -161,7 +167,13 @@
 
         case 'registra_abono':
 
-          if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"]) || empty($_SESSION["id_caja"]) ) {
+          if(empty($_SESSION["id_caja"]) ) {
+            $res = ['estatus' => 500, 'mensaje' => 'No hay una sesión de caja activa, es necesaria para realizar esta acción', 'data' => []];
+            echo json_encode($res);
+            break;
+          }
+          
+          if(empty($_POST["idOrden"]) || empty($_POST["monto"]) || !isset($_POST["metodoPago"]) ) {
             $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
             echo json_encode($res);
             break;

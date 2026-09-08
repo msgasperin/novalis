@@ -23,7 +23,7 @@
                break;
             }
 
-            $res = $v->abrir_caja($_POST["fondoInicial"], $_SESSION["id_usuario"], $_SESSION["id_sucursal"]);
+            $res = $v->abrir_caja($_POST["fondoInicial"], $_SESSION["id_usuario"], $_SESSION["nombre"], $_SESSION["id_sucursal"]);
             if($res["estatus"] == 200) {
                $_SESSION["id_caja"]        = $res["data"][0];
                $_SESSION["estatus_caja"]   = 'abierta';

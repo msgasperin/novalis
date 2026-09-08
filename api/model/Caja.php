@@ -19,7 +19,7 @@
 			return $cadena;
 		}
 
-		public function abrir_caja(float $fondo_inicial, int $id_usuario, int $id_sucursal) {
+		public function abrir_caja(float $fondo_inicial, int $id_usuario, string $nom_usuario, int $id_sucursal) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Error al abrir caja';
@@ -28,8 +28,8 @@
 
 				$key_query = $this->generarCadena(20);
 
-				$sql = $this->dbh->prepare("INSERT INTO cajas_sesiones (id_sucursal, id_usuario, fondo_inicial, fecha_apertura, key_query) VALUES (?,?,?,?,?)");
-				$ok = $sql->execute([$id_sucursal, $id_usuario, $fondo_inicial, date('Y-m-d H:i:s'), $key_query]);
+				$sql = $this->dbh->prepare("INSERT INTO cajas_sesiones (id_sucursal, id_usuario, usuario_registro, fondo_inicial, fecha_apertura, key_query) VALUES (?,?,?,?,?,?)");
+				$ok = $sql->execute([$id_sucursal, $id_usuario, $nom_usuario, $fondo_inicial, date('Y-m-d H:i:s'), $key_query]);
 
 				if($ok) {
 					$id_caja = $this->dbh->lastInsertId();
