@@ -36,6 +36,10 @@
                case 1:
                   $res = $v->cortes_caja($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
                break;
+
+               case 2:
+                  $res = $v->flujo_dinero($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
                
                default:
                   $res = ['estatus' => 500, 'mensaje' => 'Tipo de reporte inválido', 'data' => []];

@@ -40,7 +40,7 @@ const TabReportes = () => {
 
       <!-- Flujo de Operación y Pagos -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('flujo_operacion', 'Flujo de Operación y Movimientos', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('flujo_operacion', 'Flujo de Operación y Movimientos', 2);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -59,7 +59,7 @@ const TabReportes = () => {
 
       <!-- Cuentas por Cobrar (Saldos Deudores) -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('saldos_deudores', 'Cuentas por Cobrar', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('saldos_deudores', 'Cuentas por Cobrar', 3);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -87,7 +87,7 @@ const TabReportes = () => {
 
       <!-- Estudios Más Solicitados y Utilidad -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('estudios_solicitados', 'Estudios y Demanda', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('estudios_solicitados', 'Estudios y Demanda', 4);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -106,7 +106,7 @@ const TabReportes = () => {
 
       <!-- Rendimiento por Convenios -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('rendimiento_convenios', 'Rendimiento de Convenios', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('rendimiento_convenios', 'Rendimiento de Convenios', 5);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -125,7 +125,7 @@ const TabReportes = () => {
 
       <!-- Análisis Demográfico de Pacientes -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('demografia_pacientes', 'Demografía de Pacientes', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('demografia_pacientes', 'Demografía de Pacientes', 6);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -144,7 +144,7 @@ const TabReportes = () => {
 
       <!-- Descuentos y Cancelaciones -->
       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('descuentos_cancelaciones', 'Auditoría de Descuentos y Cancelaciones', 1);">
+         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('descuentos_cancelaciones', 'Auditoría de Descuentos y Cancelaciones', 7);">
             <div class="card-body">
                <div class="d-flex justify-content-center mb-3">
                   <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
@@ -248,25 +248,10 @@ const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {
 
             </div>
 
-            <!-- PIE DEL MODAL (BOTONES DE ACCIÓN) -->
-            <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
-               
-               <div class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-outline-success" id="btnExportarExcel" disabled>
-                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                  </button>
-                  <button type="button" class="btn btn-outline-danger" id="btnExportarPDF" disabled>
-                     <i class="bi bi-file-earmark-pdf me-1"></i> PDF
-                  </button>
-                  <button type="button" class="btn btn-outline-secondary" id="btnImprimirReporte" disabled>
-                     <i class="bi bi-printer me-1"></i> Imprimir
-                  </button>
-               </div>
-
+            <div class="modal-footer bg-light">
                <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-4" data-bs-dismiss="modal">
                   Cerrar ventana
                </button>
-
             </div>
 
          </div>
@@ -280,9 +265,13 @@ const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {
 }
 
 const generar_reporte = async (idTipo) => {
-   let fechaIni   = $('#filtro_fecha_inicio').val().trim();
-   let fechaFin   = $('#filtro_fecha_fin').val().trim();
-   let idSucursal = $('#filtro_sucursal_id').val().trim();
+   let fechaIni       = $('#filtro_fecha_inicio').val().trim();
+   let fechaFin       = $('#filtro_fecha_fin').val().trim();
+   let idSucursal     = $('#filtro_sucursal_id').val().trim();
+   let nombreSucursal = $('#filtro_sucursal_id option:selected').text().trim();
+
+   idSucursal == 0 ? nombreSucursal = 'Todas las sucursales' : nombreSucursal;
+
    let html       = '';
    arrReporte     = [];
    
@@ -329,12 +318,17 @@ const generar_reporte = async (idTipo) => {
       $('#btnGeneraReporte').prop('disabled', false);
 
       if(idTipo == 1) {
-         pintar_reporte_cortes_caja(arrReporte);
+         pintar_reporte_cortes_caja(arrReporte, nombreSucursal);
+      }
+      else if(idTipo == 2) {
+         pintar_reporte_flujo_operativo(arrReporte, nombreSucursal);
       }
    }
 }
 
-const pintar_reporte_cortes_caja = (data) => {
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CORTES Y ARQUEOS DE CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const pintar_reporte_cortes_caja = (data, nombreSucursal) => {
    
    let html = 
    `<div class="table-responsive" style="max-height: 550px;">
@@ -415,6 +409,14 @@ const pintar_reporte_cortes_caja = (data) => {
             html +=
          `</tbody>
       </table>
+   </div>
+   <div class="btn-group btn-group-sm mt-2" role="group">
+      <button type="button" class="btn btn-outline-success" id="btnExportarExcel" onclick="exportar_caja_excel('${nombreSucursal}');">
+         <i class="bi bi-file-earmark-excel me-1"></i> Excel
+      </button>
+      <button type="button" class="btn btn-outline-danger" id="btnExportarPDF" onclick="exportar_caja_pdf('${nombreSucursal}');">
+         <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+      </button>
    </div>`;
 
    $('#containerResultadosReporte').html(html);
@@ -423,7 +425,333 @@ const pintar_reporte_cortes_caja = (data) => {
    $('#btnExportarExcel, #btnExportarPDF, #btnImprimirReporte').removeAttr('disabled');
 }
 
+const exportar_caja_excel = (nombreSucursal) => {
+   if (!arrReporte || arrReporte.length === 0) {
+      ToastColor.fire({
+         text: 'No hay datos disponibles para exportar',
+         icon: 'warning'
+      });
+      return;
+   }
+
+   // 1. Mapeamos la data global a una estructura limpia con nombres de columnas amigables
+   let datosExcel = arrReporte.map(row => {
+      let dif = parseFloat(row.diferencia ?? 0);
+      let estadoDif = dif === 0 ? 'Cuadre' : (dif < 0 ? 'Faltante' : 'Sobrante');
+
+      return {
+         'Caja ID': row.id_caja,
+         'Estatus': row.estatus,
+         'Cajero': row.usuario_registro ?? 'N/A',
+         'Apertura': row.fecha_apertura ?? '',
+         'Cierre': row.fecha_cierre ?? 'En curso',
+         'Fondo Inicial ($)': parseFloat(row.fondo_inicial ?? 0),
+         'Esp. Efectivo ($)': parseFloat(row.sistema_efectivo ?? 0),
+         'Esp. Tarjeta ($)': parseFloat(row.sistema_tarjeta ?? 0),
+         'Esp. Transf ($)': parseFloat(row.sistema_transferencia ?? 0),
+         'Total Esperado ($)': parseFloat(row.total_esperado_sistema ?? 0),
+         'Decl. Efectivo ($)': parseFloat(row.declarado_efectivo ?? 0),
+         'Decl. Tarjeta ($)': parseFloat(row.declarado_tarjeta ?? 0),
+         'Decl. Transf ($)': parseFloat(row.declarado_transferencia ?? 0),
+         'Total Declarado ($)': parseFloat(row.total_declarado ?? 0),
+         'Diferencia ($)': dif,
+         'Estado Auditoría': estadoDif,
+         'Observaciones': row.observaciones ?? ''
+      };
+   });
+
+   // 2. Crear hoja de trabajo y libro
+   const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+   const workbook  = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(workbook, worksheet, "Cortes_Caja_"+nombreSucursal);
+
+   // 3. Generar archivo con fecha actual en el nombre
+   let fechaHoy = new Date().toISOString().split('T')[0];
+   XLSX.writeFile(workbook, `Reporte_Cortes_Caja_${fechaHoy}.xlsx`);
+};
+
+const exportar_caja_pdf = (nombreSucursal) => {
+   if (!arrReporte || arrReporte.length === 0) {
+      ToastColor.fire({
+         text: 'No hay datos disponibles para exportar',
+         icon: 'warning'
+      });
+      return;
+   }
+
+   const { jsPDF } = window.jspdf;
+   const doc = new jsPDF('landscape', 'mm', 'a4'); // Orientación horizontal para mayor espacio
+
+   // Encabezado del PDF
+   doc.setFontSize(14);
+   doc.text("Reporte de Auditoría y Cortes de Caja - " + nombreSucursal, 14, 15);
+   
+   doc.setFontSize(9);
+   doc.setTextColor(100);
+   let fechaStr = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+   doc.text(`Fecha de emisión: ${fechaStr}`, 14, 21);
+
+   // Estructurar filas para autoTable
+   let bodyTable = arrReporte.map(row => [
+      `Caja #${row.id_caja}\n${row.usuario_registro ?? 'Cajero'}`,
+      `${row.fecha_apertura}\n${row.fecha_cierre ?? 'En curso'}`,
+      `$${parseFloat(row.fondo_inicial ?? 0).toFixed(2)}`,
+      `$${parseFloat(row.total_esperado_sistema ?? 0).toFixed(2)}`,
+      `$${parseFloat(row.total_declarado ?? 0).toFixed(2)}`,
+      `$${parseFloat(row.diferencia ?? 0).toFixed(2)}`
+   ]);
+
+   doc.autoTable({
+      startY: 25,
+      head: [['Caja / Cajero', 'Apertura / Cierre', 'Fondo Inicial', 'Total Esperado', 'Total Declarado', 'Diferencia']],
+      body: bodyTable,
+      theme: 'grid',
+      headStyles: { fillColor: [33, 37, 41], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+         2: { halign: 'right' },
+         3: { halign: 'right' },
+         4: { halign: 'right' },
+         5: { halign: 'right', fontStyle: 'bold' }
+      }
+   });
+
+   let fechaHoy = new Date().toISOString().split('T')[0];
+   doc.save(`Reporte_Cortes_Caja_${fechaHoy}.pdf`);
+};
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FLUJO OPERATIVO DE DINERO +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const pintar_reporte_flujo_operativo = (data, nombreSucursal) => {
+   let html = '';
+   let totalIngresos = 0;
+   let totalEgresos  = 0;
+   let saldoNeto     = 0;
+
+   // 1. Calculamos totales generales
+   data.forEach(row => {
+      let monto = parseFloat(row.monto ?? 0);
+      if (row.tipo_movimiento === 'INGRESO') {
+         totalIngresos += monto;
+      } else if (row.tipo_movimiento === 'EGRESO') {
+         totalEgresos += monto;
+      }
+   });
+
+   saldoNeto = totalIngresos - totalEgresos;
+
+   // 2. Tarjetas de Resumen Financiero KPI
+   html += 
+   `<div class="row g-2 mb-3">
+      <div class="col-12 col-md-4">
+         <div class="card border-0 bg-success bg-opacity-10 h-100">
+            <div class="card-body p-2 text-center">
+               <span class="d-block text-success fw-bold small text-uppercase">Total Ingresos</span>
+               <span class="fs-5 fw-bold text-success">+$${totalIngresos.toFixed(2)}</span>
+            </div>
+         </div>
+      </div>
+      <div class="col-12 col-md-4">
+         <div class="card border-0 bg-danger bg-opacity-10 h-100">
+            <div class="card-body p-2 text-center">
+               <span class="d-block text-danger fw-bold small text-uppercase">Total Egresos</span>
+               <span class="fs-5 fw-bold text-danger">-$${totalEgresos.toFixed(2)}</span>
+            </div>
+         </div>
+      </div>
+      <div class="col-12 col-md-4">
+         <div class="card border-0 ${saldoNeto >= 0 ? 'bg-primary' : 'bg-warning'} bg-opacity-10 h-100">
+            <div class="card-body p-2 text-center">
+               <span class="d-block ${saldoNeto >= 0 ? 'text-primary' : 'text-warning'} fw-bold small text-uppercase">Flujo Neto Operativo</span>
+               <span class="fs-5 fw-bold ${saldoNeto >= 0 ? 'text-primary' : 'text-warning'}">$${saldoNeto.toFixed(2)}</span>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   // 3. Tabla Detallada de Movimientos
+   html += 
+   `<div class="table-responsive" style="max-height: 480px;">
+      <table class="table table-hover align-middle mb-0 border">
+         <thead class="table-light sticky-top">
+            <tr class="small text-uppercase text-muted">
+               <th class="ps-3 py-2">Fecha / Hora</th>
+               <th class="py-2">Origen / Concepto</th>
+               <th class="py-2">Método Pago</th>
+               <th class="py-2">Usuario</th>
+               <th class="py-2 text-end pe-3">Monto</th>
+            </tr>
+         </thead>
+         <tbody>`;
+            data.forEach(row => {
+               let esIngreso = row.tipo_movimiento === 'INGRESO';
+               let badgeTipo = esIngreso 
+                  ? `<span class="badge bg-success bg-opacity-10 text-success fw-bold fs-8">INGRESO</span>`
+                  : `<span class="badge bg-danger bg-opacity-10 text-danger fw-bold fs-8">EGRESO</span>`;
+
+               let badgeOrigen = row.origen === 'ORDEN_PAGO'
+                  ? `<span class="badge bg-primary bg-opacity-10 text-primary fs-8 me-1"><i class="bi bi-receipt me-1"></i>Orden #${row.folio ?? row.referencia_id}</span>`
+                  : `<span class="badge bg-secondary bg-opacity-10 text-secondary fs-8 me-1"><i class="bi bi-cash-stack me-1"></i>Manual (Caja #${row.caja_id})</span>`;
+
+               let montoFormat = parseFloat(row.monto ?? 0).toFixed(2);
+
+               html += 
+               `<tr>
+                  <!-- Fecha y Hora -->
+                  <td class="ps-3 py-2">
+                     <span class="d-block text-dark fw-semibold fs-7">${row.fecha_movimiento}</span>
+                     <small class="text-muted fs-8">Caja #${row.caja_id}</small>
+                  </td>
+
+                  <!-- Origen y Concepto -->
+                  <td class="py-2">
+                     <div class="d-flex align-items-center mb-1">
+                        ${badgeTipo}
+                        <span class="ms-1">${badgeOrigen}</span>
+                     </div>
+                     <span class="d-block text-dark fs-7 fw-semibold text-truncate" style="max-width: 280px;" title="${row.concepto}">
+                        ${row.concepto}
+                     </span>
+                     ${row.paciente_nombre ? `<small class="d-block text-muted fs-8"><i class="bi bi-person me-1"></i>${row.paciente_nombre}</small>` : ''}
+                  </td>
+
+                  <!-- Forma / Método de Pago -->
+                  <td class="py-2">
+                     <span class="badge bg-light text-dark border fs-8 text-uppercase">${row.metodo_pago}</span>
+                     ${row.referencia_pago ? `<small class="d-block text-muted fs-8">Ref: ${row.referencia_pago}</small>` : ''}
+                  </td>
+
+                  <!-- Usuario Registró -->
+                  <td class="py-2">
+                     <small class="text-dark fw-semibold fs-7 d-block"><i class="bi bi-person-badge me-1"></i>${row.usuario_registro ?? 'N/A'}</small>
+                  </td>
+
+                  <!-- Monto (Positivo / Negativo) -->
+                  <td class="py-2 text-end pe-3 align-middle">
+                     <span class="fw-bold fs-6 ${esIngreso ? 'text-success' : 'text-danger'}">
+                        ${esIngreso ? '+' : '-'}$${montoFormat}
+                     </span>
+                  </td>
+               </tr>`;
+            });
+
+            html += 
+         `</tbody>
+      </table>
+   </div>
+   <div class="btn-group btn-group-sm mt-2" role="group">
+      <button type="button" class="btn btn-outline-success" id="btnExportarExcel" onclick="exportar_flujo_excel('${nombreSucursal}');">
+         <i class="bi bi-file-earmark-excel me-1"></i> Excel
+      </button>
+      <button type="button" class="btn btn-outline-danger" id="btnExportarPDF" onclick="exportar_flujo_pdf('${nombreSucursal}');">
+         <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+      </button>
+   </div>`;
+
+   $('#containerResultadosReporte').html(html);
+
+   // Habilitar botones de exportación
+   $('#btnExportarExcel, #btnExportarPDF, #btnImprimirReporte').removeAttr('disabled');
+};
+
+const exportar_flujo_excel = (nombreSucursal) => {
+   if (!arrReporte || arrReporte.length === 0) {
+      ToastColor.fire({
+         text: 'No hay datos disponibles para exportar',
+         icon: 'warning'
+      });
+      return;
+   }
+
+   let datosExcel = arrReporte.map(row => {
+      let esIngreso = row.tipo_movimiento === 'INGRESO';
+      let monto = parseFloat(row.monto ?? 0);
+
+      return {
+         'Fecha / Hora': row.fecha_movimiento,
+         'Caja ID': row.caja_id,
+         'Tipo': row.tipo_movimiento,
+         'Origen': row.origen,
+         'Folio / Ref': row.folio ?? row.referencia_id ?? 'N/A',
+         'Concepto': row.concepto,
+         'Paciente / Cliente': row.paciente_nombre ?? 'N/A',
+         'Método Pago': row.metodo_pago,
+         'Referencia Pago': row.referencia_pago ?? '',
+         'Usuario': row.usuario_registro ?? 'N/A',
+         'Ingreso ($)': esIngreso ? monto : 0,
+         'Egreso ($)': !esIngreso ? monto : 0,
+         'Monto Neto ($)': esIngreso ? monto : -monto
+      };
+   });
+
+   const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+   const workbook  = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(workbook, worksheet, "Flujo_"+nombreSucursal);
+
+   let fechaHoy = new Date().toISOString().split('T')[0];
+   XLSX.writeFile(workbook, `Reporte_Flujo_Operativo_${fechaHoy}.xlsx`);
+};
+
+const exportar_flujo_pdf = (nombreSucursal) => {
+   if (!arrReporte || arrReporte.length === 0) {
+      ToastColor.fire({
+         text: 'No hay datos disponibles para exportar',
+         icon: 'warning'
+      });
+      return;
+   }
+
+   const { jsPDF } = window.jspdf;
+   const doc = new jsPDF('landscape', 'mm', 'a4');
+
+   // Encabezado
+   doc.setFontSize(14);
+   doc.text("Reporte de Flujo Operativo de Dinero (Ingresos vs Egresos) - " + nombreSucursal, 14, 15);
+
+   doc.setFontSize(9);
+   doc.setTextColor(100);
+   let fechaStr = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+   doc.text(`Fecha de emisión: ${fechaStr}`, 14, 21);
+
+   // Estructurar filas para autoTable
+   let bodyTable = arrReporte.map(row => {
+      let esIngreso = row.tipo_movimiento === 'INGRESO';
+      let montoFormat = `${esIngreso ? '+' : '-'}$${parseFloat(row.monto ?? 0).toFixed(2)}`;
+
+      return [
+         row.fecha_movimiento,
+         `Caja #${row.caja_id}`,
+         row.tipo_movimiento,
+         row.concepto,
+         row.metodo_pago,
+         row.usuario_registro ?? 'N/A',
+         montoFormat
+      ];
+   });
+
+   doc.autoTable({
+      startY: 25,
+      head: [['Fecha / Hora', 'Caja', 'Tipo', 'Concepto / Origen', 'Método Pago', 'Usuario', 'Monto']],
+      body: bodyTable,
+      theme: 'grid',
+      headStyles: { fillColor: [33, 37, 41], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      columnStyles: {
+         6: { halign: 'right', fontStyle: 'bold' }
+      }
+   });
+
+   let fechaHoy = new Date().toISOString().split('T')[0];
+   doc.save(`Reporte_Flujo_Operativo_${fechaHoy}.pdf`);
+};
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabReportes               = TabReportes;
 window.ModalVisualizacionReporte = ModalVisualizacionReporte;
 window.generar_reporte           = generar_reporte;
+
+window.exportar_caja_excel       = exportar_caja_excel;
+window.exportar_caja_pdf         = exportar_caja_pdf;
+
+window.exportar_flujo_excel      = exportar_flujo_excel;
+window.exportar_flujo_pdf        = exportar_flujo_pdf;
