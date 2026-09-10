@@ -1255,6 +1255,7 @@ const registra_orden = async () => {
    // Se obtienen los datos generales de la orden
    let e = fnObtieneEdad(pacienteOrden.fecha_nacimiento);
    let edad;
+   let edadInt;
    let idConvenio   = 0;
    let tipoConvenio = '';
    let nomConvenio  = '';
@@ -1262,6 +1263,8 @@ const registra_orden = async () => {
    let nomPrecio    = 'Público en general';
 
    e.anios > 0 ? edad = e.anios + ' años' : e.meses > 0 ? edad = e.meses + ' mes(es)' : edad = e.dias;
+
+   e.anios > 0 ? edadInt = e.anios : edadInt = 0;
 
    let idPaciente     = pacienteOrden.id;
    let nomPaciente    = pacienteOrden.nombre + ' ' + pacienteOrden.apellido_paterno + ' ' +  pacienteOrden.apellido_materno;
@@ -1354,7 +1357,7 @@ const registra_orden = async () => {
       return;
    }
 
-   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion, esUrgente, requiereFactura };
+   let objOrden = { 'func': 'registrar_orden', idPaciente, nomPaciente, edadInt, edad, sexo, tipoCliente, idConvenio, tipoConvenio, nomConvenio, idPrecio, nomPrecio, idDescuento, porDescuento, cargoExtraOrden, motivoCargoExtraOrden, abonoOrden, metodoPagoOrden, observacion, esUrgente, requiereFactura };
 
    $('#btnRegistrarOrden').prop('disabled',true);
    

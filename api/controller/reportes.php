@@ -32,21 +32,46 @@
                break;
             }
 
-            switch ($_POST["idTipo"]) {
+            $estatus = 200;
+            $mensaje = 'ok';
+            $data    = [];
+
+            switch (intval($_POST["idTipo"])) {
                case 1:
-                  $res = $v->cortes_caja($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+                  $data = $v->cortes_caja($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
                break;
 
                case 2:
-                  $res = $v->flujo_dinero($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+                  $data = $v->flujo_dinero($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
+
+               case 3:
+                  $data = $v->cuentas_por_cobrar($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
+
+               case 4:
+                  $data = $v->estudios_rentabilidad($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
+
+               case 5:
+                  $data = $v->rendimiento_clientes($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
+
+               case 6:
+                  $data = $v->analisis_pacientes($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
+               break;
+
+               case 7:
+                  $data = $v->auditoria_cancelaciones($_POST["fechaIni"], $_POST["fechaFin"], $_POST["idSucursal"]);
                break;
                
                default:
-                  $res = ['estatus' => 500, 'mensaje' => 'Tipo de reporte inválido', 'data' => []];
+                  $estatus = 500;
+                  $mensaje = 'Tipo de reporte inválido';
                break;
             }
 
-            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+            echo json_encode(['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data]);
          break;
 
          default:

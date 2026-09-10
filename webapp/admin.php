@@ -48,6 +48,7 @@
 			<input type="hidden" id="estatusCaja"  value="<?php echo $_SESSION["estatus_caja"]; ?>" />
 			<input type="hidden" id="aperturaCaja"  value="<?php echo $_SESSION["fecha_apertura"]; ?>" />
 			<input type="hidden" id="cierreCaja"  value="<?php echo $_SESSION["fecha_cierre"]; ?>" />
+			<input type="hidden" id="nomEmpresa"  value="<?php echo $_SESSION["emp_nombre"]; ?>" />
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
