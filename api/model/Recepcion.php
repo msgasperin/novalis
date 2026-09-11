@@ -184,7 +184,7 @@
 
 				$id_orden = $this->dbh->lastInsertId();
 
-				$sqlDetalle = $this->dbh->prepare("INSERT INTO orden_detalles (orden_id, estudio_id, nombre_estudio_historico, precio_aplicado, costo_aplicado, aplico_desc, utilidad) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				$sqlDetalle = $this->dbh->prepare("INSERT INTO orden_detalles (orden_id, sucursal_id, estudio_id, nombre_estudio_historico, precio_aplicado, costo_aplicado, aplico_desc, utilidad) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
 				foreach ($carrito as $item) {
 
@@ -192,6 +192,7 @@
 
 					$paramsDetalle = [
 						$id_orden,
+						$id_sucursal,
 						$item["id_estudio"],
 						$item["nom_estudio"],
 						$item["precio"],

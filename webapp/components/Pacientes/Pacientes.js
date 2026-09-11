@@ -1,4 +1,4 @@
-import { obtiene_pacientes, guardar_paciente, eliminar_paciente, obtiene_credenciales_pacientes, cambiar_credenciales, busca_paciente_coincidencia, valida_coincidencia_paciente } from "./PacientesServices.js";
+import { guardar_paciente, eliminar_paciente, obtiene_credenciales_pacientes, cambiar_credenciales, busca_paciente_coincidencia, valida_coincidencia_paciente } from "./PacientesServices.js";
 
 let arrPacientes              = [];
 let arrPacientesCoincidencias = [];

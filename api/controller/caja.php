@@ -103,7 +103,10 @@
                break;
             }
 
-            $res = $v->obtener_mis_cortes_caja($_POST["fecha"]);
+            $fecha_ini = $_POST["fecha"].' 00:00:00'; 
+            $fecha_fin = $_POST["fecha"].' 23:59:59';
+
+            $res = $v->obtener_mis_cortes_caja($fecha_ini, $fecha_fin);
             echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
          break;
 

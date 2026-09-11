@@ -54,28 +54,49 @@
 			try {
 				// Cálculo de lo registrado realmente
 				$sqlMontos = $this->dbh->prepare(
-					"SELECT C.fondo_inicial,                  
-						-- Total cobrado de órdenes por forma de pago
+					"SELECT C.fondo_inicial,
+						
+						-- Cobros de órdenes por forma de pago
 						COALESCE(SUM(CASE WHEN P.metodo_pago = 'EFECTIVO' AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_efectivo,
 						COALESCE(SUM(CASE WHEN P.metodo_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_tarjeta,
-						COALESCE(SUM(CASE WHEN P.metodo_pago = 'TRANSFERENCIA' AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_transferencia,                  
-						
+						COALESCE(SUM(CASE WHEN P.metodo_pago = 'TRANSFERENCIA' AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_transferencia,
+
 						-- Movimientos manuales: EFECTIVO
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'ingreso' AND forma_pago = 'EFECTIVO' AND activo = 1) AS ingresos_efectivo,     
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'egreso' AND forma_pago = 'EFECTIVO' AND activo = 1) AS egresos_efectivo,
+						M.ingresos_efectivo,
+						M.egresos_efectivo,
 
 						-- Movimientos manuales: TARJETA
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'ingreso' AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') AND activo = 1) AS ingresos_tarjeta,     
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'egreso' AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') AND activo = 1) AS egresos_tarjeta,
+						M.ingresos_tarjeta,
+						M.egresos_tarjeta,
 
 						-- Movimientos manuales: TRANSFERENCIA
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'ingreso' AND forma_pago = 'TRANSFERENCIA' AND activo = 1) AS ingresos_transferencia,     
-						(SELECT COALESCE(SUM(monto), 0) FROM caja_movimientos WHERE caja_id = C.id_caja AND tipo = 'egreso' AND forma_pago = 'TRANSFERENCIA' AND activo = 1) AS egresos_transferencia
+						M.ingresos_transferencia,
+						M.egresos_transferencia
 
 					FROM cajas_sesiones C
-					LEFT JOIN orden_pagos P ON C.id_caja = P.caja_id
+
+					-- JOIN 1: Pagos directos de órdenes
+					LEFT JOIN orden_pagos P ON P.caja_id = C.id_caja
+
+					-- JOIN 2: Resumen pre-agregado de movimientos manuales (1 sola lectura en lugar de 6 subconsultas)
+					LEFT JOIN (
+						SELECT 
+							caja_id,
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'EFECTIVO' THEN monto ELSE 0 END), 0) AS ingresos_efectivo,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'EFECTIVO' THEN monto ELSE 0 END), 0) AS egresos_efectivo,
+							
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto ELSE 0 END), 0) AS ingresos_tarjeta,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto ELSE 0 END), 0) AS egresos_tarjeta,
+							
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'TRANSFERENCIA' THEN monto ELSE 0 END), 0) AS ingresos_transferencia,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'TRANSFERENCIA' THEN monto ELSE 0 END), 0) AS egresos_transferencia
+						FROM caja_movimientos
+						WHERE caja_id = :id_caja AND activo = 1
+						GROUP BY caja_id
+					) M ON M.caja_id = C.id_caja
+
 					WHERE C.id_caja = :id_caja
-					GROUP BY C.id_caja;"
+					GROUP BY C.id_caja, M.ingresos_efectivo, M.egresos_efectivo, M.ingresos_tarjeta, M.egresos_tarjeta, M.ingresos_transferencia, M.egresos_transferencia;"
 				);
 
 				$sqlMontos->execute([':id_caja' => $id_caja]);
@@ -256,11 +277,12 @@
 			return $res;
 		}
 
-		public function obtener_mis_cortes_caja(string $fecha) {
+		public function obtener_mis_cortes_caja(string $fecha_ini, string $fecha_fin) {
 			$res = [];
+			
 			try {				
-				$sql = $this->dbh->prepare("SELECT id_caja, id_sucursal, fondo_inicial, DATE_FORMAT(fecha_apertura, '%H:%i %p') AS hora_apertura, DATE_FORMAT(fecha_cierre, '%H:%i %p') AS hora_cierre, declarado_efectivo, declarado_tarjeta, declarado_transferencia, ingresos_efectivo, egresos_efectivo, sistema_efectivo, ingresos_tarjeta, egresos_tarjeta,sistema_tarjeta, ingresos_transferencia, egresos_transferencia, sistema_transferencia, sistema_ingresos, sistema_egresos, total_declarado, total_esperado_sistema, diferencia, observaciones, estatus, key_query FROM cajas_sesiones WHERE DATE(fecha_apertura) = ?");
-				$sql->execute([$fecha]);				
+				$sql = $this->dbh->prepare("SELECT id_caja, id_sucursal, fondo_inicial, DATE_FORMAT(fecha_apertura, '%H:%i %p') AS hora_apertura, DATE_FORMAT(fecha_cierre, '%H:%i %p') AS hora_cierre, declarado_efectivo, declarado_tarjeta, declarado_transferencia, ingresos_efectivo, egresos_efectivo, sistema_efectivo, ingresos_tarjeta, egresos_tarjeta,sistema_tarjeta, ingresos_transferencia, egresos_transferencia, sistema_transferencia, sistema_ingresos, sistema_egresos, total_declarado, total_esperado_sistema, diferencia, observaciones, estatus, key_query FROM cajas_sesiones WHERE fecha_apertura >= ? AND fecha_apertura <= ?");
+				$sql->execute([$fecha_ini, $fecha_fin]);				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
         		error_log($error->getMessage());
@@ -277,14 +299,14 @@
 			try {
 
 				// Obtenemos los movimientos manuales de caja
-				$sqlMovimientos = $this->dbh->prepare("SELECT id_movimiento, tipo, concepto, monto, forma_pago, comprobante, DATE_FORMAT(fecha_movimiento, '%d-%m-%Y %H:%i %p') AS fecha_movimiento, usuario_registro FROM caja_movimientos WHERE activo = ? AND caja_id = ? ORDER BY id_movimiento");
+				$sqlMovimientos = $this->dbh->prepare("SELECT id_movimiento, tipo, concepto, monto, forma_pago, comprobante, DATE_FORMAT(fecha_movimiento, '%d-%m-%Y %H:%i %p') AS fecha_movimiento, usuario_registro FROM caja_movimientos WHERE activo = ? AND caja_id = ?");
 				$sqlMovimientos->execute([1, $id_caja]);				
 				$resMovimientos = $sqlMovimientos->fetchAll(PDO::FETCH_ASSOC);
 
 				$res["movimientos_manuales"] = $resMovimientos;
 
 				// Obtenemos abonos registrados
-				$sqlPagos = $this->dbh->prepare("SELECT monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago,'%d-%m-%Y %H:%i %p') AS fecha_pago FROM orden_pagos WHERE estatus = ? AND caja_id = ?");
+				$sqlPagos = $this->dbh->prepare("SELECT monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago,'%d-%m-%Y %H:%i %p') AS fecha_pago FROM orden_pagos USE INDEX (idx_orden_pagos_caja_estatus) WHERE estatus = ? AND caja_id = ?");
 				$sqlPagos->execute([1, $id_caja]);
 				$resPagos = $sqlPagos->fetchAll(PDO::FETCH_ASSOC);
 

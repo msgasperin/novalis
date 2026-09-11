@@ -10,7 +10,7 @@
 		public function obtiene_lista_estudios() {
 			$res = [];
 			try {
-				$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, costo, indicaciones_toma, descripcion_estudio, aplica_desc, tubos_json FROM cat_estudios WHERE activo = 1 ORDER BY id");
+				$sql = $this->dbh->prepare("SELECT id, nombre, tipo, precio_publico, costo, indicaciones_toma, descripcion_estudio, aplica_desc, tubos_json FROM cat_estudios WHERE activo = 1");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {

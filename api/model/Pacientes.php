@@ -22,47 +22,60 @@
 			return [$user, $password];
 		}
 
-		public function obtiene_pacientes() {
-			$res = [];
-			try {
-				$sql = $this->dbh->prepare("SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, sexo_biologico, telefono, correo FROM cat_pacientes WHERE activo = 1");
-				$sql->execute();				
-				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
-			} catch (Exception $error) {
-        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
-			}
-						
-			return $res;
-		}
-
 		public function valida_coincidencia_paciente(string $nombre, string $paterno, ?string $materno, string $fechaNac) {
 
 			$estatus = 500;
 			$mensaje = 'Hubo un problema para validar la coincidencia del paciente';
-			$data    = [0];
+			$data    = [];
 
 			try {
-				$sql = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, sexo_biologico, telefono, correo, 
-							(
-								IF(fecha_nacimiento = :fecha_nac,8,0)
-								+
-								IF(apellido_paterno = :paterno,5,0)
-								+
-								IF(apellido_materno = :materno,2,0)
-								+
-								IF(nombre LIKE CONCAT('%', :nombre, '%') OR :nombre LIKE CONCAT('%',nombre,'%') ,3,0)
-							) AS score
-						FROM cat_pacientes
-						HAVING score >= 8
-						ORDER BY score DESC, fecha_nacimiento DESC
-						LIMIT 10;";
+				$sql = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, 
+									DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, 
+									sexo_biologico, telefono, correo, score
+							FROM (
+								-- Rama 1: Filtro ultra rápido por fecha de nacimiento (Garantiza score >= 8 por B-Tree)
+								SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, sexo_biologico, telefono, correo,
+											(8 + 
+											IF(apellido_paterno = :paterno1, 5, 0) + 
+											IF(apellido_materno = :materno1 AND :materno1 != '', 2, 0) + 
+											IF(nombre LIKE CONCAT('%', :nombre1, '%') OR :nombre1 LIKE CONCAT('%', nombre, '%'), 3, 0)
+											) AS score
+								FROM cat_pacientes
+								WHERE fecha_nacimiento = :fecha_nac
+
+								UNION ALL
+
+								-- Rama 2: Filtro por paterno + nombre cuando la fecha es distinta pero los nombres coinciden (Score >= 8)
+								SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, sexo_biologico, telefono, correo,
+											(5 + 
+											IF(apellido_materno = :materno2 AND :materno2 != '', 2, 0) + 
+											3
+											) AS score
+								FROM cat_pacientes
+								WHERE apellido_paterno = :paterno2 
+									AND (nombre LIKE CONCAT('%', :nombre2, '%') OR :nombre2 LIKE CONCAT('%', nombre, '%'))
+									AND fecha_nacimiento != :fecha_nac2
+							) AS resultados
+							WHERE score >= 8
+							ORDER BY score DESC, fecha_nacimiento DESC
+							LIMIT 10;";
 
 				$stmt = $this->dbh->prepare($sql);
+				
+				$nombreClean  = trim($nombre);
+				$paternoClean = trim($paterno);
+				$maternoClean = trim($materno ?? '');
+
 				$stmt->execute([
-					':nombre'    => trim($nombre),
-					':paterno'   => trim($paterno),
-					':materno'   => trim($materno ?? ''),
-					':fecha_nac' => $fechaNac
+					':nombre1'   => $nombreClean,
+					':paterno1'  => $paternoClean,
+					':materno1'  => $maternoClean,
+					':fecha_nac' => $fechaNac,
+					
+					':nombre2'   => $nombreClean,
+					':paterno2'  => $paternoClean,
+					':materno2'  => $maternoClean,
+					':fecha_nac2'=> $fechaNac
 				]);
 
 				$estatus = 200;
@@ -73,50 +86,51 @@
 				error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 
-			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
-
-			return $res;
+			return [
+				'estatus' => $estatus, 
+				'mensaje' => $mensaje, 
+				'data'    => $data
+			];
 		}
 
 		public function busca_pacientes_coincidencia(string $parametro) {
-			
 			$res = [];
+			$parametroClean = trim($parametro);
 
-			// Limpiamos espacios duplicados y dividimos por palabras
-			$terminos = array_filter(explode(' ', preg_replace('/\s+/', ' ', trim($parametro))));
-
-			// Construimos la parte dinámica del SQL para el nombre
-			$condicionesNombre = [];
-			$paramsSQL = [1]; // El primer parámetro es 'activo'
-
-			foreach ($terminos as $termino) {
-				$condicionesNombre[] = "(apellido_paterno LIKE ? OR apellido_materno LIKE ? OR nombre LIKE ?)";
-				// Agregamos el término con sus comodines para cada campo
-				$likeTerm = "%{$termino}%";
-				$paramsSQL[] = $likeTerm;
-				$paramsSQL[] = $likeTerm;
-				$paramsSQL[] = $likeTerm;
+			if (empty($parametroClean)) {
+				return $res;
 			}
 
-			// Unimos las condiciones del nombre con AND (para que deban coincidir todos los términos introducidos)
-			$stringCondicionesNombre = implode(' AND ', $condicionesNombre);
+			// Limpiamos caracteres especiales y preparamos términos con operador + y * (Boolean Mode)
+			$palabras = array_filter(explode(' ', preg_replace('/[^\w\s]/u', '', $parametroClean)));
+			
+			if (empty($palabras)) {
+				return $res;
+			}
+
+			$matchQuery = '';
+			foreach ($palabras as $p) {
+				$matchQuery .= '+' . $p . '* ';
+			}
+			$matchQuery = trim($matchQuery);
 
 			try {
-				
-				// Agregamos el correo y la fecha de nacimiento al final
-				$sqlTexto = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format,  sexo_biologico, telefono, correo FROM cat_pacientes WHERE activo = ? AND (($stringCondicionesNombre) OR correo LIKE ?)";
-
-				// Añadimos el parámetro del correo
-				$paramsSQL[] = "%" . trim($parametro) . "%";
+				$sqlTexto = "SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, 
+										DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento_format, 
+										sexo_biologico, telefono, correo 
+								FROM cat_pacientes 
+								WHERE activo = ? 
+								AND MATCH(nombre, apellido_paterno, apellido_materno, correo) AGAINST(? IN BOOLEAN MODE)
+								LIMIT 20";
 
 				$sql = $this->dbh->prepare($sqlTexto);
-				$sql->execute($paramsSQL);
+				$sql->execute([1, $matchQuery]);
 
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
-        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
-						
+
 			return $res;
 		}
 

@@ -38,7 +38,7 @@
                $fecha_cierre   = null;
                
                if($row["perfil"] == 'RECEPCION') {
-                  $sqlCaja = $this->dbh->prepare("SELECT id_caja, estatus, DATE(fecha_apertura) AS fecha_apertura, DATE(fecha_cierre) AS fecha_cierre FROM cajas_sesiones WHERE id_usuario = ? ORDER BY id_caja DESC LIMIT 1");
+                  $sqlCaja = $this->dbh->prepare("SELECT id_caja, estatus, DATE(fecha_apertura) AS fecha_apertura, DATE(fecha_cierre) AS fecha_cierre FROM FORCE INDEX (idx_cajas_usuario_id) cajas_sesiones WHERE id_usuario = ? ORDER BY id_caja DESC LIMIT 1");
                   $sqlCaja->execute([$row["id_usuario"]]);
                   
 

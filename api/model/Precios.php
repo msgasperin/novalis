@@ -10,7 +10,7 @@
 		public function obtiene_lista_precios() {
 			$res = [];
 			try {
-				$sql = $this->dbh->prepare("SELECT id, nombre, descripcion, es_defecto FROM cat_listas_precios WHERE activo = 1 ORDER BY id");
+				$sql = $this->dbh->prepare("SELECT id, nombre, descripcion, es_defecto FROM cat_listas_precios WHERE activo = 1");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {

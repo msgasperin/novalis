@@ -15,10 +15,6 @@
          switch ($_POST['func']) {
 
          // ********************************************************** Funciones de CRUD cat_lista_precios **********************************************************************
-         case 'obtiene_pacientes':
-            $res = $v->obtiene_pacientes(); 
-            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
-         break;
 
          case 'obtiene_credenciales_pacientes':
             $res = $v->obtiene_credenciales_pacientes($_POST["idPaciente"]); 

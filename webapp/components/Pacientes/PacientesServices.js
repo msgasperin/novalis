@@ -1,11 +1,5 @@
 import { postJSON } from "../globals.js";   // ajusta ruta según tu proyecto
 
-export const obtiene_pacientes = async () => {
-   const datos = { func: 'obtiene_pacientes' };
-   let respuesta = await postJSON('../api/controller/pacientes.php', datos);
-   return respuesta;
-}
-
 export const obtiene_credenciales_pacientes = async (idPaciente) => {
    const datos = { func: 'obtiene_credenciales_pacientes', idPaciente };
    let respuesta = await postJSON('../api/controller/pacientes.php', datos);
