@@ -8,18 +8,29 @@
 	  	}
 		// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES cat_lista_precios++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		public function genera_credenciales_paciente(string $nom_paciente, string $ap_paterno) {
-			// Usuario: primera letra del nombre + apellido con inicial mayúscula + 2 dígitos aleatorios
-			$user = strtolower(substr(trim($nom_paciente), 0, 1)).ucfirst(strtolower(trim($ap_paterno))).random_int(10, 99);
-			// Password: 8 caracteres alfanuméricos sin caracteres confusos
+		public function genera_credenciales_paciente() {
 			$caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-			$password   = '';
+			$max_index  = strlen($caracteres) - 1;
 
-			for ($i = 0; $i < 8; $i++) {
-				$password .= $caracteres[random_int(0, strlen($caracteres) - 1)];
+			// 1. Reintentar la generación de $user hasta que sea único en la BD
+			do {
+				$user = random_int(100000, 999999);
+				// Consulta ligera para validar existencia mediante el índice único
+				$stmt = $this->dbh->prepare("SELECT COUNT(id) FROM cat_pacientes WHERE user_portal = ? LIMIT 1");
+				$stmt->execute([$user]);
+				$existe = $stmt->fetchColumn();
+			} while ($existe > 0);
+
+			// 2. Generar el password una vez que se garantiza un $user único
+			$password = '';
+			for ($i = 0; $i < 6; $i++) {
+				$password .= $caracteres[random_int(0, $max_index)];
 			}
-			
-			return [$user, $password];
+
+			return [
+				'user'     => $user,
+				'password' => $password
+			];
 		}
 
 		public function valida_coincidencia_paciente(string $nombre, string $paterno, ?string $materno, string $fechaNac) {
@@ -180,9 +191,9 @@
 			try {
 
 				// Usuario: primera letra del nombre + apellido con inicial mayúscula + 2 dígitos aleatorios
-				$credenciales = $this->genera_credenciales_paciente($post["nomPaciente"], $post["apPaterno"]);
-				$user         = $credenciales[0];
-				$password     = $credenciales[1];
+				$credenciales = $this->genera_credenciales_paciente();
+				$user         = $credenciales["user"];
+				$password     = $credenciales["password"];
 
 				$sql = $this->dbh->prepare("INSERT INTO cat_pacientes (nombre, apellido_paterno, apellido_materno, fecha_nacimiento, sexo_biologico, telefono, correo, user_portal, password_portal, user_cap) VALUES (?,?,?,?,?,?,?,?,AES_ENCRYPT(?,?),?)");
 
@@ -248,16 +259,15 @@
 			return $res;
 		}
 
-		public function cambiar_credenciales(int $id_paciente, string $nom_paciente, string $ap_paterno) {
+		public function cambiar_credenciales(int $id_paciente) {
       	$estatus = 500;
       	$data    = [0];
 			$mensaje = 'Error al cambiar credenciales al paciente';
 			try {
 
-				// Usuario: primera letra del nombre + apellido con inicial mayúscula + 2 dígitos aleatorios
-				$credenciales = $this->genera_credenciales_paciente($nom_paciente, $ap_paterno);
-				$user         = $credenciales[0];
-				$password     = $credenciales[1];
+				$credenciales = $this->genera_credenciales_paciente();
+				$user         = $credenciales["user"];
+				$password     = $credenciales["password"];
 
 				$sql = $this->dbh->prepare("UPDATE cat_pacientes SET user_portal = ?, password_portal = AES_ENCRYPT(?,?) WHERE id = ?");
 				$ok = $sql->execute([$user, $password, $this->key, $id_paciente]);

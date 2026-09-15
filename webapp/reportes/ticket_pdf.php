@@ -19,13 +19,15 @@ $sqlDatosOrden = $v->dbh->prepare(
             paciente_nombre_historico, convenio_nombre_historico, estatus_pago, 
             estatus, subtotal, por_descuento, descuento, cargo_extra, motivo_cargo_extra, 
             total_neto, total_abonado, saldo_deudor, sucursal_historico, direccion, 
-            telefono, key_query, DATE_FORMAT(fecha_cancelacion, '%d-%m-%Y %h:%i %p') AS fecha_cancelacion, 
-            user_cancela, motivo_cancela, es_urgente, requiere_factura
+            S.telefono, key_query, DATE_FORMAT(fecha_cancelacion, '%d-%m-%Y %h:%i %p') AS fecha_cancelacion, 
+            user_cancela, motivo_cancela, es_urgente, requiere_factura,
+            user_portal, AES_DECRYPT(password_portal,?) AS contrasenia
      FROM ordenes_trabajo AS O
      INNER JOIN cat_sucursales AS S ON S.id = O.sucursal_id
+     INNER JOIN cat_pacientes AS P ON O.paciente_id = P.id
      WHERE key_query = ?"
 );
-$sqlDatosOrden->execute([$keyQuery]);      
+$sqlDatosOrden->execute([$v->key, $keyQuery]);      
 $orden = $sqlDatosOrden->fetch(PDO::FETCH_ASSOC);
 
 if (!$orden) {
@@ -383,7 +385,10 @@ function obtener_html_ticket_pro(array $orden, array $estudios, array $abonos): 
 
             <div style="font-size: 6pt; font-family: monospace;">
                 <b>Folio:</b> <?= htmlspecialchars($orden['folio']) ?><br>
-                <b>Clave Acceso:</b> <?= htmlspecialchars($orden["key_query"]) ?>
+            </div>
+            <div style="font-size: 6.5pt; font-family: monospace;">
+                <b>Usuario:</b> <?= htmlspecialchars($orden["user_portal"]) ?>
+                <b>Contraseña:</b> <?= htmlspecialchars($orden["contrasenia"]) ?>
             </div>
         </div>
 

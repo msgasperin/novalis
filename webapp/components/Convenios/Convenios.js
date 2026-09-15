@@ -1,4 +1,4 @@
-import { obtiene_convenios, guardar_convenio, eliminar_convenio } from "./ConveniosServices.js";
+import { obtiene_convenios, guardar_convenio, eliminar_convenio, obtiene_credenciales_convenio, cambiar_credenciales } from "./ConveniosServices.js";
 import { obtiene_lista_precios } from "../Precios/PreciosServices.js";
 
 let arrConvenios = [];
@@ -155,6 +155,9 @@ const fn_pinta_listado_convenios = (containerId, data) => {
                      <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio('${row.id_convenio}');">
                         <i class="bi bi-pencil"></i>
                      </button>
+                     <button type="buttton" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesConvenio('${row.id_convenio}', '${row.nombre_comercial}');" title="Ver credenciales de acceso">
+                        <i class="bi bi-shield-lock"></i>
+                     </button>
                      <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio}, '${row.nombre_comercial}');">
                         <i class="bi bi-trash"></i>
                      </button>
@@ -170,6 +173,108 @@ const fn_pinta_listado_convenios = (containerId, data) => {
    closeLoad();
 }
 
+const ModalCredencialesConvenio = (idConvenio, nomConvenio) => {
+   let html = `
+   <div class="modal fade modal-superior-blur" id="modalCredencialesConvenio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+         <div class="modal-content sombra-modal">
+            <div class="modal-body">
+               <div id="container_credenciales_convenio"></div>
+            </div>
+            <div class="modal-footer border-0 text-end">
+              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnCambiarCredenciales" onclick="fn_cambiar_credenciales_convenio(${idConvenio}, '${nomConvenio}');">
+                <i class="bi bi-shield-lock"></i> Cambiar credenciales
+              </button> 
+              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+                Cerrar
+              </button>
+            </div>
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdmin').html(html);
+   $('#modalCredencialesConvenio').modal('show');
+   fn_ver_credenciales_convenio(idConvenio, nomConvenio);
+}
+
+const fn_cambiar_credenciales_convenio = async (idConvenio, nomConvenio) => {
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Las credenciales del convenio: ' + nomConvenio + ' serán cambiadas', 'question', 'Sí, cambiar', 'Cancelar');
+   
+   if (!res.result) {
+      $('#btnCambiarCredenciales').prop('disabled', false);
+      return;
+   }
+   
+   nomConvenio = quitarAcentos(nomConvenio);
+
+   $('#btnCambiarCredenciales').prop('disabled', true);
+   let respuesta = await cambiar_credenciales(idConvenio, nomConvenio);
+      if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus == 200) {
+      showMessageSwalTimer('¡Credenciales actualizadas correctamente!', '', 'success', 2500);
+      fn_ver_credenciales_convenio(idConvenio, nomConvenio);
+      $('#btnCambiarCredenciales').prop('disabled', false);
+      
+   } else {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      $('#btnCambiarCredenciales').prop('disabled', false);
+      return;
+   }
+}
+
+const fn_ver_credenciales_convenio = async (idConvenio, nomConvenio) => {
+
+   let respuesta      = await obtiene_credenciales_convenio(idConvenio);
+   if(respuesta.estatus == 403) {
+      fnNoSesion();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      return;
+   }
+   else {
+      const credenciales = respuesta.data;
+
+      if(credenciales.length == 0) {
+         $('#container_credenciales_convenio').html(`<div class="alert alert-info p-2 text-center">No se encontraron las credenciales del convenio, vuelve a intentarlo</div>`);
+      }
+      else {
+         let html = 
+         `<div class="card border-0 shadow-sm bg-light mb-4">
+            <div class="card-header bg-white border-0 pt-3 pb-2 border-bottom">
+               <div class="d-flex align-items-center text-dark">
+                  <i class="bi bi-person-badge-fill fs-4 me-2 text-secondary"></i>
+                  <div>
+                     <small class="d-block text-muted lh-1 mb-1">Paciente</small>
+                     <h6 class="mb-0 fw-bold">${nomConvenio}</h6>
+                  </div>
+               </div>
+            </div>
+            <div class="card-body p-3">
+               <div class="d-flex align-items-center mb-2 pb-2 border-bottom text-secondary">
+                  <i class="bi bi-person-fill fs-5 me-2 text-primary"></i>
+                  <div>
+                     <small class="d-block text-muted lh-1">Usuario</small>
+                     <span class="fw-bold text-dark">${credenciales[0].user_plataforma}</span>
+                  </div>
+               </div>                  
+               <div class="d-flex align-items-center text-secondary">
+                  <i class="bi bi-key-fill fs-5 me-2 text-warning"></i>
+                  <div>
+                     <small class="d-block text-muted lh-1">Contraseña</small>
+                     <span class="font-monospace text-dark">${credenciales[0].contrasenia}</span>
+                  </div>
+               </div>
+            </div>
+         </div>`;
+         $('#container_credenciales_convenio').html(html);
+      }
+   }
+}
+
 const ModalFormConvenio = (idConvenio) => {
 
    let convenioSeleccionado = arrConvenios.filter(convenio => convenio.id_convenio == idConvenio);
@@ -181,7 +286,6 @@ const ModalFormConvenio = (idConvenio) => {
    let correo_contacto     = '';
    let direccion           = '';
    let lista_precio_id     = 0;
-   let password_plataforma = '';
    let tipo                = 'NA';
 
    if(idConvenio > 0) {
@@ -193,7 +297,6 @@ const ModalFormConvenio = (idConvenio) => {
       direccion           = convenioSeleccionado[0].direccion ?? '';
       lista_precio_id     = convenioSeleccionado[0].lista_precio_id;
       tipo                = convenioSeleccionado[0].tipo;
-      password_plataforma = convenioSeleccionado[0].password_plataforma ?? '';
    }
    else {
       titulo = 'Registrar Nuevo Convenio';
@@ -247,13 +350,6 @@ const ModalFormConvenio = (idConvenio) => {
                   <div class="col-12 mt-3">
                      <b>Dirección *</b>
                      <textarea name="direccionConvenio" id="direccionConvenio" class="form-control" rows="3" maxlength="300">${direccion}</textarea>
-                  </div>
-                  <div class="col-md-4 col-sm-6 col-12 mt-3">
-                     <b>Password Plataforma *</b>
-                     <div class="input-group mb-3">
-                        <input type="password" class="form-control form-control-lg rounded-1" name="passwordPlataformaConvenio" id="passwordPlataformaConvenio" placeholder="***" value="${password_plataforma}" maxlength="50">
-                        <span class="input-group-text pointer" id="eyePasswordConvenio" onclick="ver_password('passwordPlataformaConvenio','eyePasswordConvenio');"><i class="bi bi-eye-slash"></i></span>
-                     </div>
                   </div>
                </div>
             </div>
@@ -312,7 +408,6 @@ const fn_guardar_convenio = async (idConvenio, origen) => {
    let correo             = $('#correoConvenio').val().trim();
    let precio             = $('#precioConvenio').val();
    let direccion          = $('#direccionConvenio').val().trim();
-   let passwordPlataforma = $('#passwordPlataformaConvenio').val().trim();
    let msjAccion;
 
    if (nomConvenio == '') {
@@ -373,16 +468,8 @@ const fn_guardar_convenio = async (idConvenio, origen) => {
       $('#direccionConvenio').focus();
       return;
    }
-   else if (passwordPlataforma == '' && parseInt(idConvenio) == 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar la contraseña para el acceso a la plataforma',
-         icon: 'warning'
-      });
-      $('#passwordPlataformaConvenio').focus();
-      return;
-   }
-   
-   let objConvenio = { 'func': 'guardar', idConvenio, nomConvenio, tipo, personaContacto, telefono, correo, precio, direccion, passwordPlataforma };
+      
+   let objConvenio = { 'func': 'guardar', idConvenio, nomConvenio, tipo, personaContacto, telefono, correo, precio, direccion };
       
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'El convenio: ' + nomConvenio + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -439,10 +526,13 @@ const fn_eliminar_convenio = async (idConvenio, nomConvenio) => {
 
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-window.TabConvenios        = TabConvenios;
-window.ModalFormConvenio   = ModalFormConvenio;
+window.TabConvenios                     = TabConvenios;
+window.ModalFormConvenio                = ModalFormConvenio;
+window.ModalCredencialesConvenio        = ModalCredencialesConvenio;
 
-window.fn_buscar_convenios  = fn_buscar_convenios;
-window.fn_filtrar_convenios = fn_filtrar_convenios;
-window.fn_guardar_convenio  = fn_guardar_convenio;
-window.fn_eliminar_convenio = fn_eliminar_convenio;
+window.fn_buscar_convenios              = fn_buscar_convenios;
+window.fn_filtrar_convenios             = fn_filtrar_convenios;
+window.fn_guardar_convenio              = fn_guardar_convenio;
+window.fn_eliminar_convenio             = fn_eliminar_convenio;
+window.fn_cambiar_credenciales_convenio = fn_cambiar_credenciales_convenio;
+

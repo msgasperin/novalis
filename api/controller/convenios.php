@@ -62,6 +62,26 @@
             echo json_encode($res);
          break;
 
+         case 'obtiene_credenciales_convenio':
+            $res = $v->obtiene_credenciales_convenio($_POST["idConvenio"]); 
+            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+         break;
+
+         case 'cambiar_credenciales':
+
+            if(empty($_POST["idConvenio"]) || empty($_POST["nomConvenio"])) {
+               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+               echo json_encode($res);
+               break;
+            }
+
+            $res = $v->cambiar_credenciales_convenio($_POST["idConvenio"]);
+            if($res["estatus"] == 200) {
+               $g->bitacora('Credenciales actuaalizadas del convenio: '.$_POST["nomConvenio"], $_POST["idConvenio"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
+            }            
+            echo json_encode($res);
+         break;
+
          default:
             echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", 'data' => []]); // Función no encontrada
          break;

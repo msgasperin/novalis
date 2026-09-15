@@ -29,7 +29,7 @@ const fn_login = async () => {
   let res = await valida_login(user, pass, csrf);
   if(res.estatus == 200) {
     showMessageSwalTimer('Bienvenido al equipo', 'NovaLIS', 'success', 2500);
-    redireccionar("webapp/admin", 1000);
+    redireccionar("admin", 1000);
   }
   else if(res.estatus == 202) {
     showMessageSwalTimer('Usuario no encontrado', '', 'info', 2500);
@@ -63,7 +63,7 @@ const fn_cerrar_sesion = async () => {
   let respuesta = await cerrar_sesion();
   if(respuesta.estatus == 200) {
     showMessageSwalTimer('Sesión finalizada correctamente', '', 'success', 2500);
-    redireccionar("../inicio", 1000);
+    redireccionar("inicio", 1000);
   }
   else {
     showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');

@@ -97,7 +97,7 @@
                break;
             }
 
-            $res = $v->cambiar_credenciales($_POST["idPaciente"], $_POST["nomPaciente"], $_POST["apPaterno"]);
+            $res = $v->cambiar_credenciales($_POST["idPaciente"]);
             if($res["estatus"] == 200) {
                $g->bitacora('Credenciales actuaalizadas del paciente: '.$_POST["nomPaciente"], $_POST["idPaciente"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
             }            

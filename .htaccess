@@ -1,7 +1,7 @@
 Options +FollowSymLinks
 RewriteEngine on
 
-RewriteRule ^inicio index.php
+RewriteRule ^webapp/inicio webapp/index.php
 RewriteRule ^webapp/admin webapp/admin.php
 RewriteRule ^webapp/reportes/ticket$ webapp/reportes/ticket_pdf.php
 RewriteRule ^webapp/reportes/corte$ webapp/reportes/ticket_corte_caja.php

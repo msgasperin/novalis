@@ -1,0 +1,106 @@
+{
+   "cliente_id": "saludvital",
+   "nombre_comercial": "Salud Vital",
+   "slogan": "Confianza y responsabilidad es nuestra marca",
+   "logo_url": "api/assets/saludvital/images/logo.png",
+   "size_logo": 70,
+   "favicon": "api/assets/saludvital/images/logo.png",
+   "colores": {
+      "primario": "#02A899",
+      "secundario": "#01917B",
+      "acento": "#102540"
+   },
+   "contacto": {
+      "telefono": "228 569 7458",
+      "whatsapp": "522285697458",
+      "email": "contacto@saludvital.com",
+      "horario": "Lun - Vie: 7:30 AM - 6:00 PM | Sáb: 7:30 AM - 3:00 PM"
+   },
+   "promociones": [
+      {
+         "titulo": "Check-up Básico",
+         "destacado": false,
+         "badge": "Popular",
+         "precio_regular": "$550",
+         "precio_oferta": "$350",
+         "incluye": [
+         "Biometría Hemática Completa",
+         "Química Sanguínea de 6 elementos",
+         "Examen General de Orina"
+         ]
+      },
+      {
+         "titulo": "Perfil Masculino / Femenino +40",
+         "destacado": true,
+         "badge": "Recomendado",
+         "precio_regular": "$1,200",
+         "precio_oferta": "$890",
+         "incluye": [
+         "Química Sanguínea 27 elementos",
+         "Perfil Lipídico Completo",
+         "Pruebas de Función Hepática",
+         "Antígeno Prostático / Perfil Tiroideo"
+         ]
+      },
+      {
+         "titulo": "Perfil Diabetes & Control",
+         "destacado": false,
+         "badge": "Preventivo",
+         "precio_regular": "$750",
+         "precio_oferta": "$480",
+         "incluye": [
+         "Glucosa en Ayuno",
+         "Hemoglobina Glicosilada (HbA1c)",
+         "Examen General de Orina",
+         "Microalbuminuria"
+         ]
+      },
+      {
+         "titulo": "Paquete Salud Infantil",
+         "destacado": false,
+         "badge": "Escolar",
+         "precio_regular": "$420",
+         "precio_oferta": "$280",
+         "incluye": [
+         "Biometría Hemática",
+         "Coproparasitoscópico (3 muestras)",
+         "Examen General de Orina",
+         "Grupo Sanguíneo y Rh"
+         ]
+      }
+   ],
+   "sucursales": [
+      {
+         "nombre": "Matriz Centro",
+         "direccion": "Av. Enríquez #45, Col. Centro, Xalapa, Ver.",
+         "telefono": "228 812 3456"
+      },
+      {
+         "nombre": "Sucursal Plaza",
+         "direccion": "Av. Lázaro Cárdenas #1200, Col. Animas, Xalapa, Ver.",
+         "telefono": "228 812 7890"
+      }
+   ],
+   "servicios": [
+      {
+         "icono": "bi bi-journal-medical",
+         "titulo": "Análisis Clínicos",
+         "descripcion": "Estudios de rutina, biometrías hemáticas, químicas sanguíneas y perfiles completos."
+      },
+      {
+         "icono": "bi bi-house-add",
+         "titulo": "Toma a Domicilio",
+         "descripcion": "Agenda tu cita y enviamos a nuestro personal capacitado hasta tu hogar u oficina."
+      },
+      {
+         "icono": "bi bi-virus",
+         "titulo": "Estudios Especializados",
+         "descripcion": "Pruebas de inmunología, biología molecular, endocrinología y perfiles hormonales."
+      },
+      {
+         "icono": "bi bi-heart-pulse",
+         "titulo": "Check-ups Integrales",
+         "descripcion": "Paquetes preventivos diseñados para el seguimiento continuo de tu salud."
+      }
+   ]
+}
