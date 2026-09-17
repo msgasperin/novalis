@@ -9,8 +9,10 @@
         $_SESSION['csrfTokenPortal'] = bin2hex(random_bytes(32));
     }
     // 1. Detección dinámica del subdominio
-    $host = $_SERVER['HTTP_HOST']; 
-    $subDominio = explode('.', $host)[0]; 
+    $host = $_SERVER['HTTP_HOST'];
+    $parts = explode('.', $host);
+    // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
+    $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
     // 2. Ruta al archivo JSON estático
     $jsonPath = "api/config/json/{$subDominio}.json";
@@ -453,7 +455,9 @@
                             <div>
                                 <h5 class="fw-bold text-dark mb-1"><?= htmlspecialchars($sucursal['nombre']) ?></h5>
                                 <p class="text-muted small mb-2"><?= htmlspecialchars($sucursal['direccion']) ?></p>
-                                <span class="small fw-semibold text-brand-primary"><i class="bi bi-telephone me-1"></i><?= htmlspecialchars($sucursal['telefono']) ?></span>
+                                <a href="tel:+52<?= htmlspecialchars($sucursal['telefono']) ?>" class="text-decoration-none">
+                                    <span class="small fw-semibold text-brand-primary"><i class="bi bi-telephone me-1"></i><?= htmlspecialchars($sucursal['telefono']) ?></span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -486,59 +490,11 @@
             </div>
         </footer>
 
-        <!-- Bootstrap 5 JS Bundle -->
         <script src="webapp/assets/lib/bootstrap-5.3.2/js/bootstrap.bundle.min.js"></script>
         <script src="webapp/assets/lib/jquery-3.7.1.min.js"></script>
         <script src="webapp/assets/lib/sweetAlert2/sweetalert2.min.js"></script>
         <script type="module" src="webapp/components/globals.js?<?=time()?>"></script>
         <script type="module" src="plataforma/components/Login/Login.js?x=<?php echo time();?>"></script>
 
-        <!-- Script Conmutador de Tipo de Usuario -->
-        <script>
-        function switchUserType(type) {
-            const inputTipo       = document.getElementById('tipo_cliente');
-            const labelUsuario   = document.getElementById('labelUsuario');
-            const inputUsuario   = document.getElementById('inputUsuario');
-            const iconUsuario    = document.getElementById('iconUsuario');
-            const accessTitle    = document.getElementById('accessTitle');
-            const accessSubtitle = document.getElementById('accessSubtitle');
-            const btnAccessText  = document.getElementById('btnAccessText');
-            const containerFecha = document.getElementById('containerFechaNac');
-
-            document.querySelectorAll('.btn-type-select').forEach(btn => {
-                if (btn.getAttribute('data-type') === type) {
-                    btn.classList.add('active');
-                    btn.classList.remove('text-muted');
-                } else {
-                    btn.classList.remove('active');
-                    btn.classList.add('text-muted');
-                }
-            });
-
-            inputTipo.value = type;
-
-            if (type === 'convenio') {
-                accessTitle.textContent = 'Portal de Convenios';
-                accessSubtitle.textContent = 'Acceso para Empresas, Médicos y Laboratorios';
-                labelUsuario.textContent = 'Clave de Convenio';
-                inputUsuario.placeholder = 'Ej. 109278';
-                iconUsuario.className = 'bi bi-building';
-                btnAccessText.textContent = 'Ingresar al Portal';
-                
-                // Ocultar fecha de nacimiento en convenios
-                containerFecha.classList.add('d-none');
-            } else {
-                accessTitle.textContent = 'Consultar Resultados';
-                accessSubtitle.textContent = 'Ingresa las credenciales impresas en tu comprobante';
-                labelUsuario.textContent = 'Usuario / Folio';
-                inputUsuario.placeholder = 'Ej. 102540';
-                iconUsuario.className = 'bi bi-person-circle';
-                btnAccessText.textContent = 'Ver Mis Resultados';
-                
-                // Mostrar fecha de nacimiento en pacientes
-                containerFecha.classList.remove('d-none');
-            }
-        }
-        </script>
     </body>
 </html>

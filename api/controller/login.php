@@ -72,6 +72,7 @@
             $_SESSION["emp_direccion"]  = $res["data"]["emp_direccion"];
             $_SESSION["emp_rfc"]        = $res["data"]["emp_rfc"];
             $_SESSION["emp_telefono"]   = $res["data"]["emp_telefono"];
+            $_SESSION["emp_whats"]      = $res["data"]["emp_whats"];   
             $_SESSION["emp_correo"]     = $res["data"]["emp_correo"];
             $_SESSION["emp_web"]        = $res["data"]["emp_web"];
             

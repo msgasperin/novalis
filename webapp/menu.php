@@ -74,10 +74,19 @@
             </div>
           <?php } ?>
 
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
           <div class="opciones_menu align-menu menu-con-submenu" id="opcionConfiguracion" onclick="opcionActive('opcionConfiguracion'), mostrarSubmenu(event, 'configuracion');">
             <i class="bi bi-gear icon-menu"></i>
             <div>Configuración Administración</div>
-          </div>          
+          </div>    
+          <?php } ?>
+          
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
+          <div class="opciones_menu align-menu menu-con-submenu" id="opcionPortal" onclick="opcionActive('opcionPortal'), mostrarSubmenu(event, 'portal');">
+            <i class="bi bi-browser-chrome icon-menu"></i>
+            <div>Gestión del Portal</div>
+          </div>    
+          <?php } ?>
 
           <div class="opciones_menu align-menu" id="opcionSalir" onclick="fn_cerrar_sesion();">
             <i class="bi bi-box-arrow-left icon-menu"></i>

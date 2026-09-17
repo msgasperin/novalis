@@ -100,7 +100,53 @@ const redireccionar = (dir, tiempo) => {
   setTimeout("location.href='" + dir + "'", tiempo);
 }
 
+const switchUserType = (type) => {
+      const inputTipo       = document.getElementById('tipo_cliente');
+      const labelUsuario   = document.getElementById('labelUsuario');
+      const inputUsuario   = document.getElementById('inputUsuario');
+      const iconUsuario    = document.getElementById('iconUsuario');
+      const accessTitle    = document.getElementById('accessTitle');
+      const accessSubtitle = document.getElementById('accessSubtitle');
+      const btnAccessText  = document.getElementById('btnAccessText');
+      const containerFecha = document.getElementById('containerFechaNac');
+
+      document.querySelectorAll('.btn-type-select').forEach(btn => {
+          if (btn.getAttribute('data-type') === type) {
+              btn.classList.add('active');
+              btn.classList.remove('text-muted');
+          } else {
+              btn.classList.remove('active');
+              btn.classList.add('text-muted');
+          }
+      });
+
+      inputTipo.value = type;
+
+      if (type === 'convenio') {
+          accessTitle.textContent = 'Portal de Convenios';
+          accessSubtitle.textContent = 'Acceso para Empresas, Médicos y Laboratorios';
+          labelUsuario.textContent = 'Clave de Convenio';
+          inputUsuario.placeholder = 'Ej. 109278';
+          iconUsuario.className = 'bi bi-building';
+          btnAccessText.textContent = 'Ingresar al Portal';
+          
+          // Ocultar fecha de nacimiento en convenios
+          containerFecha.classList.add('d-none');
+      } else {
+          accessTitle.textContent = 'Consultar Resultados';
+          accessSubtitle.textContent = 'Ingresa las credenciales impresas en tu comprobante';
+          labelUsuario.textContent = 'Usuario / Folio';
+          inputUsuario.placeholder = 'Ej. 102540';
+          iconUsuario.className = 'bi bi-person-circle';
+          btnAccessText.textContent = 'Ver Mis Resultados';
+          
+          // Mostrar fecha de nacimiento en pacientes
+          containerFecha.classList.remove('d-none');
+      }
+  }
+
 window.login_portal   = login_portal;
 window.cerrar_sesion  = cerrar_sesion;
 window.ver_password   = ver_password;
 window.redireccionar  = redireccionar;
+window.switchUserType = switchUserType;

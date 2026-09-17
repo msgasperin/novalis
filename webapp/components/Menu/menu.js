@@ -14,7 +14,12 @@ const submenus = {
     <div onclick="TabSucursales()"><i class="bi bi-shop-window"></i> Sucursales</div>
     <div onclick="TabUsuarios()"><i class="bi bi-person-gear"></i> Usuarios</div>
     <div onclick="TabPrecios()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>
-    <div onclick="TabDescuentos()"><i class="bi bi-percent"></i> Descuentos generales</div>`
+    <div onclick="TabDescuentos()"><i class="bi bi-percent"></i> Descuentos generales</div>`,
+
+  portal: `
+    <div onclick="TabPromocionesPortal()"><i class="bi bi-tags"></i> Promociones</div>
+    <div onclick="ModalActualizaWhatsApp()"><i class="bi bi-whatsapp"></i> WhatsApp</div>
+    <div onclick="publicar_cambios()"><i class="bi bi-cloud-arrow-up"></i> Publicar cambios</div>`
 };
 
 document.addEventListener("click", function(e) {

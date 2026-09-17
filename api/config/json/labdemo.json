@@ -1,106 +1,118 @@
 {
-   "cliente_id": "labdemo",
-   "nombre_comercial": "Laboratorio Clínico San José",
-   "slogan": "Precisión y confianza en cada diagnóstico",
-   "logo_url": "api/assets/labdemo/images/logo.png",
-   "size_logo": 65,
-   "favicon": "api/assets/labdemo/images/logo.png",
-   "colores": {
-      "primario": "#66CCFF",
-      "secundario": "#59ABFF",
-      "acento": "#2F3B4D"
-   },
-   "contacto": {
-      "telefono": "228 123 4567",
-      "whatsapp": "522281234567",
-      "email": "contacto@labsanjose.com",
-      "horario": "Lun - Vie: 7:00 AM - 7:00 PM | Sáb: 7:00 AM - 2:00 PM"
-   },
-   "promociones": [
-      {
-         "titulo": "Check-up Básico",
-         "destacado": false,
-         "badge": "Popular",
-         "precio_regular": "$650",
-         "precio_oferta": "$450",
-         "incluye": [
-         "Biometría Hemática Completa",
-         "Química Sanguínea de 6 elementos",
-         "Examen General de Orina"
-         ]
-      },
-      {
-         "titulo": "Perfil Masculino / Femenino +40",
-         "destacado": true,
-         "badge": "Recomendado",
-         "precio_regular": "$1,400",
-         "precio_oferta": "$990",
-         "incluye": [
-         "Química Sanguínea 27 elementos",
-         "Perfil Lipídico Completo",
-         "Pruebas de Función Hepática",
-         "Antígeno Prostático / Perfil Tiroideo"
-         ]
-      },
-      {
-         "titulo": "Perfil Diabetes & Control",
-         "destacado": false,
-         "badge": "Preventivo",
-         "precio_regular": "$850",
-         "precio_oferta": "$580",
-         "incluye": [
-         "Glucosa en Ayuno",
-         "Hemoglobina Glicosilada (HbA1c)",
-         "Examen General de Orina",
-         "Microalbuminuria"
-         ]
-      },
-      {
-         "titulo": "Paquete Salud Infantil",
-         "destacado": false,
-         "badge": "Escolar",
-         "precio_regular": "$520",
-         "precio_oferta": "$380",
-         "incluye": [
-         "Biometría Hemática",
-         "Coproparasitoscópico (3 muestras)",
-         "Examen General de Orina",
-         "Grupo Sanguíneo y Rh"
-         ]
-      }
-   ],
-   "sucursales": [
-      {
-         "nombre": "Matriz Centro",
-         "direccion": "Av. Enríquez #45, Col. Centro, Xalapa, Ver.",
-         "telefono": "228 812 3456"
-      },
-      {
-         "nombre": "Sucursal Plaza",
-         "direccion": "Av. Lázaro Cárdenas #1200, Col. Animas, Xalapa, Ver.",
-         "telefono": "228 812 7890"
-      }
-   ],
-   "servicios": [
-      {
-         "icono": "bi bi-journal-medical",
-         "titulo": "Análisis Clínicos",
-         "descripcion": "Estudios de rutina, biometrías hemáticas, químicas sanguíneas y perfiles completos."
-      },
-      {
-         "icono": "bi bi-house-add",
-         "titulo": "Toma a Domicilio",
-         "descripcion": "Agenda tu cita y enviamos a nuestro personal capacitado hasta tu hogar u oficina."
-      },
-      {
-         "icono": "bi bi-virus",
-         "titulo": "Estudios Especializados",
-         "descripcion": "Pruebas de inmunología, biología molecular, endocrinología y perfiles hormonales."
-      },
-      {
-         "icono": "bi bi-heart-pulse",
-         "titulo": "Check-ups Integrales",
-         "descripcion": "Paquetes preventivos diseñados para el seguimiento continuo de tu salud."
-      }
-   ]
+    "cliente_id": "labdemo",
+    "nombre_comercial": "Laboratorio Clínico San José",
+    "slogan": "Precisión y confianza en cada diagnóstico",
+    "logo_url": "api/assets/labdemo/images/logo.png",
+    "size_logo": 65,
+    "favicon": "api/assets/labdemo/images/logo.png",
+    "colores": {
+        "primario": "#66CCFF",
+        "secundario": "#59ABFF",
+        "acento": "#2F3B4D"
+    },
+    "contacto": {
+        "telefono": "228 123 4567",
+        "whatsapp": "+522288596167",
+        "email": "contacto@labsanjose.com",
+        "horario": "Lun - Vie: 7:00 AM - 7:00 PM | Sáb: 7:00 AM - 2:00 PM"
+    },
+    "promociones": [
+        {
+            "titulo": "Check-up Básico",
+            "destacado": false,
+            "badge": "Popular",
+            "precio_regular": "$650",
+            "precio_oferta": "$450",
+            "incluye": [
+                "Biometría Hemática Completa",
+                "Examen General de Orina",
+                "Química sanguínea de 12 elementos"
+            ]
+        },
+        {
+            "titulo": "Perfil Masculino / Femenino +40",
+            "destacado": true,
+            "badge": "Recomendado",
+            "precio_regular": "$140",
+            "precio_oferta": "$990",
+            "incluye": [
+                "Química Sanguínea 27 elementos",
+                "Perfil de Lípidos Completo",
+                "Pruebas de Función Hepática",
+                "Antígeno Prostático / Perfil Tiroideo"
+            ]
+        },
+        {
+            "titulo": "Perfil Diabetes & Control",
+            "destacado": false,
+            "badge": "Preventivo",
+            "precio_regular": "$750",
+            "precio_oferta": "$480",
+            "incluye": [
+                "Glucosa en ayuno",
+                "Hemoglobina Glicosilada (Hba1c)",
+                "Examen General de Orina",
+                "Microalbuminuria"
+            ]
+        },
+        {
+            "titulo": "Paquete Salud Infantil",
+            "destacado": false,
+            "badge": "Infantil",
+            "precio_regular": "$420",
+            "precio_oferta": "$280",
+            "incluye": [
+                "Biometría Hemática Completa",
+                "Coproparasitoscópico (3 muestras)",
+                "Examen General de Orina",
+                "Grupo Sanguíneo y Rh"
+            ]
+        },
+        {
+            "titulo": "Paquete Adulto Mayor",
+            "destacado": false,
+            "badge": "Adulto mayor",
+            "precio_regular": "$500",
+            "precio_oferta": "$400",
+            "incluye": [
+                "Biometría Hemática Completa",
+                "Examen General de Orina",
+                "Osteoporosis"
+            ]
+        }
+    ],
+    "sucursales": [
+        {
+            "nombre": "Matriz",
+            "direccion": "Enríquez S/N Col. Centro C.P 91000 Xalapa, Ver",
+            "telefono": "2288565987"
+        },
+        {
+            "nombre": "Ávila Camacho",
+            "direccion": "Manuel Ávila Camacho No. 92",
+            "telefono": "2288291989"
+        }
+    ],
+    "servicios": [
+        {
+            "icono": "bi bi-journal-medical",
+            "titulo": "Análisis Clínicos",
+            "descripcion": "Estudios de rutina, biometrías hemáticas, químicas sanguíneas y perfiles completos."
+        },
+        {
+            "icono": "bi bi-house-add",
+            "titulo": "Toma a Domicilio",
+            "descripcion": "Agenda tu cita y enviamos a nuestro personal capacitado hasta tu hogar u oficina."
+        },
+        {
+            "icono": "bi bi-virus",
+            "titulo": "Estudios Especializados",
+            "descripcion": "Pruebas de inmunología, biología molecular, endocrinología y perfiles hormonales."
+        },
+        {
+            "icono": "bi bi-heart-pulse",
+            "titulo": "Check-ups Integrales",
+            "descripcion": "Paquetes preventivos diseñados para el seguimiento continuo de tu salud."
+        }
+    ]
 }

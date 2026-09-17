@@ -7,16 +7,12 @@
 
    $mensajeError = '';
    $bd_cliente   = 'error_bd';
-
-   // 1. Extraer el subdominio desde la URL (HTTP_HOST)
-   $host  = $_SERVER['HTTP_HOST'] ?? '';
-   $host  = strtok($host, ':'); // Remover puerto si existe
-   $parts = explode('.', $host);
    
-   $subdominio = null;
-   if (count($parts) >= 3 && $parts[0] !== 'www') {
-      $subdominio = strtolower($parts[0]);
-   }
+   // 1. Detección dinámica del subdominio
+   $host = $_SERVER['HTTP_HOST'];
+   $parts = explode('.', $host);
+   // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
+   $subdominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
    // 2. Determinar la base de datos según el subdominio capturado
    if (empty($subdominio)) {

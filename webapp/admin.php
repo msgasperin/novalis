@@ -43,12 +43,13 @@
 			<div id="modalAdminExt5"></div>
 			<div id="modalAdminDocs"></div>
 			<div id="modalLoader"></div>
-			<input type="hidden" id="perfilUs"  value="<?php echo $_SESSION["perfil"]; ?>" />
-			<input type="hidden" id="idCaja"  value="<?php echo $_SESSION["id_caja"]; ?>" />
-			<input type="hidden" id="estatusCaja"  value="<?php echo $_SESSION["estatus_caja"]; ?>" />
-			<input type="hidden" id="aperturaCaja"  value="<?php echo $_SESSION["fecha_apertura"]; ?>" />
-			<input type="hidden" id="cierreCaja"  value="<?php echo $_SESSION["fecha_cierre"]; ?>" />
-			<input type="hidden" id="nomEmpresa"  value="<?php echo $_SESSION["emp_nombre"]; ?>" />
+			<input type="hidden" id="perfilUs" value="<?php echo $_SESSION["perfil"]; ?>" />
+			<input type="hidden" id="idCaja" value="<?php echo $_SESSION["id_caja"]; ?>" />
+			<input type="hidden" id="estatusCaja" value="<?php echo $_SESSION["estatus_caja"]; ?>" />
+			<input type="hidden" id="aperturaCaja" value="<?php echo $_SESSION["fecha_apertura"]; ?>" />
+			<input type="hidden" id="cierreCaja" value="<?php echo $_SESSION["fecha_cierre"]; ?>" />
+			<input type="hidden" id="nomEmpresa" value="<?php echo $_SESSION["emp_nombre"]; ?>" />
+			<input type="hidden" id="whatsAppEmpresa" value="<?php echo $_SESSION["emp_whats"]; ?>" />
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
@@ -86,6 +87,7 @@
 		<script type="module" src="components/Bandejas/Bandejas.js?<?=time()?>"></script>
 		<script type="module" src="components/Caja/Caja.js?<?=time()?>"></script>
 		<script type="module" src="components/Reportes/Reportes.js?<?=time()?>"></script>
+		<script type="module" src="components/Portal/Portal.js?<?=time()?>"></script>
 
 		<!-- SheetJS para Excel -->
 		<script src="assets/lib/xlsx.full.min.js"></script>
