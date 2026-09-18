@@ -36,6 +36,10 @@
     $promociones = $config['promociones']      ?? [];
     $servicios   = $config['servicios']        ?? [];
     $sucursales  = $config['sucursales']       ?? [];
+
+    $_SESSION["nombreLab"] = $nombreLab;
+    $_SESSION["favicon"]   = $favicon;
+    $_SESSION["logoUrl"]   = $logoUrl;
 ?>
 <!DOCTYPE html>
 <html lang="es">

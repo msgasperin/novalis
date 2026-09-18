@@ -42,8 +42,8 @@ const login_portal = async () => {
   $('#btnLogin').prop('disabled',true);
   let res = await valida_login(user, pass, tipoCliente, fechaNac, csrf);
   if(res.estatus == 200) {
-    showMessageSwalTimer('Bienvenido al equipo', 'NovaLIS', 'success', 2500);
-    redireccionar("admin", 1000);
+    showMessageSwalTimer('¡Inicio de sesión correcto!', '', 'success', 2500);
+    redireccionar("plataforma/", 1000);
   }
   else if(res.estatus == 202) {
     showMessageSwalTimer('Usuario no encontrado', '', 'info', 2500);
