@@ -51,7 +51,8 @@
 
         if(trim($_POST["usuario"]) != '' and trim($_POST["contrasenia"]) != '') {
           $nom_perfil = 'NA';
-          $res = $v->login($_POST["usuario"], $_POST["contrasenia"]);
+          $res = $v->login($_POST["usuario"], $_POST["contrasenia"]);         
+
           if($res["estatus"] == 200) { 
             $v->limpiar_ip($ip);
             // ── Regenerar ID de sesión — invalida IDs previos ────
@@ -84,7 +85,8 @@
 
             $g->bitacora('Inicio de sesión', $res["data"]["id_usuario"], $res["data"]["id_usuario"], $res["data"]["nombre"]);
             echo json_encode(['estatus' => $res["estatus"], 'mensaje' => 'ok', 'data' => []]);
-          } else {
+          } 
+          else {
             $intentos_hechos = $v->registrar_fallo($ip);
             $restantes = max(0, 5 - $intentos_hechos);
             echo json_encode(['estatus' => 202, 'mensaje' => 'Usuario no encontrado', 'data' => []]);  

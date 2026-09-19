@@ -55,21 +55,17 @@
 				// Cálculo de lo registrado realmente
 				$sqlMontos = $this->dbh->prepare(
 					"SELECT C.fondo_inicial,
-						
+    
 						-- Cobros de órdenes por forma de pago
 						COALESCE(SUM(CASE WHEN P.metodo_pago = 'EFECTIVO' AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_efectivo,
 						COALESCE(SUM(CASE WHEN P.metodo_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_tarjeta,
 						COALESCE(SUM(CASE WHEN P.metodo_pago = 'TRANSFERENCIA' AND P.estatus = 1 THEN P.monto ELSE 0 END), 0) AS cobros_transferencia,
 
-						-- Movimientos manuales: EFECTIVO
+						-- Movimientos manuales: Ahora garantizan 0 en lugar de NULL
 						M.ingresos_efectivo,
 						M.egresos_efectivo,
-
-						-- Movimientos manuales: TARJETA
 						M.ingresos_tarjeta,
 						M.egresos_tarjeta,
-
-						-- Movimientos manuales: TRANSFERENCIA
 						M.ingresos_transferencia,
 						M.egresos_transferencia
 
@@ -78,25 +74,25 @@
 					-- JOIN 1: Pagos directos de órdenes
 					LEFT JOIN orden_pagos P ON P.caja_id = C.id_caja
 
-					-- JOIN 2: Resumen pre-agregado de movimientos manuales (1 sola lectura en lugar de 6 subconsultas)
+					-- JOIN 2: Subconsulta corregida (Sin GROUP BY y COALESCE externo)
 					LEFT JOIN (
 						SELECT 
-							caja_id,
-							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'EFECTIVO' THEN monto ELSE 0 END), 0) AS ingresos_efectivo,
-							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'EFECTIVO' THEN monto ELSE 0 END), 0) AS egresos_efectivo,
+							-- COALESCE externo para asegurar el 0 si la tabla está vacía
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'EFECTIVO' THEN monto END), 0) AS ingresos_efectivo,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'EFECTIVO' THEN monto END), 0) AS egresos_efectivo,
 							
-							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto ELSE 0 END), 0) AS ingresos_tarjeta,
-							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto ELSE 0 END), 0) AS egresos_tarjeta,
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto END), 0) AS ingresos_tarjeta,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago IN ('TARJETA DE CREDITO', 'TARJETA DE DEBITO') THEN monto END), 0) AS egresos_tarjeta,
 							
-							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'TRANSFERENCIA' THEN monto ELSE 0 END), 0) AS ingresos_transferencia,
-							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'TRANSFERENCIA' THEN monto ELSE 0 END), 0) AS egresos_transferencia
+							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'TRANSFERENCIA' THEN monto END), 0) AS ingresos_transferencia,
+							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'TRANSFERENCIA' THEN monto END), 0) AS egresos_transferencia
 						FROM caja_movimientos
 						WHERE caja_id = :id_caja AND activo = 1
-						GROUP BY caja_id
-					) M ON M.caja_id = C.id_caja
+						-- Se eliminó el GROUP BY para forzar la devolución de una fila con ceros
+					) M ON 1 = 1 -- Al ser una sola fila para el mismo :id_caja, unimos directamente
 
 					WHERE C.id_caja = :id_caja
-					GROUP BY C.id_caja, M.ingresos_efectivo, M.egresos_efectivo, M.ingresos_tarjeta, M.egresos_tarjeta, M.ingresos_transferencia, M.egresos_transferencia;"
+					GROUP BY C.id_caja, C.fondo_inicial, M.ingresos_efectivo, M.egresos_efectivo, M.ingresos_tarjeta, M.egresos_tarjeta, M.ingresos_transferencia, M.egresos_transferencia;					;"
 				);
 
 				$sqlMontos->execute([':id_caja' => $id_caja]);
@@ -199,6 +195,7 @@
 			} 
 			catch (Exception $error) {
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
 			$res = array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data);

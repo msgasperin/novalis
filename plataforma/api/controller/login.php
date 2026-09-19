@@ -72,6 +72,7 @@
           $_SESSION["login_portal_novalis"] = "SI";
           $_SESSION["id_cliente_portal"]    = $res["data"]["id_cliente"];
           $_SESSION["cliente"]              = $res["data"]["nombre"];
+          $_SESSION["tipo_cliente"]         = $_POST["tipoCliente"];
 
           $g->bitacora('Inicio de sesión al portal', $res["data"]["id_cliente"], $res["data"]["id_cliente"], $res["data"]["nombre"]);
           echo json_encode(['estatus' => $res["estatus"], 'mensaje' => 'ok', 'data' => []]);
@@ -83,18 +84,18 @@
         }
       break;  
 
-      case 'cerrar_sesion':
-        if (!isset($_SESSION["id_usuario"]) || !isset($_SESSION["nombre"])) {
-          $id_usuario = 0;
-          $nombre     = 'Sesión caducada';
+      case 'cierra_sesion':
+        if (!isset($_SESSION["id_cliente_portal"]) || !isset($_SESSION["cliente"])) {
+          $id_cliente = 0;
+          $cliente     = 'Sesión caducada';
         } 
         else {
-          $id_usuario = $_SESSION["id_usuario"];
-          $nombre     = $_SESSION["nombre"];
+          $id_cliente = $_SESSION["id_cliente_portal"];
+          $cliente     = $_SESSION["cliente"];
         }
 
         if(session_destroy()){
-          $g->bitacora('Cierre de sesión', $id_usuario, $id_usuario, $nombre);
+          $g->bitacora('Cierre de sesión', $id_cliente, $id_cliente, $cliente);
           echo json_encode(['estatus'=> 200, 'mensaje' => '', 'data' => []]);
         } else {
           echo json_encode(['estatus'=> 500, 'mensaje' => 'Hubo un problema al cerrar la sesión', 'data' => []]);

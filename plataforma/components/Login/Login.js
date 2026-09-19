@@ -67,7 +67,6 @@ const login_portal = async () => {
 
 const cerrar_sesion = async () => {
   
-  let clienteMasg = $('#clienteMasg').val();
   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se cerrará la sesión', 'question', 'Sí, cerrar', 'Cancelar');
    
   if (!res.result) {
@@ -77,7 +76,7 @@ const cerrar_sesion = async () => {
   let respuesta = await cierra_sesion();
   if(respuesta.estatus == 200) {
     showMessageSwalTimer('Sesión finalizada correctamente', '', 'success', 2500);
-    redireccionar("inicio", 1000);
+    redireccionar("../index", 1000);
   }
   else {
     showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');

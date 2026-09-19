@@ -6,15 +6,15 @@
 
 // 1. Inicializar la sesión y comprobar que el usuario esté logueado
 require_once('../../api/config/class.pdo.php');
-require_once('../../api/config/seguridad.php');
+require_once('../api/config/seguridad.php');
 
 $v = new Conexion();
 $v->conectar();
 
-if (!isset($_SESSION['id_usuario'])) {
-    header("HTTP/1.1 403 Forbidden");
-    echo "Acceso denegado. No tienes una sesión activa.";
-    exit;
+if (!isset($_SESSION['id_cliente_portal'])) {
+   header("HTTP/1.1 403 Forbidden");
+   echo "Acceso denegado. No tienes una sesión activa.";
+   exit;
 }
 
 // 2. Validar que se haya recibido un ID de adjunto válido
@@ -29,20 +29,36 @@ $key_query = $_GET['id'];
 // 4. Consultar la información del archivo en la Base de Datos
 // Ajusta los nombres de las columnas y tabla a tu base de datos real
 try {
-    $sql = $v->dbh->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
-    $sql->execute([$key_query]);
-    $archivo_db = $sql->fetch();
-} catch (\PDOException $e) {
-    header("HTTP/1.1 500 Internal Server Error");
-    echo "Error al consultar la base de datos.";
-    exit;
+   if($_SESSION["tipo_cliente"] == 'paciente') {
+      $sql = $v->dbh->prepare(
+         "SELECT D.id, orden_folio, nombre_servidor 
+         FROM orden_resultados_pdf AS D 
+         INNER JOIN ordenes_trabajo AS O ON O.id = D.orden_id 
+         WHERE key_query_pdf = ? AND paciente_id = ? LIMIT 1");
+      $sql->execute([$key_query, $_SESSION["id_cliente_portal"]]);
+   }
+   else if($_SESSION["tipo_cliente"] == 'convenio') {
+     $sql = $v->dbh->prepare(
+         "SELECT D.id, orden_folio, nombre_servidor 
+         FROM orden_resultados_pdf AS D 
+         INNER JOIN ordenes_trabajo AS O ON O.id = D.orden_id 
+         WHERE key_query_pdf = ? AND convenio_id = ? LIMIT 1");
+      $sql->execute([$key_query, $_SESSION["id_cliente_portal"]]);
+   }
+
+   $archivo_db = $sql->fetch();
+} 
+catch (\PDOException $e) {
+   header("HTTP/1.1 500 Internal Server Error");
+   echo "Error al consultar la base de datos.";
+   exit;
 }
 
 // Si no existe el registro en la BD, terminamos
 if (!$archivo_db) {
-    header("HTTP/1.1 404 Not Found");
-    echo "El documento solicitado no existe en nuestros registros.";
-    exit;
+   header("HTTP/1.1 404 Not Found");
+   echo "El documento solicitado no existe en nuestros registros.";
+   exit;
 }
 
 // 5. Construir la ruta física real en el servidor
@@ -57,14 +73,14 @@ $subdominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
 // Definimos la ruta relativa hacia la carpeta protegida por el .htaccess
 // Nota: Asegúrate de ajustar los niveles de carpetas (../) dependiendo de dónde coloques este script PHP
-$ruta_carpeta_protegida = "../assets/docs/resultados/".$subdominio."/" . $folio . "/";
+$ruta_carpeta_protegida = "../../webapp/assets/docs/resultados/".$subdominio."/" . $folio . "/";
 $ruta_real_archivo      = $ruta_carpeta_protegida . $nombre_archivo;
 
 // 6. Validar que el archivo físico exista en el disco
 if (!file_exists($ruta_real_archivo)) {
-    header("HTTP/1.1 404 Not Found");
-    echo "Archivo físico no encontrado. Contacte al administrador.";
-    exit;
+   header("HTTP/1.1 404 Not Found");
+   echo "Archivo físico no encontrado. Contacte al administrador.";
+   exit;
 }
 
 // 7. Cabeceras mágicas para despachar el PDF de forma nativa y segura

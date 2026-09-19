@@ -3,7 +3,7 @@
    ini_set('session.cookie_httponly', 1);   // no accesible desde JS
    ini_set('session.cookie_samesite', 'Strict'); // bloquea CSRF adicional
    session_start();
-   require("api/config/seguridad.php");
+   //require("api/config/seguridad.php");
    header( "Expires: Mon, 26 Jul 1997 05:00:00 GMT" );
    header( "Last-Modified: ". gmdate("D,dMYH:i:s"). " GMT" );
    header( "Cache-Control: no-cache, must-revalidate" );
@@ -59,7 +59,7 @@
                   </span>
                </div>
                <div class="vr d-none d-sm-block my-2"></div>
-               <button class="btn btn-light btn-sm text-danger fw-semibold d-flex align-items-center gap-1 border shadow-sm btn-redondo" id="btnLogout" title="Cerrar sesión" onclick="cerrar_sesion();">
+               <button class="btn btn-light btn-sm text-danger fw-semibold d-flex align-items-center gap-1 border shadow-sm" id="btnLogout" title="Cerrar sesión">
                   <i class="bi bi-power"></i> <span class="d-none d-md-inline">Salir</span>
                </button>
             </div>

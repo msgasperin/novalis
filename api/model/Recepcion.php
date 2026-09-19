@@ -141,7 +141,7 @@
 
 				$consecutivo = $this->dbh->query("SELECT LAST_INSERT_ID()")->fetchColumn();
 				
-				$folio = 'O-' . date('y') . '-' . $id_sucursal . '-' . $consecutivo;
+				$folio = 'O'.date('y').$id_sucursal . '-' . $consecutivo;
 
 				$key_query = 'OD'. date('y').$id_sucursal.$consecutivo.$this->generarCadena(15);
 			

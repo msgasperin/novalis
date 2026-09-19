@@ -15,7 +15,7 @@ export const cierra_sesion = async () => {
    const datos = { func: 'cierra_sesion' };
    let respuesta;
    try {
-      respuesta = await postJSON('../api/controller/login.php', datos);
+      respuesta = await postJSON('../plataforma/api/controller/login.php', datos);
    } catch (err) {
       respuesta = {estatus: 500, "mensaje": "Error del servidor: "+ err, data: []};
    }

@@ -16,6 +16,9 @@
 		} 
 
 		public function login(string $usuario, string $contrasenia) {	
+         
+         $res = [ 'estatus' => 500, 'message' => 'error', 'data'    => []];
+
 			try {
 				$sql = $this->dbh->prepare(
                "SELECT id_usuario, id_sucursal_fk, U.nombre, usuario, correo, perfil, S.nombre AS sucursal, matriz
@@ -38,7 +41,7 @@
                $fecha_cierre   = null;
                
                if($row["perfil"] == 'RECEPCION') {
-                  $sqlCaja = $this->dbh->prepare("SELECT id_caja, estatus, DATE(fecha_apertura) AS fecha_apertura, DATE(fecha_cierre) AS fecha_cierre FROM FORCE INDEX (idx_cajas_usuario_id) cajas_sesiones WHERE id_usuario = ? ORDER BY id_caja DESC LIMIT 1");
+                  $sqlCaja = $this->dbh->prepare("SELECT id_caja, estatus, DATE(fecha_apertura) AS fecha_apertura, DATE(fecha_cierre) AS fecha_cierre FROM cajas_sesiones FORCE INDEX (idx_cajas_usuario_id) WHERE id_usuario = ? ORDER BY id_caja DESC LIMIT 1");
                   $sqlCaja->execute([$row["id_usuario"]]);
                   
 
@@ -76,28 +79,16 @@
                   'fecha_apertura' => $fecha_apertura,
                   'fecha_cierre'   => $fecha_cierre
 					];
-					$res = array(
-						'estatus' => 200,
-						'mensaje' => 'login_ok',
-						'data'    => $datos
-					);
+					$res = ['estatus' => 200, 'mensaje' => 'login_ok', 'data' => $datos ];
 				}
 				else	{
-					$res = array(
-						'estatus' => 202,
-						'mensaje' => '',
-						'data'    => []
-					);
+					$res = [	'estatus' => 202, 'mensaje' => '', 'data' => [] ];
 				}
 					
-			} catch (Exception $e) {
-				$res = array(
-					'estatus' => 500,
-					'message' => 'error',
-					'data'    => []
-				);
-			}
-			
+			} catch (Exception $error) {
+            error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+            print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());				
+			}			
 			return $res;
 		}
 

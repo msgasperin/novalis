@@ -323,6 +323,10 @@
   background: var(--sweetAlert-color-btn-denegar) !important;
 }
 
+.swal2-styled {
+  border-radius: 50px !important;
+}
+
 .bg-beige {
   background-color: #fafaf3;
 }
