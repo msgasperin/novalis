@@ -1,9 +1,18 @@
-  
+<?php
+  $host = $_SERVER['HTTP_HOST'];
+  $parts = explode('.', $host);
+  // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
+  $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+  $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
+?>
 <div class="row fondo-azul-1 header-top">
-  <div class="col-xl-2 col-lg-2 col-md-3 col-sm-3 col-5 p-2 mt-2" align="center">
-    <img src="assets/images/logo_text_blanco.png" class="img-logo"></img>
+  <div class="col-xl-2 col-lg-2 col-md-3 col-sm-3 col-4 p-2 mt-2 text-center">
+    <img src="assets/images/logo_text_blanco.png" class="img-logo">
   </div>
-  <div class="col-xl-10 col-lg-10 col-md-9 col-sm-9 col-7 fs-1" align="right">
+  <div class="col-xl-2 col-lg-2 col-md-3 col-sm-3 col-4 p-2">
+    <img src="<?= $ruta; ?>" class="img-logo-cliente">
+  </div>
+  <div class="col-xl-8 col-lg-8 col-md-6 col-sm-6 col-4 fs-1" align="right">
     <div class="p-3">
       <div class="d-none d-xl-block d-xxl-block text-dark text-white">
         <div class="fs-8"><i class="bi bi-person-circle fs-6">&nbsp;</i> <?php echo $_SESSION["nombre"] ?></div>

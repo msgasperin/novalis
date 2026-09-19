@@ -11,6 +11,12 @@
 	header( "Last-Modified: ". gmdate("D,dMYH:i:s"). " GMT" );
 	header( "Cache-Control: no-cache, must-revalidate" );
 	header( "Pragma: no-cache" );
+
+	$host = $_SERVER['HTTP_HOST'];
+	$parts = explode('.', $host);
+	// Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
+	$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+	$ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -38,9 +44,13 @@
 								<div class="card-login mt-index">
 									<div class="card-login-body">
 										
-										<div class="row mb-2">
-											<div class="col-12 text-center">
-												<img src="assets/images/logo.png" class="img img-login"/>
+										<div class="row mb-2 align-items-center">
+											<div class="col-6 text-center">
+												<img src="assets/images/logo.png" class="img-fluid" style="max-height: 100px;" alt="">
+											</div>
+
+											<div class="col-6 text-center">
+												<img src="<?= $ruta; ?>" class="img-fluid" style="max-height: 100px;" alt="">
 											</div>
 										</div>
 
@@ -67,7 +77,7 @@
 
 										<div class="row">
 											<div class="col-12 mt-4 text-secondary fs-8" align="right">
-												© NovaLIS - Laboratory Information System <br>Todos los derechos reservados
+												© NovaLIS - Sistema de Información para Laboratorios <br>Todos los derechos reservados
 											</div>
 										</div>
 

@@ -199,15 +199,21 @@
 
   .wm-responsive {
     background-color: var(--primary);
-    width: 5%;
+    width: 4.2%;
     margin-top: -5px;
   }
 
   .img-logo {
-    width: 50%;
+    width: 40%;
     margin-top: 3px;
     margin-bottom: 5px;
     margin-left: 40px;
+  }
+
+  .img-logo-cliente {
+    width: 30%;
+    margin-top: 3px;
+    margin-bottom: 5px;
   }
 
   .align-menu {
@@ -255,10 +261,16 @@
   }
 
   .img-logo {
-    width: 100%;
+    width: 50%;
     margin-top: 1px;
     margin-bottom: 2px;
     margin-left: 70px;
+  }
+
+  .img-logo-cliente {
+    width: 40%;
+    margin-top: 3px;
+    margin-bottom: 5px;
   }
 
   .align-menu {
@@ -334,7 +346,12 @@
   }
 
   .img-logo {
-    width: 85%;
+    width: 50%;
+    margin-top: -1px;
+  }
+
+  .img-logo-cliente {
+    width: 45%;
     margin-top: -1px;
   }
 
@@ -408,7 +425,13 @@
   }
 
   .img-logo {
-    width: 60%;
+    width: 80%;
+    margin-left: 0px;
+    margin-top: 0px;
+  }
+
+  .img-logo-cliente {
+    width: 65%;
     margin-left: 0px;
     margin-top: 0px;
   }
