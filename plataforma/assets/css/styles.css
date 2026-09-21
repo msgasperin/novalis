@@ -35,6 +35,9 @@ body {
   );
 }
 
+.btn-lib {
+  background-color: var(--primary-dark) !important;
+}
 
 /* Barra de Filtros con tono gris diferenciado */
 .filter-bar {

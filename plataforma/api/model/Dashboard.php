@@ -140,7 +140,37 @@
 			}
 			
 			return $res;
-		}	
+		}
+		
+		public function obtiene_ordenes_convenio(int $id_cliente, string $fecha_ini, string $fecha_fin, string $txt_busqueda) {
+			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];
+			try {
+
+				if(!empty($txt_busqueda)) {
+					$condicion = "AND (paciente_nombre_historico LIKE '%{$txt_busqueda}%' OR folio = '{$txt_busqueda}')";
+				}
+				else {
+					$condicion = "AND (O.fecha_cap >= '{$fecha_ini}' AND O.fecha_cap <= '{$fecha_fin}')";
+				}
+		
+				$sql = $this->dbh->prepare(
+               "SELECT O.id, folio, key_query, paciente_nombre_historico, paciente_edad_registro, paciente_sexo_historico, DATE_FORMAT(O.fecha_cap, '%d/%m/%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, GROUP_CONCAT(nombre_estudio_historico) AS estudios, estatus_pago, O.estatus
+               FROM ordenes_trabajo AS O 
+               INNER JOIN orden_detalles AS D ON O.id = D.orden_id 
+               WHERE convenio_id = ? AND O.estatus IN ('PROCESO', 'ENTREGADO', 'LISTO') $condicion
+               GROUP BY O.id
+               ORDER BY O.fecha_cap DESC");
+				$sql->execute([$id_cliente]);
+								
+				$res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => $sql->fetchAll(PDO::FETCH_ASSOC)];
+
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+            print_r("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
 
 		public function obtiene_archivos_resultados_orden(int $id_orden) {
 			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];

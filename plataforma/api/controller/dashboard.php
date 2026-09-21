@@ -23,14 +23,37 @@
                }
                else if($_SESSION["tipo_cliente"] == 'convenio') { 
 
-                  $fDesde  = new DateTime($_POST["fDesde"]);
-                  $fHasta  = new DateTime($_POST["fHasta"]);
-                  $diff    = $fDesde->diff($fHasta);
+                  $fDesde   = new DateTime($_POST["fDesde"]);
+                  $fHasta   = new DateTime($_POST["fHasta"]);
 
-                  if ($diff->days > 30 && $_POST["origen"] == 1) {
-                     echo json_encode(["estatus" => 500, "mensaje" => 'El rango de fechas no puede ser mayor a 30 días', "data" => []]);
+                  $fechaIni = $_POST["fDesde"].' 00:00:00';
+                  $fechaFin = $_POST["fHasta"].' 23:59:59';
+
+                  $diff     = $fDesde->diff($fHasta);
+
+                  $longitud = strlen(trim($_POST["txtBusqueda"]));
+
+                  if (!empty($_POST["txtBusqueda"] && $longitud < 3)) {
+                     echo json_encode(["estatus" => 500, "mensaje" => 'El texto de búsqueda debe contener al menos 3 caracteres', "data" => []]);
                      break;
                   }
+
+                  if($_POST["fDesde"] == '' || $_POST["fHasta"] == '') {
+                     echo json_encode(["estatus" => 500, "mensaje" => 'Si no ingresas un texto de búsqueda, selecciona un rango de fechas', "data" => []]);
+                     break;
+                  }
+
+                  if($fDesde > $fHasta) {
+                     echo json_encode(["estatus" => 500, "mensaje" => 'La fecha inicial, no puede ser mayor a la fecha final', "data" => []]);
+                     break;
+                  }
+
+                  if ($diff->days > 30 && $longitud == 0) {
+                     echo json_encode(["estatus" => 500, "mensaje" => 'El rango de fechas no puede ser mayor a 30 días', "data" => []]);
+                     break;
+                  }                 
+
+                  $res = $v->obtiene_ordenes_convenio($_SESSION["id_cliente_portal"], $fechaIni, $fechaFin, $_POST["txtBusqueda"]);
                }
                else {
                   echo json_encode(["estatus" => 403, "mensaje" => 'Sin permiso, por falta de sesión activa', "data" => []]);

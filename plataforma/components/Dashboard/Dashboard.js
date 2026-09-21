@@ -1,6 +1,5 @@
 import { obtiene_resultados_cliente, obtiene_archivos_resultados_orden } from "./DashboardServices.js";
 
-let arrPdfResultados  = [];
 let arrOrdenes        = [];
 
 const obtener_resultados_cliente = async () => {
@@ -14,6 +13,18 @@ const obtener_resultados_cliente = async () => {
       fDesde      = $('#fDesde').val().trim();
       fHasta      = $('#fHasta').val().trim();
       txtBusqueda = $('#txtBusqueda').val().trim();
+
+      if(fDesde == '' || fHasta == '') {
+         showMessageSwalTimer('Debes seleccionar el rango de fechas y este no debe ser mayor a 30 días', '', 'info', 3500);
+         $('#fDesde').focus();
+         return;
+      }
+
+      if(fDesde > fHasta) {
+         showMessageSwalTimer('La fecha inicial no puede ser mayor a la fecha final', '', 'info', 3500);
+         $('#fDesde').focus();
+         return;
+      }
    }
 
    activarLoad('Cargando estudios...');
@@ -25,7 +36,32 @@ const obtener_resultados_cliente = async () => {
    }
    else if(respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#containerSolicitudes').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron resultados</div>');
+      $('#containerSolicitudes').html(
+         `<div class="container py-5">
+            <div class="row justify-content-center">
+               <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+                  <div class="card border-0 shadow-sm bg-body-tertiary rounded-4 text-center p-4 p-md-5">
+                  <div class="card-body">
+                     
+                     <!-- Ícono con fondo suave y pulso visual -->
+                     <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-4 p-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-folder-x fs-2"></i>
+                     </div>
+
+                     <!-- Título y descripción -->
+                     <h5 class="fw-bold text-body-emphasis mb-2">
+                        Sin resultados coincidentes
+                     </h5>
+                     <p class="text-secondary small mb-4">
+                        No encontramos ningún registro para tu búsqueda. Intenta simplificar los términos o cambiar los filtros activos.
+                     </p>
+
+                  </div>
+                  </div>
+               </div>
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }
@@ -34,7 +70,32 @@ const obtener_resultados_cliente = async () => {
          pinta_ordenes(arrOrdenes);
       }
       else {
-         $('#containerSolicitudes').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron resultados</div>');
+         $('#containerSolicitudes').html(
+            `<div class="container py-5">
+               <div class="row justify-content-center">
+                  <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+                     <div class="card border-0 shadow-sm bg-body-tertiary rounded-4 text-center p-4 p-md-5">
+                     <div class="card-body">
+                        
+                        <!-- Ícono con fondo suave y pulso visual -->
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-4 p-3" style="width: 60px; height: 60px;">
+                           <i class="bi bi-folder-x fs-2"></i>
+                        </div>
+
+                        <!-- Título y descripción -->
+                        <h5 class="fw-bold text-body-emphasis mb-2">
+                           Sin resultados coincidentes
+                        </h5>
+                        <p class="text-secondary small mb-4">
+                           No encontramos ningún registro para tu búsqueda. Intenta simplificar los términos o cambiar los filtros activos.
+                        </p>
+
+                     </div>
+                     </div>
+                  </div>
+               </div>
+            </div>`
+         );
          closeLoad();
       }
    }
@@ -219,8 +280,6 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
 
    myModal.show();
 }
-
-
 
 const activarLoad = (mensajeInicial) => {
   $('#modalLoading').modal('show');

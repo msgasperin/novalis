@@ -89,7 +89,7 @@
 
                   <!-- Botón Buscar -->
                   <div class="col-12 col-lg-1 d-grid">
-                     <button type="button" class="btn btn-primary bg-primary-dark fw-semibold shadow-sm rounded-5" id="btnFiltrar">
+                     <button type="button" class="btn btn-dark fw-semibold shadow-sm rounded-5 btn-lib" id="btnFiltrar" onclick="obtener_resultados_cliente();">
                         Filtrar
                      </button>
                   </div>
