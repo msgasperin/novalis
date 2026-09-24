@@ -3,6 +3,7 @@
   $parts = explode('.', $host);
   // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
   $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+  $subDominio = 'labdemo'; // Borrar es solo para pruebas en el cel
   $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <div class="row fondo-azul-1 header-top">

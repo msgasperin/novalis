@@ -128,7 +128,7 @@
             </div>
          <?php endif; ?>
             
-         <div class="row g-4 mt-4" id="containerSolicitudes"></div>
+         <div class="g-4 mt-4" id="containerSolicitudes"></div>
 
       </main>
 

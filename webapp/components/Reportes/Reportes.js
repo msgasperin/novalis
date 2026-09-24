@@ -169,7 +169,7 @@ const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {
    
    let html = 
    `<div class="modal fade" id="modalReporteVisualizacion" tabindex="-1" aria-labelledby="modalReporteVisualizacion" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content border-0 shadow-lg">
             
             <!-- HEADER DEL MODAL -->
@@ -197,7 +197,7 @@ const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {
                      <div class="row g-2 align-items-end">
                         
                         <!-- Rango de Fechas (Inicio) -->
-                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
                            <label for="filtro_fecha_inicio" class="form-label small fw-bold mb-1">Fecha Inicio</label>
                            <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bi bi-calendar-event"></i></span>
@@ -206,7 +206,7 @@ const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {
                         </div>
 
                         <!-- Rango de Fechas (Fin) -->
-                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
                            <label for="filtro_fecha_fin" class="form-label small fw-bold mb-1">Fecha Fin</label>
                            <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bi bi-calendar-event-fill"></i></span>

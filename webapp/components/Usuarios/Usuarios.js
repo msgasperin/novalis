@@ -177,10 +177,10 @@ const pinta_listado_usuario = (data) => {
          <div class="card mb-3 shadow">
             <div class="card-body">
                <div class="row fs-8">
-                  <div class="col-12 col-sm-2 mt-2 text-center">
+                  <div class="col-2 mt-2 text-center">
                      <i class="bi bi-person-circle fs-4 text-secondary"></i>
                   </div>
-                  <div class="col-12 col-sm-10 mt-2">
+                  <div class="col-10 mt-2">
                      <div class="mt-1"><b>${row.nombre}</b></div>
                      <div><i class="bi bi-at fs-6"></i>${row.correo}</div>
                      <div class="text-muted fs-8">${row.perfil}</div>

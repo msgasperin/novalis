@@ -54,7 +54,7 @@ const TabRecepcion = () => {
       <!-- Título de la sección -->
       <div class="col-xl-6 col-lg-5 col-md-4 col-12 mt-2">
          <div class="fs-4 fw-bold text-dark">
-            <i class="bi bi-clipboard-minus text-primary me-1"></i> Recepción
+            <i class="bi bi-clipboard-minus me-1"></i> Recepción
          </div>
       </div>
 
@@ -67,7 +67,7 @@ const TabRecepcion = () => {
    </div>
    <div class="row mt-3">
       
-      <div class="col-12 col-sm-8 col-lg-9">
+      <div class="col-12 col-sm-8 col-lg-9 mt-2">
          <div class="card">
             <div class="card-body">
                <div class="row">
@@ -105,7 +105,7 @@ const TabRecepcion = () => {
 
       </div>        
 
-      <div class="col-12 col-sm-4 col-lg-3">
+      <div class="col-12 col-sm-4 col-lg-3 mt-2">
          <div class="card">
             <div class="card-body">
                <div class="row">
@@ -189,8 +189,8 @@ const obtener_ordenes_hoy = async (containerId) => {
 
 const pinta_ordenes_del_dia = (data, containerId) => {
 
-   let color     = '';
    let colorPago = '';
+   let color     = '';
 
    let cuantas = data.length;
    $('#totalHoy').html(cuantas + ' hoy');
@@ -211,12 +211,12 @@ const pinta_ordenes_del_dia = (data, containerId) => {
          <div class="card-body p-3">
             
             <div class="row align-items-center mb-2">
-               <div class="col-6 d-flex align-items-center gap-1">
+               <div class="col-4 col-sm-5 d-flex align-items-center gap-1">
                   <span class="badge bg-${colorPago}-subtle text-${colorPago} border border-${colorPago}-subtle rounded-pill small text-uppercase pointer" onclick="ModalGestionPagos(${row.id}, '${row.folio}');">
                      <i class="bi bi-currency-dollar"></i> ${row.estatus_pago}
                   </span>
                </div>
-               <div class="col-6 text-end d-flex align-items-center justify-content-end gap-1">
+               <div class="col-8 col-sm-7 text-end d-flex align-items-center justify-content-end gap-1">
                   <span class="fw-semibold text-secondary small bg-light px-2 py-1 rounded border pointer" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');" title="Ver detalles de la orden">
                      #${row.folio}
                   </span>
@@ -269,9 +269,9 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                   <span class="badge bg-light text-dark border fs-8">${row.estatus}</span>
                   
                   ${((row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.estatus_pago == 'PAGADO') ? `
-                     <a href="reportes/orden_resultado?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir resultado">
+                     <button class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir resultado" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
                         <i class="bi bi-file-earmark-medical text-success fs-7"></i>
-                     </a>
+                     </button>
                   ` : ''}
                </div>
             </div>
@@ -388,7 +388,7 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
                   </div>
                </div>
                <div class="row">
-                  <div class="col-6 col-sm-4">
+                  <div class="col-12 col-sm-4 order-2 order-sm-1">
                      <div class="input-group input-group-sm shadow-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted">
                            <i class="bi bi-search"></i>
@@ -396,7 +396,7 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
                         <input type="text" class="form-control border-start-0 ps-0" id="busquedaPacienteEncontrado" placeholder="Buscar paciente..." onkeyUp="buscar_paciente_encontrado();">
                      </div>
                   </div>
-                  <div class="col-6 col-sm-8 text-end mb-3">`
+                  <div class="col-12 col-sm-8 text-end mb-3 order-1 order-sm-2">`
                      if(data.length > 0) {
                         html+=`
                         <button type="button" class="btn btn-outline-dark btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
@@ -406,7 +406,7 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
                      html+=`
                   </div>
                </div>  
-               <div id="container_pacientes_encontrador"></div>
+               <div id="container_pacientes_encontrador" class="mt-2"></div>
             </div>
 
             <div class="modal-footer border-0 pt-0">
@@ -427,8 +427,8 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
 const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
         
    let html = `             
-   <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+   <div class="table-responsive rounded-3 border shadow-sm">
+      <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tablePacienteEncontrados">
          <thead class="table-light sticky-top">
             <tr class="small text-uppercase text-muted">
                <th>Nombre del Paciente</th>
@@ -454,13 +454,7 @@ const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
                </tr>`;
             } 
             else {         
-               data.forEach((paciente, index) => {
-                  // Sanitizamos nombres para evitar problemas con comillas en el onclick
-                  const nombreCompleto    = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim();
-                  const nombreEscapado    = nombreCompleto.replace(/'/g, "\\'");
-                  const apPaternoEscapado = paciente.apellido_paterno.replace(/'/g, "\\'");
-                  const nomEscapado       = paciente.nombre.replace(/'/g, "\\'");
-
+               data.forEach((paciente) => {
                   html += `
                   <tr class="align-middle">
                      <td width="30%">
@@ -493,6 +487,16 @@ const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
    </div>`;
 
    $('#'+containerId).html(html);
+
+   setTimeout(() => {
+      new DataTable('#tablePacienteEncontrados', {   
+         language: {
+            url: "assets/lib/DataTables/es-ES.json",
+         },
+         responsive: true,
+         order: [[0, 'desc']]
+      });
+   }, 200);
 }
 
 const buscar_paciente_encontrado = () => {
@@ -1124,9 +1128,9 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                <!-- Acciones -->
                <div class="text-center mt-4 pt-2">
                   <button type="button" class="btn btn-outline-secondary btn-redondo px-4" data-bs-dismiss="modal">
-                     <i class="bi bi-x-lg me-1"></i> No, cancelar
+                     <i class="bi bi-x-lg me-1"></i> Cancelar
                   </button>
-                  <button type="button" class="btn btn-dark btn-redondo px-4 me-2 shadow-sm" id="btnRegistrarOrden" onclick="registra_orden();">
+                  <button type="button" class="btn btn-dark btn-redondo px-4 me-1 shadow-sm" id="btnRegistrarOrden" onclick="registra_orden();">
                      <i class="bi bi-check-lg me-1"></i> Registrar orden
                   </button>
                </div>
@@ -1761,11 +1765,11 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                      </button>`;
                   }
 
-                  if(row.estatus == 'LISTO' && row.estatus_pago == 'PAGADO') {
+                  if((row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') && row.estatus_pago == 'PAGADO') {
                      html+=`
-                     <a href="reportes/ticket?kq=${row.key_query}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado">
+                     <button class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Ver resultado" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
                         <i class="bi bi-file-earmark-medical"></i>
-                     </a>`;
+                     </button>`;
                   }
                   if(row.estatus != 'ENTREGADO' && row.estatus != 'CANCELADO') {
                      html+=`
@@ -1842,13 +1846,13 @@ const ModalGestionPagos = (idOrden, folio) => {
             <div class="modal-body py-3">
                
                <div class="row g-2 mb-3">
-                  <div class="col-12 col-md-4">
+                  <div class="col-6 col-md-4">
                      <div class="p-2 border rounded-3 bg-white text-center">
                         <span class="d-block text-muted small fw-semibold">Total Orden</span>
                         <span class="fw-bold fs-6 text-dark" id="lbl_total_orden"></span>
                      </div>
                   </div>
-                  <div class="col-12 col-md-4">
+                  <div class="col-6 col-md-4">
                      <div class="p-2 border rounded-3 bg-white text-center">
                         <span class="d-block text-muted small fw-semibold">Total Abonado</span>
                         <span class="fw-bold fs-6 text-success" id="lbl_total_abonado"></span>

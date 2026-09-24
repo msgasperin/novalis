@@ -34,25 +34,24 @@ if (isset($_SESSION["login_portal_novalis"]) && $_SESSION["login_portal_novalis"
         $_SESSION['_token'] = bin2hex(random_bytes(16));
     }
 
+    
+    //Cuando se pueda garantizar la IP real del cliente  (sin proxies, sin IP dinámica, sin Cloudflare, etc.) descomentar este bloque y eliminar la validación solo de agente:
+    
     /*
-     * Cuando se pueda garantizar la IP real del cliente
-     * (sin proxies, sin IP dinámica, sin Cloudflare, etc.)
-     * descomentar este bloque y eliminar la validación solo de agente:
-     *
-     * $ip_actual   = $_SERVER['REMOTE_ADDR'] ?? '';
-     * $ip_guardada = $_SESSION['_ip'] ?? null;
-     *
-     * if ($ip_guardada === null) {
-     *     $_SESSION['_ip']     = $ip_actual;
-     *     $_SESSION['_agente'] = $agente_actual;
-     * }
-     *
-     * if ($ip_guardada !== $ip_actual || $agente_guardado !== $agente_actual) {
-     *     session_destroy();
-     *     header('Location: ../index.php');
-     *     exit;
-     * }
-     */
+    $ip_actual   = $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip_guardada = $_SESSION['_ip'] ?? null;
+    
+    if ($ip_guardada === null) {
+        $_SESSION['_ip']     = $ip_actual;
+        $_SESSION['_agente'] = $agente_actual;
+    }
+    
+    if ($ip_guardada !== $ip_actual || $agente_guardado !== $agente_actual) {
+        session_destroy();
+        header('Location: ../index.php');
+        exit;
+    }
+    */
 
 } else {
     header('Location: ../index');

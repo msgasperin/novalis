@@ -452,7 +452,6 @@ tool-tip {
   color: var(--blanco);
   border: solid 1px var(--primary-dark);
   border-bottom: solid 3px var(--secondary-light);
-
 }
 
 .table-head-per {
@@ -775,6 +774,10 @@ tool-tip {
 
 /* Celulares */
 @media only screen and (max-width: 575px) {
+
+  .modal-head-per h1 {
+    font-size: 17px !important;
+  }
 
   .img-login {
     width: 45%;

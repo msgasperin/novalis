@@ -124,16 +124,16 @@ const pinta_listado_sucursales = (containerId, data) => {
    }
    
    let html = `<div class="row">`;
-   data.map((row, i) => {
+   data.map(row => {
       html+=`
       <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardSucursal${row.id}">
          <div class="card mb-3 shadow">
             <div class="card-body">
                <div class="row fs-8">
-                  <div class="col-12 col-sm-2 mt-2 text-center">
+                  <div class="col-2 mt-2 text-center">
                      <i class="bi bi-shop fs-4 text-secondary"></i>
                   </div>
-                  <div class="col-12 col-sm-10 mt-2">
+                  <div class="col-10 mt-2">
                      <div class="mt-1"><b>${row.nombre}</b></div>
                      <div class="mt-1"><b>${row.direccion}</b></div>
                      <div class="text-muted fs-8">${row.telefono}</div>

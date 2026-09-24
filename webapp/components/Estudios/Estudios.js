@@ -71,7 +71,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                      <b>Descripción estudio / paquete</b>
                      <textarea name="descripcionEstudio" id="descripcionEstudio" class="form-control" rows="3" maxlength="250">${descripcion_estudio}</textarea>
                   </div>
-                  <div class="col-12 col-sm-4 mt-3">
+                  <div class="col-6 col-sm-4 mt-3">
                      <b>Tipo *</b>
                      <select name="tipoEstudio" id="tipoEstudio" class="form-select">
                         <option value="NA">Seleccionar</option>
@@ -79,15 +79,15 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                         <option value="PAQUETE">PAQUETE</option>
                      </select>
                   </div>
-                  <div class="col-12 col-sm-4 mt-3">
+                  <div class="col-6 col-sm-4 mt-3">
                      <b>Precio Público *</b>
                      <input type="number" inputmode="numeric" name="precioPublico" id="precioPublico" class="form-control" maxlength="10" value="${precio_publico}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
-                  <div class="col-12 col-sm-4 mt-3">
+                  <div class="col-6 col-sm-4 mt-3">
                      <b>Costo *</b>
                      <input type="number" inputmode="numeric" name="costoEstudio" id="costoEstudio" class="form-control" maxlength="10" value="${costo}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
-                  <div class="col-12 col-sm-4 mt-3">
+                  <div class="col-6 col-sm-4 mt-3">
                      <b>¿Aplica descuento?</b>
                      <select name="estudioAplicaDesc" id="estudioAplicaDesc" class="form-select">
                         <option value="NO">NO</option>

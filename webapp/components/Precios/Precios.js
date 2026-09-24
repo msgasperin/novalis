@@ -211,10 +211,10 @@ const pinta_listas_precios = (data) => {
             row.es_defecto == 1 ? checked = 'checked' : checked = '';
             html += `
             <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2" id="cardListaPrecios${row.id}">
-               <div class="card mb-3 shadow mh-card-pedidos border-0">
+               <div class="card mb-3 shadow border-0">
                   <div class="card-body">
                      <div class="row">
-                        <div class="col-12">
+                        <div class="col-2">
                            <i class="bi bi-card-list fs-2"></i>
                         </div>
                         <!--
@@ -225,7 +225,7 @@ const pinta_listas_precios = (data) => {
                            </div>
                         </div>
                         -->
-                        <div class="col-12">
+                        <div class="col-10">
                            <div class="card-text mt-1"><strong>${row.nombre}</strong></div>
                            <div class="card-text mt-2">${row.descripcion}</div>
                         </div>

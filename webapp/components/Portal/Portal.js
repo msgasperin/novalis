@@ -6,10 +6,10 @@ let arrEstudiosPromo = [];
 const TabPromocionesPortal = () => {
    let html =
    `<div class="row">
-      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
+      <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-12 mt-2 fw-bold">
          <div class="fs-4"> <i class="bi bi-percent"></i> Promociones portal</div>
       </div>
-      <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
+      <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-12 mt-2">
          <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaPromocion" onclick="ModalFormPromocion(0, 0,'');"><i class="bi bi-plus-lg"></i> Nueva Promoción</button>
       </div>
    </div>

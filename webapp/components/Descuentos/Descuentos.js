@@ -9,7 +9,7 @@ const TabDescuentos = () => {
          <div class="fs-4"> <i class="bi bi-percent"></i> Descuentos</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoDescuento" onclick="ModalFormDescuento(0, 0,'');"><i class="bi bi-plus-lg"></i> Nuevo Descuento</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoDescuento" onclick="ModalFormDescuento(0, 0,'');"><i class="bi bi-plus-lg"></i> Nuevo Desc.</button>
       </div>
    </div>
    <div class="row mt-3">
@@ -114,10 +114,10 @@ const pinta_listado_descuentos = (data) => {
          <div class="card mb-3 shadow">
             <div class="card-body">
                <div class="row fs-8">
-                  <div class="col-12 col-sm-2 mt-2 text-center">
+                  <div class="col-2 mt-2">
                      <i class="bi bi-percent fs-4 text-secondary"></i>
                   </div>
-                  <div class="col-12 col-sm-10 mt-2">
+                  <div class="col-10 mt-2">
                      <div class="mt-1 fs-6"><b>${row.concepto_desc}</b></div>
                      <div>${row.porcentaje_desc}% de descuento.</div>
                   </div>

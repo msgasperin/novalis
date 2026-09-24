@@ -1,10 +1,12 @@
 <?php
 	require_once('../config/class.pdo.php');
 	class Estudios extends Conexion {
+
+		protected PDO $dbh;
 		//Objeto principal del constructor de la clase
 		public function __construct() {
 	   	parent::__construct();
-	   	$this->conectar();
+	   	$this->dbh = $this->getDbh();
 	  	}
 		// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCIONES cat_lista_precios++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		public function obtiene_lista_estudios() {

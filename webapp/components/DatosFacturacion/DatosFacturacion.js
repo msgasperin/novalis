@@ -72,7 +72,7 @@ const ModalDatosFacturacion = (tipoReceptor, idReceptor, nomReceptor) => {
                         </div>
                         <div class="col-12 col-sm-6 mt-3">
                            <b>Correo facturación *</b>
-                           <input type="mail" name="correoFact" id="correoFact" class="form-control" maxlength="150"/>
+                           <input type="email" name="correoFact" id="correoFact" class="form-control" maxlength="150"/>
                         </div>
                         <div class="col-12 col-sm-6 mt-3">
                            <b>¿Datos predeterminados de facturación?</b>

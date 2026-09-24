@@ -117,7 +117,7 @@ const ModalFormPaciente = (idPaciente, nomPaciente, origen) => {
                   </div>
                   <div class="col-12 mt-3">
                      <b>Correo</b>
-                     <input type="mail" name="correoPaciente" id="correoPaciente" class="form-control" maxlength="100" value="${correo}" />
+                     <input type="email" name="correoPaciente" id="correoPaciente" class="form-control" maxlength="100" value="${correo}" />
                   </div>
                </div>
             </div>
@@ -245,7 +245,7 @@ const pinta_listado_pacientes = (containerId, data) => {
 const ModalCredencialesPaciente = (idPaciente, nomPaciente, apPaterno) => {
    let html = `
    <div class="modal fade modal-superior-blur" id="modalCredencialesPaciente" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+      <div class="modal-dialog modal-dialog-centered">
          <div class="modal-content sombra-modal">
             <div class="modal-body">
                <div id="container_credenciales_paciente"></div>
@@ -393,7 +393,7 @@ const ModalCoincidenciasPacientes = (data, objPaciente, origen) => {
                            <div class="card border-0 shadow-sm mb-2 rounded-3 hover-shadow transition-all">
                               <div class="card-body p-3">
                                  <div class="row align-items-center">
-                                    <div class="col-8 col-md-9">
+                                    <div class="col-12 col-md-9">
                                        <div class="fw-bold text-dark mb-1">
                                           <i class="bi bi-person-circle text-secondary me-2"></i>${nombreCompleto}
                                        </div>
@@ -403,7 +403,7 @@ const ModalCoincidenciasPacientes = (data, objPaciente, origen) => {
                                           ${row.correo ? `<span><i class="bi bi-at me-1"></i></i>${row.correo}</span>` : ''}
                                        </div>
                                     </div>
-                                    <div class="col-4 col-md-3 text-end">
+                                    <div class="col-12 col-md-3 text-end">
                                        <button type="button" class="btn btn-sm btn-outline-success btn-redondo px-3 w-100" onclick="paciente_coincidente_seleccionado(${row.id}, ${origen})">
                                           <i class="bi bi-check-lg me-1"></i>Seleccionar
                                        </button>
@@ -427,12 +427,9 @@ const ModalCoincidenciasPacientes = (data, objPaciente, origen) => {
                 </div>
 
                 <div class="modal-footer border-0 bg-light px-4 py-3 d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-outline-secondary btn-redondo" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <button type="button" class="btn btn-dark btn-lib btn-redondo shadow-sm" id="btnForzarGuardadoPaciente" onclick="fn_guardar_paciente(0, '${origen}', 0, 2);">
-                        <i class="bi bi-person-plus-fill me-1"></i>Ninguno coincide, guardar como nuevo
-                    </button>
+                  <button type="button" class="btn btn-dark btn-lib btn-redondo shadow-sm" id="btnForzarGuardadoPaciente" onclick="fn_guardar_paciente(0, '${origen}', 0, 2);">
+                     <i class="bi bi-person-plus-fill me-1"></i>Ninguno coincide, guardar como nuevo
+                  </button>
                 </div>
             </div>
         </div>

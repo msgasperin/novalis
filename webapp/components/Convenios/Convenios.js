@@ -16,13 +16,13 @@ const TabConvenios = () => {
       </div>
    </div>
    <div class="row mt-2">
-      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-6">
          <div class="input-group">
             <input type="text" name="inpBusquedaConvenio" id="inpBusquedaConvenio" class="form-control border-end-0" placeholder="Buscar convenio"  onkeyUp="fn_buscar_convenios();">
             <span class="input-group-text border-start-0 bg-white"><i class="bi bi-search"></i></span>
          </div>
       </div>
-      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-6">
          <div class="input-group">
             <select name="filtro_tipo_convenio" id="filtro_tipo_convenio" class="form-select" onChange="fn_filtrar_convenios();">
                <option value="TODOS">Todos</option>
@@ -176,7 +176,7 @@ const fn_pinta_listado_convenios = (containerId, data) => {
 const ModalCredencialesConvenio = (idConvenio, nomConvenio) => {
    let html = `
    <div class="modal fade modal-superior-blur" id="modalCredencialesConvenio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+      <div class="modal-dialog modal-dialog-centered">
          <div class="modal-content sombra-modal">
             <div class="modal-body">
                <div id="container_credenciales_convenio"></div>

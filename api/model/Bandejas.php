@@ -61,8 +61,6 @@
 									)
 									LIMIT 0, 100";
 
-									echo $query;
-
 						$sql = $this->dbh->prepare($query);
 
 						$params = [

@@ -114,7 +114,7 @@ const pinta_ordenes = (data) => {
          row.estatus == 'PROCESO' ? color = 'warning' : color = 'secondary';
          
          html +=
-         `<div class="col-12 col-md-6 col-xl-4">
+         `<div class="col-12 col-md-6 col-xl-4 mt-2">
             <div class="order-card h-100 d-flex flex-column">
                
                <div class="card-header-custom d-flex justify-content-between align-items-center">
@@ -153,14 +153,14 @@ const pinta_ordenes = (data) => {
                   if(row.estatus == 'ENTREGADO' || row.estatus == 'LISTO') {
                      html+=
                      `<div class="pt-2">
-                        <button class="btn btn-outline-danger btn-sm w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
+                        <button class="btn btn-outline-danger btn-sm w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-redondo" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
                            <i class="bi bi-file-earmark-pdf-fill fs-6"></i> Descargar Resultados (PDF)
                         </button>
                      </div>`;
                   }
                   else {
                      html+=
-                     `<span class="bg-light text-muted w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 border">
+                     `<span class="bg-light text-muted w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 border btn-redondo">
                         <i class="bi bi-lock-fill"></i> Resultados Pendientes
                      </span>`;
                   }
@@ -219,7 +219,7 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
 
    const html = `
    <div class="modal fade modal-superior-blur" id="modalViewerResultados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">            
             <div class="modal-header modal-head-per py-2">
                <h1 class="modal-title fs-5 d-flex align-items-center gap-2">

@@ -7,19 +7,19 @@ const cerrarMenu = () => {
 const submenus = {
 
   catPersonas: `
-    <div onclick="fnPacientes()"> <i class="bi bi-person-badge-fill"></i> Pacientes</div>
-    <div onclick="fnPersonal()"> <i class="bi bi-person-bounding-box"></i> Personal</div>`,
+    <div onclick="fnPacientes(), cerrarMenu();"> <i class="bi bi-person-badge-fill"></i> Pacientes</div>
+    <div onclick="fnPersonal(), cerrarMenu();"> <i class="bi bi-person-bounding-box"></i> Personal</div>`,
 
   configuracion: `
-    <div onclick="TabSucursales()"><i class="bi bi-shop-window"></i> Sucursales</div>
-    <div onclick="TabUsuarios()"><i class="bi bi-person-gear"></i> Usuarios</div>
-    <div onclick="TabPrecios()"><i class="bi bi-currency-dollar"></i> Listas de precios</div>
-    <div onclick="TabDescuentos()"><i class="bi bi-percent"></i> Descuentos generales</div>`,
+    <div onclick="TabSucursales(), cerrarMenu();"><i class="bi bi-shop-window"></i> Sucursales</div>
+    <div onclick="TabUsuarios(), cerrarMenu();"><i class="bi bi-person-gear"></i> Usuarios</div>
+    <div onclick="TabPrecios(), cerrarMenu();"><i class="bi bi-currency-dollar"></i> Listas de precios</div>
+    <div onclick="TabDescuentos(), cerrarMenu();"><i class="bi bi-percent"></i> Descuentos generales</div>`,
 
   portal: `
-    <div onclick="TabPromocionesPortal()"><i class="bi bi-tags"></i> Promociones</div>
-    <div onclick="ModalActualizaWhatsApp()"><i class="bi bi-whatsapp"></i> WhatsApp</div>
-    <div onclick="publicar_cambios()"><i class="bi bi-cloud-arrow-up"></i> Publicar cambios</div>`
+    <div onclick="TabPromocionesPortal(), cerrarMenu();"><i class="bi bi-tags"></i> Promociones</div>
+    <div onclick="ModalActualizaWhatsApp(), cerrarMenu();"><i class="bi bi-whatsapp"></i> WhatsApp</div>
+    <div onclick="publicar_cambios(), cerrarMenu();"><i class="bi bi-cloud-arrow-up"></i> Publicar cambios</div>`
 };
 
 document.addEventListener("click", function(e) {

@@ -1,10 +1,11 @@
 <?php
 	require_once('../config/class.pdo.php');
 	class Caja extends Conexion {
+		protected PDO $dbh;
 		//Objeto principal del constructor de la clase
 		public function __construct() {
 	   	parent::__construct();
-	   	$this->conectar();
+	   	$this->dbh = $this->getDbh();
 	  	}
 		
 		public function generarCadena(int $longitud = 10) {

@@ -14,6 +14,8 @@
     // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
     $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
+    $subDominio = 'labdemo'; // Borrar solo es para pruebas responsive
+
     // 2. Ruta al archivo JSON estático
     $jsonPath = "api/config/json/{$subDominio}.json";
 
@@ -315,7 +317,7 @@
                                 <label class="form-label small fw-bold text-secondary" id="labelUsuario">Usuario / Folio</label>
                                 <div class="input-group input-group-custom">
                                     <span class="input-group-text"><i class="bi bi-person-circle" id="iconUsuario"></i></span>
-                                    <input type="text" name="usuario" id="inputUsuario" class="form-control" placeholder="Ej. 102540">
+                                    <input type="text" inputmode="numeric" name="usuario" id="inputUsuario" class="form-control" placeholder="Ej. 102540">
                                 </div>
                             </div>
 

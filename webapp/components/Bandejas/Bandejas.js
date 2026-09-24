@@ -52,7 +52,7 @@ const TabBandejas = () => {
          </button>
       </div>
       
-      <div class="col-xl col-md-4 col-12">
+      <div class="col-xl col-md-4 col-6">
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-LISTO" onclick="cambiar_estatus_barra('LISTO')">
             <i class="bi bi-clipboard2-check me-sm-1"></i> Ordenes completadas
          </button>
@@ -60,12 +60,12 @@ const TabBandejas = () => {
 
       <div class="col-xl col-md-4 col-6">
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO')">
-            <i class="bi bi-check-circle me-sm-1"></i> Publicadas / Entregadas
+            <i class="bi bi-check-circle me-sm-1"></i> Publicadas/Entregadas
          </button>
       </div>`;
             
       html+=`
-      <div class="col-xl col-md-6 col-6">
+      <div class="col-xl col-md-6 col-12">
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-CANCELADO" onclick="cambiar_estatus_barra('CANCELADO')">
             <i class="bi bi-ban me-sm-1"></i> Cancelados
          </button>
@@ -907,7 +907,7 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
 
    const html = `
    <div class="modal fade modal-superior-blur" id="modalViewDetallesOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal border-0">            
             
             <div class="modal-header modal-head-per py-2">

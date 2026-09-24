@@ -420,7 +420,7 @@
   }
 
   .wm-responsive {
-    background-color: rgba(11, 27, 46, 0.92);
+    background-color: rgba(11, 27, 46, 0.97);
     width: 100%;
   }
 
@@ -455,7 +455,7 @@
   }
 
   .mt-cel {
-    margin-top: 0px;
+    margin-top: 30px;
   }
 
   .global-submenu {
