@@ -34,11 +34,11 @@ $_SESSION["tenant_db"] = $bd_cliente;
 if ($mensajeError == '') {
 
    class SafePDO extends PDO {
-      public static function exception_handler($exception) {   
+      public static function exception_handler(\Throwable $exception): void  {   
          die("Uncaught exception: " . $exception->getMessage());
       }
 
-      public function __construct($dsn, $username='', $password='', $driver_options=array()) {
+      public function __construct(string $dsn, $username='', $password='', $driver_options=array()) {
          set_exception_handler(array(__CLASS__, 'exception_handler'));     
          parent::__construct($dsn, $username, $password, $driver_options);    
          restore_exception_handler();
@@ -46,14 +46,14 @@ if ($mensajeError == '') {
    }
 
    class Conexion {
-      private $db;
-      private $host = 'localhost';
-      private $us   = 'root';
-      private $pw   = '';
-      public $key   = 'l1s26G3neN0v4L1s';
+      private string $db;
+      private string $host = 'localhost';
+      private string $us   = 'root';
+      private string $pw   = '';
+      public  string $key   = 'l1s26G3neN0v4L1s';
       
-      // Instancia PDO compartida
-      protected static $instance = null;
+      // Instancia PDO compartida con tipo definido (?PDO permite PDO o null)
+      protected static ?PDO $instance = null;
 
       public function __construct(string $base_datos = '') {
          $this->db = !empty($base_datos) ? $base_datos : ($_SESSION['tenant_db'] ?? '');
@@ -64,16 +64,16 @@ if ($mensajeError == '') {
       }
 
       // Reutiliza la misma conexión en todo el ciclo del script
-      public function conectar() {
+      public function conectar(): PDO {
          if (self::$instance === null) {
             $opciones = array(
-               PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8", 
                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-               PDO::ATTR_EMULATE_PREPARES => false // Mejor rendimiento y seguridad
+               PDO::ATTR_EMULATE_PREPARES => false
             );
 
+            // Definimos charset directamente en la cadena DSN
             self::$instance = new SafePDO(
-               "mysql:host=" . $this->host . ";dbname=" . $this->db . ";charset=utf8", 
+               "mysql:host=" . $this->host . ";dbname=" . $this->db . ";charset=utf8mb4", 
                $this->us, 
                $this->pw, 
                $opciones
@@ -83,11 +83,11 @@ if ($mensajeError == '') {
       }
 
       // Getter para acceder a la conexión PDO
-      public function getDbh() {
+      public function getDbh(): PDO {
          return $this->conectar();
       }
 
-      public static function cerrar() {
+      public static function cerrar(): void {
          self::$instance = null;
       }
    }
