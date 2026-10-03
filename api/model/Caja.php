@@ -88,15 +88,15 @@
 							COALESCE(SUM(CASE WHEN tipo = 'ingreso' AND forma_pago = 'TRANSFERENCIA' THEN monto END), 0) AS ingresos_transferencia,
 							COALESCE(SUM(CASE WHEN tipo = 'egreso'  AND forma_pago = 'TRANSFERENCIA' THEN monto END), 0) AS egresos_transferencia
 						FROM caja_movimientos
-						WHERE caja_id = :id_caja AND activo = 1
+						WHERE caja_id = ? AND activo = 1
 						-- Se eliminó el GROUP BY para forzar la devolución de una fila con ceros
 					) M ON 1 = 1 -- Al ser una sola fila para el mismo :id_caja, unimos directamente
 
-					WHERE C.id_caja = :id_caja
-					GROUP BY C.id_caja, C.fondo_inicial, M.ingresos_efectivo, M.egresos_efectivo, M.ingresos_tarjeta, M.egresos_tarjeta, M.ingresos_transferencia, M.egresos_transferencia;					;"
+					WHERE C.id_caja = ?
+					GROUP BY C.id_caja, C.fondo_inicial, M.ingresos_efectivo, M.egresos_efectivo, M.ingresos_tarjeta, M.egresos_tarjeta, M.ingresos_transferencia, M.egresos_transferencia"
 				);
 
-				$sqlMontos->execute([':id_caja' => $id_caja]);
+				$sqlMontos->execute([$id_caja, $id_caja]);
 
 				if($sqlMontos->rowCount() > 0) {
 					

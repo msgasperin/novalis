@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionBandejas'); TabBandejas();">
+	<body onload="opcionActive('opcionRecepcion'); TabRecepcion();">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>
