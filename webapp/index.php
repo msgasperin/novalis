@@ -29,7 +29,7 @@
 	  	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	  	<title>:: NovaLIS ::</title>
 	  	<!-- CSS -->
-	  	<link rel="shortcut icon" href="assets/images/favicon.png"/>
+	  	<link rel="shortcut icon" href="assets/images/favicon.ico"/>
 	  	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap-5.3.2/css/bootstrap.css"/>
 		<link rel="stylesheet" type="text/css" href="assets/lib/sweetAlert2/sweetalert2.min.css" />
 	  	<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
@@ -49,11 +49,11 @@
 										
 										<div class="row mb-2 align-items-center">
 											<div class="col-6 text-center">
-												<img src="assets/images/logo.png" class="img-fluid" style="max-height: 100px;" alt="">
+												<img src="assets/images/logo.webp" class="img-fluid" style="max-height: 100px;" alt="">
 											</div>
 
 											<div class="col-6 text-center">
-												<img src="<?= $ruta; ?>" class="img-fluid" style="max-height: 100px;" alt="">
+												<img src="<?= $ruta; ?>" class="img-fluid" style="max-height: 80px;" alt="">
 											</div>
 										</div>
 
@@ -80,7 +80,7 @@
 
 										<div class="row">
 											<div class="col-12 mt-4 text-secondary fs-8" align="right">
-												© NovaLIS - Sistema de Información para Laboratorios <br>Todos los derechos reservados
+												© NOVALIS - Sistema de Información de Laboratorio <br>Todos los derechos reservados
 											</div>
 										</div>
 

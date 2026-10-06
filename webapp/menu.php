@@ -7,13 +7,11 @@
   $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <div class="row fondo-azul-1 header-top">
-  <div class="col-xl-2 col-lg-2 col-md-3 col-sm-3 col-4 p-2 mt-2 text-center">
-    <img src="assets/images/logo_text_blanco.png" class="img-logo">
-  </div>
-  <div class="col-xl-2 col-lg-2 col-md-3 col-sm-3 col-4 p-2">
+  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-4 p-2 mt-2">
+    <img src="assets/images/logo_text_2.webp" class="img-logo me-4">
     <img src="<?= $ruta; ?>" class="img-logo-cliente">
   </div>
-  <div class="col-xl-8 col-lg-8 col-md-6 col-sm-6 col-4 fs-1" align="right">
+  <div class="col-xl-9 col-lg-9 col-md-7 col-sm-7 col-4 fs-1" align="right">
     <div class="p-3">
       <div class="d-none d-xl-block d-xxl-block text-dark text-white">
         <div class="fs-8"><i class="bi bi-person-circle fs-6">&nbsp;</i> <?php echo $_SESSION["nombre"] ?></div>
@@ -48,7 +46,7 @@
             </div>
           <?php } ?>
 
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE' || $_SESSION["perfil"] == 'QUIMICO') { ?>
             <div class="opciones_menu align-menu" id="opcionBandejas" onclick="opcionActive('opcionBandejas'), TabBandejas(), cerrarMenu();">
               <i class="bi bi-card-checklist icon-menu"></i>
               <div>Bandejas Operativas</div>
@@ -80,7 +78,7 @@
           <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' || $_SESSION["perfil"] == 'GERENTE') { ?>
             <div class="opciones_menu align-menu" id="opcionEstudios" onclick="opcionActive('opcionEstudios'), TabEstudios(), cerrarMenu();">
               <i class="bi bi-list-columns icon-menu"></i>
-              <div>Paquetes  Estudios</div>
+              <div>Paquetes Estudios</div>
             </div>
           <?php } ?>
 

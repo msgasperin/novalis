@@ -2,7 +2,15 @@ import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resu
 
 let arrPdfResultados  = [];
 
-const TabBandejas = () => {
+const TabBandejas = async () => {
+
+   const res = await valida_menu('bandejas');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Bandejas operativas');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
    
    let html = `
    <div class="row">
@@ -41,32 +49,32 @@ const TabBandejas = () => {
    <!-- Pestañas de Estatus Operativo -->
    <div class="row g-2 mb-4 mt-2" id="contenedorBarraEstatus">
       <div class="col-xl col-md-4 col-6">
-         <button type="button" class="btn-tab-pedidos btn-bandejas w-100 py-2 shadow-sm btn-status" id="btn-status-RECEPCION" onclick="cambiar_estatus_barra('RECEPCION')">
+         <button type="button" class="btn-tab-pedidos btn-bandejas w-100 py-2 shadow-sm btn-status" id="btn-status-RECEPCION" onclick="cambiar_estatus_barra('RECEPCION');">
             <i class="bi bi-clock-history me-sm-1"></i> Pendientes
          </button>
       </div>
       
       <div class="col-xl col-md-4 col-6">
-         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-PROCESO" onclick="cambiar_estatus_barra('PROCESO')">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-PROCESO" onclick="cambiar_estatus_barra('PROCESO');">
             <i class="bi bi-file-earmark-pdf me-sm-1"></i> Resultados Parciales
          </button>
       </div>
       
       <div class="col-xl col-md-4 col-6">
-         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-LISTO" onclick="cambiar_estatus_barra('LISTO')">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-LISTO" onclick="cambiar_estatus_barra('LISTO');">
             <i class="bi bi-clipboard2-check me-sm-1"></i> Ordenes completadas
          </button>
       </div>
 
       <div class="col-xl col-md-4 col-6">
-         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO')">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO');">
             <i class="bi bi-check-circle me-sm-1"></i> Publicadas/Entregadas
          </button>
       </div>`;
             
       html+=`
       <div class="col-xl col-md-6 col-12">
-         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-CANCELADO" onclick="cambiar_estatus_barra('CANCELADO')">
+         <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-CANCELADO" onclick="cambiar_estatus_barra('CANCELADO');">
             <i class="bi bi-ban me-sm-1"></i> Cancelados
          </button>
       </div>
@@ -80,6 +88,7 @@ const TabBandejas = () => {
    </div>`;
 
    $('#containerMain').html(html);
+   valida_menu('bandejas');
 }
 
 const cambiar_estatus_barra = (estatus) => {
@@ -134,7 +143,10 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
    }
    else if(respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#listado_ordenes_bandeja').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron ordenes de trabajo</div>');
+      $('#listado_ordenes_bandeja').html(`<div class="text-center py-5 text-muted p-3 shadow-sm">
+         <i class="bi bi-calendar-x fs-1 d-block mb-2 text-danger"></i>
+         <p class="mb-0 fs-6">No se encontraron ordenes de trabajo con los parámetros solicitados.</p>   
+      </div>`);
       closeLoad();
       return;
    }
@@ -143,7 +155,10 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
          pinta_ordenes_bandejas(arrOrdenesBandeja);
       }
       else {
-         $('#listado_ordenes_bandeja').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron ordenes de trabajo</div>');
+         $('#listado_ordenes_bandeja').html(`<div class="text-center py-5 text-muted p-3 shadow-sm">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2 text-danger"></i>
+            <p class="mb-0 fs-6">No se encontraron ordenes de trabajo con los parámetros solicitados.</p>   
+         </div>`);
          closeLoad();
       }
    }
@@ -1314,6 +1329,7 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                      <i class="bi bi-chat-left-dots text-info"></i> Canales de Notificación Directa (Opcional)
                   </h6>
 
+                  <!--
                   <!-- WhatsApp -->
                   <div class="row g-2 align-items-center mb-3">
                      <div class="col-12 col-md-5">
@@ -1331,6 +1347,7 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                         </div>
                      </div>
                   </div>
+                  -->
 
                   <hr class="my-2 opacity-25">
 

@@ -4,7 +4,16 @@ let arrMovimientos = [];
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ABRIR CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const ModalAbrirCaja = () => {
+const ModalAbrirCaja = async () => {
+
+   const res = await valida_menu('caja');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Caja');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalAbrirCaja" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">

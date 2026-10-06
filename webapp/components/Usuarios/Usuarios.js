@@ -3,7 +3,16 @@ import { obtiene_sucursales } from "../Sucursales/SucursalesServices.js";
 
 let arrUsuarios = [];
 
-const TabUsuarios = () => {
+const TabUsuarios = async () => {
+
+   const res = await valida_menu('usuarios');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Usuarios');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
@@ -91,7 +100,7 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                         <option value="GERENTE">GERENTE</option>
                         <option value="QUIMICO">QUIMICO</option>
                         <option value="RECEPCION">RECEPCION</option>
-                        <option value="VALIDADOR">VALIDADOR</option>
+                        <!--<option value="VALIDADOR">VALIDADOR</option>-->
                      </select>
                   </div>
                   <div class="col-12 mt-3">

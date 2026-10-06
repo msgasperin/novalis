@@ -28,7 +28,7 @@ const fn_login = async () => {
   $('#btnLogin').prop('disabled',true);
   let res = await valida_login(user, pass, csrf);
   if(res.estatus == 200) {
-    showMessageSwalTimer('Bienvenido al equipo', 'NovaLIS', 'success', 2500);
+    showMessageSwalTimer('¡Inicio de sesión correcto!', '', 'success', 2500);
     redireccionar("admin", 1000);
   }
   else if(res.estatus == 202) {
@@ -62,7 +62,18 @@ const fn_cerrar_sesion = async () => {
 
   let respuesta = await cerrar_sesion();
   if(respuesta.estatus == 200) {
-    showMessageSwalTimer('Sesión finalizada correctamente', '', 'success', 2500);
+    showMessageSwalTimer('¡Sesión finalizada correctamente!', '', 'success', 2500);
+    redireccionar("inicio", 1000);
+  }
+  else {
+    showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');
+  }
+}
+
+const cierre_sesion = async () => {
+  let respuesta = await cerrar_sesion();
+  if(respuesta.estatus == 200) {
+    showMessageSwalTimer('¡Sesión finalizada correctamente!', '', 'success', 2500);
     redireccionar("inicio", 1000);
   }
   else {
@@ -90,3 +101,4 @@ window.fn_login         = fn_login;
 window.fn_cerrar_sesion = fn_cerrar_sesion;
 window.ver_password     = ver_password;
 window.redireccionar    = redireccionar;
+window.cierre_sesion    = cierre_sesion;

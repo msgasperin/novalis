@@ -3,7 +3,16 @@ import { obtiene_promociones, guarda_promocion, elimina_promocion, actualiza_wha
 let arrPromociones   = [];
 let arrEstudiosPromo = [];
 
-const TabPromocionesPortal = () => {
+const TabPromocionesPortal = async () => {
+
+   const res = await valida_menu('portal');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Portal');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-12 mt-2 fw-bold">

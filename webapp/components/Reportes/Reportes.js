@@ -2,7 +2,16 @@ import { genera_reporte } from "./ReportesServices.js";
 
 let arrReporte = [];
 
-const TabReportes = () => {
+const TabReportes = async () => {
+   
+   const res = await valida_menu('reportes');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Reportes');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html = `
    <div class="row">
       <div class="col-12 mt-2 mb-2">
@@ -160,9 +169,9 @@ const TabReportes = () => {
             </div>
          </div>
       </div>
-   </div>`;
+   </div>`;   
 
-   $('#containerMain').html(html);   
+   $('#containerMain').html(html);
 }
 
 const ModalVisualizacionReporte = (tipoReporte, tituloReporte, idTipo) => {

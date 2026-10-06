@@ -5,7 +5,16 @@ let arrListaPrecios = [];
 let arrPreciosLista = [];
 let comboEstudios   = '';
 
-const TabPrecios = () => {
+const TabPrecios = async () => {
+
+   const res = await valida_menu('precios');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Precios');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    activarLoad('Cargando listas de precios...');
    let html =
    `<div class="row">

@@ -3,7 +3,16 @@ import { obtiene_estudios, guardar_estudio, eliminar_estudio } from "./EstudiosS
 let arrEstudios     = [];
 let arrTubosEstudio = [];
 
-const TabEstudios = () => {
+const TabEstudios = async () => {
+
+   const res = await valida_menu('estudios');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Pauqtes y estudios');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">

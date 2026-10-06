@@ -4,6 +4,26 @@ const cerrarMenu = () => {
   }
 }
 
+const inicio = () => {
+  let perfil = $('#perfilUs').val().trim();
+  
+  if(perfil == 'RECEPCION') {
+    opcionActive('opcionRecepcion');
+    TabRecepcion();
+  }
+  else if(perfil == 'QUIMICO') {
+    opcionActive('opcionBandejas');
+    TabBandejas();
+    setTimeout(() => {
+      cambiar_estatus_barra('RECEPCION');
+    }, 1000);
+  }
+  else if(perfil == 'ADMINISTRADOR' || perfil == 'GERENTE') {
+    opcionActive('opcionReportes');
+    TabReportes();
+  }
+}
+
 const submenus = {
 
   catPersonas: `
@@ -92,7 +112,6 @@ const activarLoad = (mensajeInicial) => {
   $('#mensajeLoading').html(mensajeInicial);
 }
 
-
 const closeLoad = (mensajeFinal) => {
   $('#mensajeLoading').html(mensajeFinal);
   setTimeout(() => {
@@ -107,6 +126,7 @@ const isMobile = () => {
 }
 
 
+window.inicio         = inicio;
 window.cerrarMenu     = cerrarMenu;
 window.muestraMenu    = muestraMenu;
 window.link           = link;

@@ -489,25 +489,80 @@ const ToastColor = crearToastColor();
 const ToastBase = crearToastBase();
 
 // Funciones para cargar la información de catálogos genéricos
-const comboUsuarios = () => {
-  let datos = { func: 'comboUsuarios' };
-  $.ajax({
-    url: "../../api/controller/fnGlobales.php",
+const valida_menu = (page) => {
+  
+  let datos = { func: 'valida_menu', page };
+
+  // Retornamos el $.ajax para poder usar .then() o await afuera
+  return $.ajax({
+    url: "../../api/controller/globales.php",
     type: "POST",
     data: datos
-  }).done((res) => {
-    if (res.length > 0) {
-      arrUsuarios = res;
-    }
   }).fail((err) => {
     ToastColor.fire({
-      text: '¡Atención! No se obtuvieron los docentes, recarga la página y vuelve a intentarlo',
+      text: '¡Atención! Hubo un problema para obtener los datos del servidor, inténtalo de nuevo',
       icon: 'info',
       position: 'top',
-      timerProgressBar: false
+      timerProgressBar: true
     });
-    return;
   });
+}
+
+const ModalAccesoDenegado = (nombreSeccion = "esta sección") => {
+   let html = 
+   `<div class="modal fade" id="modalAccesoDenegado" tabindex="-1" aria-labelledby="modalAccesoDenegadoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-fullscreen">
+         <div class="modal-content border-0">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-danger text-white py-3">
+               <div class="d-flex align-items-center">
+                  <div class="rounded-circle bg-white bg-opacity-20 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                     <i class="bi bi-shield-lock-fill text-danger fs-4"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-0" id="modalAccesoDenegadoLabel">Acceso Restringido</h5>
+                     <small class="text-white-50 fs-7">Verificación de permisos de usuario</small>
+                  </div>
+               </div>
+            </div>
+
+            <!-- CUERPO CENTRALIZADO -->
+            <div class="modal-body d-flex align-items-center justify-content-center bg-light">
+               <div class="text-center p-4" style="max-width: 500px;">
+                  
+                  <div class="mb-4">
+                     <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle p-4 mb-3">
+                        <i class="bi bi-person-x-fill display-1"></i>
+                     </div>
+                     <h3 class="fw-bold text-dark mb-2">Sin permisos requeridos</h3>
+                     <p class="text-muted fs-6">
+                        Su perfil de usuario actual no cuenta con la autorización necesaria para ingresar a <strong>${nombreSeccion}</strong>.
+                     </p>
+                  </div>
+
+                  <div class="alert alert-warning border-0 shadow-sm text-start mb-4" role="alert">
+                     <div class="d-flex">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3 flex-shrink-0"></i>
+                        <div class="small text-secondary">
+                           Si considera que esto es un error, por favor póngase en contacto con el <strong>administrador del sistema</strong> para solicitar la asignación de este módulo a su rol.
+                        </div>
+                     </div>
+                  </div>
+
+                  <button type="button" class="btn btn-dark btn-redondo px-4 py-2 fw-semibold" data-bs-dismiss="modal" onclick="cierre_sesion();">
+                     <i class="bi bi-arrow-left me-2"></i>Entendido
+                  </button>
+
+               </div>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   $('#modalAccesoDenegado').modal('show');
 }
 
 const comboAnios = () => {
@@ -599,7 +654,7 @@ function esStringNumerico(cadena) {
 }
 
 window.initDataTableExport     = initDataTableExport;
-window.comboUsuarios           = comboUsuarios;
+window.valida_menu             = valida_menu;
 window.comboAnios              = comboAnios;
 window.showMessageSwal         = showMessageSwal;
 window.showMessageSwalTimer    = showMessageSwalTimer;
@@ -632,5 +687,6 @@ window.getCeldaPago            = getCeldaPago;
 window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
 window.USOS_CFDI               = USOS_CFDI;
 window.arrOrdenesBandeja       = arrOrdenesBandeja;
+window.ModalAccesoDenegado     = ModalAccesoDenegado;
 
 

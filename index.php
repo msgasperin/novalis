@@ -30,8 +30,8 @@
     // Asignación de variables con fallbacks
     $nombreLab   = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
     $slogan      = $config['slogan']           ?? 'Resultados confiables y seguros';
-    $favicon     = $config['favicon']          ?? "api/assets/logo.png";
-    $logoUrl     = $config['logo_url']         ?? "api/assets/logo.png";
+    $favicon     = $config['favicon']          ?? "api/assets/logo.webp";
+    $logoUrl     = $config['logo_url']         ?? "api/assets/logo.webp";
     $colores     = $config['colores']          ?? ['primario' => '#0d6efd', 'secundario' => '#0a58ca', 'acento' => '#0dcaf0'];
     $sizeLogo    = $config['size_logo']        ?? 60;
     $contacto    = $config['contacto']         ?? [];

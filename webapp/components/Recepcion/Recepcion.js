@@ -11,7 +11,15 @@ let comboConvenios         = '';
 let comboDescuentos        = '';
 let pacienteOrden;
 
-const TabRecepcion = () => {
+const TabRecepcion = async () => {
+
+   const res = await valida_menu('recepcion');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Recepción');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
 
    let estatusCaja  = $('#estatusCaja').val().trim();
    let idCaja       = $('#idCaja').val().trim();
@@ -77,7 +85,7 @@ const TabRecepcion = () => {
                   <div class="col-12 col-sm-8 mt-2">
                      <b>Búsqueda de paciente por nombre o correo electrónico</b>
                      <div class="input-group mb-3">
-                        <input type="text" class="form-control form-control-lg fs-6" id="busquedaPacienteRec" placeholder="Ingresa el nombre del paciente o su correo electrónico" value="sainz">
+                        <input type="text" class="form-control form-control-lg fs-6" id="busquedaPacienteRec" placeholder="Ingresa el nombre del paciente o su correo electrónico" value="">
                         <button class="btn btn-dark btn-lib" type="button" id="btnBusquedaPacienteRecepcion" onclick="buscar_paciente_recepcion('container_busqueda_paciente_recepcion');">
                            <i class="bi bi-search"></i>
                         </button>

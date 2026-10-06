@@ -4,7 +4,16 @@ let arrPacientes              = [];
 let arrPacientesCoincidencias = [];
 let objPacCoincidencia        = {};
 
-const TabPacientes = () => {
+const TabPacientes = async () => {
+
+   const res = await valida_menu('pacientes');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Pacientes');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">

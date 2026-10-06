@@ -17,7 +17,7 @@
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
 		<title>:: NovaLIS ::</title>
 		<!-- CSS -->
-		<link rel="shortcut icon" href="assets/images/favicon.png"/>
+		<link rel="shortcut icon" href="assets/images/favicon.ico"/>
 		<link rel="stylesheet" type="text/css" href="assets/lib/sweetAlert2/sweetalert2.min.css"/>
 		<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap-5.3.2/css/bootstrap.css"/>
 		<link rel="stylesheet" type="text/css" href="assets/css/datatables_modify.css?x=<?php echo time();?>" />
@@ -31,7 +31,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
 		<link rel="stylesheet" type="text/css" href="assets/css/menu.css?x=<?php echo time();?>" />
 	</head>
-	<body onload="opcionActive('opcionRecepcion'); TabRecepcion();">
+	<body onload="inicio();">
 		<?php require("menu.php")	?>
 		<div class="container-main">
 			<div id="containerMain"></div>

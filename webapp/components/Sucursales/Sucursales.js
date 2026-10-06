@@ -2,7 +2,16 @@ import { obtiene_sucursales, guardar_sucursal, eliminar_sucursal } from "./Sucur
 
 let arrSucursales = [];
 
-const TabSucursales = () => {
+const TabSucursales = async () => {
+
+   const res = await valida_menu('sucursales');
+
+   if (!res || res.estatus != 200) {
+      ModalAccesoDenegado('Sucursales');
+      $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
+      return;
+   }
+
    let html =
    `<div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
