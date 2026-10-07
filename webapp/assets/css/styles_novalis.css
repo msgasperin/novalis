@@ -1,0 +1,190 @@
+@font-face {
+   font-family: "Plus Jakarta Sans";
+   src: url("webapp/assets/css/fuentes/Plus_Jakarta_Sans/PlusJakartaSans-Regular.ttf") format("truetype");
+}
+
+:root {
+   --brand-primary: #1e40af;
+   --brand-secondary: #0f172a;
+   --brand-accent: #06b6d4;
+   --brand-dark: #0f172a;
+   --brand-primary-rgb: 30, 64, 175;
+   --brand-accent-rgb: 6, 182, 212;
+   --font-main: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+   font-family: var(--font-main);
+   color: #334155;
+   background-color: #f8fafc;
+   overflow-x: hidden;
+}
+
+.pointer { cursor: pointer; }
+.text-brand-primary { color: var(--brand-primary) !important; }
+.text-brand-accent { color: var(--brand-accent) !important; }
+.bg-brand-primary { background-color: var(--brand-primary) !important; }
+
+.btn-brand {
+   background: linear-gradient(135deg, #1e40af 0%, #06b6d4 100%);
+   border: none;
+   color: #ffffff;
+   font-weight: 700;
+   padding: 0.75rem 1.5rem;
+   border-radius: 10px;
+   transition: all 0.3s ease;
+   box-shadow: 0 4px 15px rgba(30, 64, 175, 0.25);
+}
+.btn-brand:hover {
+   background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+   color: #ffffff;
+   transform: translateY(-2px);
+   box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+}
+
+.btn-brand-outline {
+   background: transparent;
+   border: 2px solid var(--brand-primary);
+   color: var(--brand-primary);
+   font-weight: 700;
+   padding: 0.7rem 1.5rem;
+   border-radius: 10px;
+   transition: all 0.25s ease;
+}
+.btn-brand-outline:hover {
+   background-color: var(--brand-primary);
+   color: #ffffff;
+   transform: translateY(-2px);
+}
+
+.navbar-custom {
+   background: rgba(255, 255, 255, 0.95);
+   backdrop-filter: blur(12px);
+   box-shadow: 0 2px 20px rgba(15, 23, 42, 0.05);
+}
+
+.hero-section {
+   position: relative;
+   padding: 80px 0 100px 0;
+   background: radial-gradient(100% 100% at 50% 0%, rgba(6, 182, 212, 0.1) 0%, rgba(248, 250, 252, 1) 100%);
+}
+
+.badge-portal {
+   background-color: rgba(6, 182, 212, 0.12);
+   color: #0284c7;
+   font-size: 0.825rem;
+   font-weight: 800;
+   letter-spacing: 0.8px;
+   padding: 6px 14px;
+   border-radius: 30px;
+   border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.card-feature {
+   border: 1px solid #e2e8f0;
+   border-radius: 16px;
+   background: #ffffff;
+   transition: all 0.3s ease;
+}
+.card-feature:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 15px 30px rgba(15, 23, 42, 0.06);
+   border-color: rgba(6, 182, 212, 0.4);
+}
+.card-plan {
+   border: 1px solid #e2e8f0;
+   border-radius: 20px;
+   background: #ffffff;
+   transition: all 0.3s ease;
+   position: relative;
+}
+.card-plan:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+.card-plan.plan-featured {
+   border: 2px solid var(--brand-accent);
+   box-shadow: 0 15px 35px rgba(6, 182, 212, 0.18);
+}
+
+.icon-wrapper {
+   width: 55px;
+   height: 55px;
+   border-radius: 14px;
+   background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+   color: var(--brand-primary);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 1.5rem;
+}
+
+.footer-brand {
+   background-color: #0f172a;
+   color: #94a3b8;
+}
+
+.floating-wa-btn {
+   position: fixed;
+   bottom: 25px;
+   right: 25px;
+   z-index: 999;
+   box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+   transition: all 0.3s ease;
+}
+.floating-wa-btn:hover {
+   transform: scale(1.08);
+}
+
+         /* Fondo suave corporativo con degradado tenue */
+.bg-gradient-portal {
+   background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+}
+
+/* Badge de encabezado */
+.badge-portal {
+   background-color: rgba(13, 110, 253, 0.1);
+   color: #0d6efd;
+   letter-spacing: 0.5px;
+   border-radius: 50rem;
+}
+
+/* Título azul oscuro corporativo */
+.text-dark-blue {
+   color: #0f172a;
+}
+
+/* Tarjetas de pasos */
+.card-step {
+   transition: all 0.3s ease-in-out;
+   border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.card-step:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 12px 24px -10px rgba(13, 110, 253, 0.15) !important;
+   border-color: rgba(13, 110, 253, 0.3) !important;
+}
+
+/* Número de paso con acento de color */
+.step-badge {
+   font-size: 1.25rem;
+   font-weight: 800;
+   color: #0d6efd;
+   background: #eef2ff;
+   width: 42px;
+   height: 42px;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 50%;
+}
+
+/* Contenedor de iconos */
+.icon-shape {
+   width: 44px;
+   height: 44px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
