@@ -163,7 +163,7 @@
                                 </div>
                             </div>
                             <h5 class="fw-bold text-dark mb-2">1. Registro & Cobro</h5>
-                            <p class="text-muted small mb-0">Alta de orden express, cobro en caja con diversos métodos e impresión automática de tickets y etiquetas.</p>
+                            <p class="text-muted small mb-0">Alta de orden express, cobro en caja con diversos métodos e impresión de tickets.</p>
                         </div>
                     </div>
 
@@ -173,11 +173,11 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <span class="step-badge">02</span>
                                 <div class="icon-shape bg-info-subtle text-info rounded-3 p-2">
-                                    <i class="bi bi-eyedropper fs-4"></i>
+                                    <i class="bi bi-upc-scan fs-4"></i>
                                 </div>
                             </div>
-                            <h5 class="fw-bold text-dark mb-2">2. Toma de Muestra</h5>
-                            <p class="text-muted small mb-0">Identificación clara de contenedores con códigos de barras para evitar confusiones en laboratorio.</p>
+                            <h5 class="fw-bold text-dark mb-2">2. Recepción & Etiquetado</h5>
+                            <p class="text-muted small mb-0">Recepciona las muestras y genera etiquetas con códigos de barras para identificar fácilmente cada estudio y mantener el control de las órdenes.</p>
                         </div>
                     </div>
 
@@ -190,8 +190,8 @@
                                     <i class="bi bi-file-earmark-medical-fill fs-4"></i>
                                 </div>
                             </div>
-                            <h5 class="fw-bold text-dark mb-2">3. Captura & Validación</h5>
-                            <p class="text-muted small mb-0">Bandejas ágiles de resultados por estatus con valores de referencia ajustables por edad y sexo.</p>
+                            <h5 class="fw-bold text-dark mb-2">3. Gestión de Resultados</h5>
+                            <p class="text-muted small mb-0">Bandejas operativas para organizar las órdenes, adjuntar resultados en PDF y gestionar su publicación.</p>
                         </div>
                     </div>
 
@@ -205,7 +205,7 @@
                                 </div>
                             </div>
                             <h5 class="fw-bold text-dark mb-2">4. Entrega Digital</h5>
-                            <p class="text-muted small mb-0">Envío automático de PDF por e-mail y disponibilidad inmediata en el portal web del paciente.</p>
+                            <p class="text-muted small mb-0">Publica los resultados para que el paciente pueda consultarlos en la plataforma o recibirlos directamente por correo electrónico.</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@
                         <div class="card card-feature p-4 h-100">
                             <div class="icon-wrapper mb-3"><i class="bi bi-send-check"></i></div>
                             <h5 class="fw-bold text-dark mb-2">Entrega Digital de Resultados</h5>
-                            <p class="text-muted small mb-0">Generación automática de reportes en PDF con membrete y envío directo por correo electrónico al paciente.</p>
+                            <p class="text-muted small mb-0">Adjunta y envía resultados en PDF, o permite que tus pacientes los consulten directamente en la plataforma.</p>
                         </div>
                     </div>
 
@@ -360,8 +360,8 @@
 
                             <ul class="list-unstyled small mb-4 flex-grow-1">
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> <strong>1 Sucursal / Matriz</strong></li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Órdenes y pacientes <strong>ilimitados</strong></li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Módulos completos (Recepción, Caja, Resultados)</li>
+                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Órdenes y pacientes  <strong>ilimitados</strong></li>
+                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Módulos completos (Recepción, Caja, Resultados y más)</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Envío de resultados por correo electrónico</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Impresión de etiquetas para tubos</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Landing Page pública estática inicial</li>
@@ -378,7 +378,7 @@
                     <div class="col-md-6 col-lg-5">
                         <div class="card card-plan plan-featured p-4 h-100 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="badge bg-brand-primary text-white fw-bold px-3 py-2 rounded-pill">MÁS POPULAR</span>
+                                <span class="badge bg-brand-primary text-white fw-bold px-3 py-2 rounded-pill">RECOMENDADO</span>
                                 <i class="bi bi-star-fill text-warning fs-5"></i>
                             </div>
                             <h4 class="fw-bold text-dark mb-2">Pro Multi-Sucursal</h4>
@@ -392,7 +392,7 @@
                             <ul class="list-unstyled small mb-4 flex-grow-1">
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> <strong>Hasta 5 Sucursales incluidas</strong></li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Todo lo del Plan Básico</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> <strong>Módulo de Autogestión de la Landing Page</strong> (Promociones dinámicas y avisos)</li>
+                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> <strong>Módulo de Autogestión de la Landing Page</strong> (Promociones y sucursales)</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Módulo completo de Rentabilidad, Flujo y Auditoría</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Gestión avanzada de Convenios y Empresas</li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Sucursal adicional extra: +$300 MXN/mes</li>
