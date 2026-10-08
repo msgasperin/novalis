@@ -7,14 +7,24 @@
   $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <div class="row fondo-azul-1 header-top">
-  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-4 p-2 mt-2">
-    <img src="assets/images/logo_text_2.webp" class="img-logo me-4">
+  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-8 p-2 mt-2 text-sm-start text-center">
+    <img src="assets/images/logo_text_2.webp" class="img-logo me-sm-4 me-2">
     <img src="<?= $ruta; ?>" class="img-logo-cliente">
   </div>
-  <div class="col-xl-9 col-lg-9 col-md-7 col-sm-7 col-4 fs-1" align="right">
+  <div class="col-xl-7 col-lg-6 col-sm-2 col-1 text-end">
+    <div class="p-3 mt-sm-0 mt-1">
+      <a href="ayuda" target="_blank" class="text-white text-decoration-none me-sm-3 align-items-center" title="Centro de Ayuda">
+        <i class="bi bi-question-circle fs-5"></i>
+        <span class="small d-none d-md-inline">Ayuda</span>
+      </a>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-5 col-sm-7 col-1 fs-1 text-sm-start text-end">
     <div class="p-3">
       <div class="d-none d-xl-block d-xxl-block text-dark text-white">
-        <div class="fs-8"><i class="bi bi-person-circle fs-6">&nbsp;</i> <?php echo $_SESSION["nombre"] ?></div>
+        <div class="fs-8">
+          <i class="bi bi-person-circle fs-6">&nbsp;</i> <?php echo $_SESSION["nombre"] ?>
+        </div>
         <div class="fs-8"><?php echo $_SESSION["perfil"] ?></div>
       </div>
       <div class="d-block d-xl-none d-xxl-none text-white" onclick="muestraMenu(1);">

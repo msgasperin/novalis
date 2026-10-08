@@ -413,7 +413,7 @@
             <div class="container">
                 <div class="row gy-4 align-items-center border-bottom border-slate-700 pb-4 mb-4">
                     <div class="col-md-6 text-center text-md-start">
-                        <img src="webapp/assets/images/logo_text_blanco.webp" alt="<?= htmlspecialchars($nombreSistema) ?>" height="50" class="mb-2 d-block mx-auto mx-md-0">
+                        <img src="webapp/assets/images/logo_text_2.webp" alt="<?= htmlspecialchars($nombreSistema) ?>" height="50" class="mb-2 d-block mx-auto mx-md-0">
                         <p class="small text-slate-400 mb-0"><?= htmlspecialchars($slogan) ?></p>
                     </div>
                     <div class="col-md-6 text-center text-md-end">
