@@ -7,8 +7,8 @@
   $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <div class="row fondo-azul-1 header-top">
-  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-7 p-2 text-sm-start text-center">
-    <img src="assets/images/logo_text_2.webp" class="img-logo me-sm-4 me-2">
+  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-7 p-2 mb-1">
+    <img src="assets/images/logo_text_2.webp" class="img-logo me-sm-3 me-1">
     <img src="<?= $ruta; ?>" class="img-logo-cliente">
   </div>
   
