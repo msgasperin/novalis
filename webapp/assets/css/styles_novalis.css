@@ -1,6 +1,6 @@
 @font-face {
    font-family: "Plus Jakarta Sans";
-   src: url("webapp/assets/css/fuentes/Plus_Jakarta_Sans/PlusJakartaSans-Regular.ttf") format("truetype");
+   src: url("/webapp/assets/css/fuentes/Outfit/Outfit-VariableFont_wght.ttf") format("truetype");
 }
 
 :root {

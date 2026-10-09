@@ -58,7 +58,15 @@
                      <?= $_SESSION["tipo_cliente"] === 'convenio' ? 'Cuenta Convenio' : 'Paciente' ?>
                   </span>
                </div>
+               
                <div class="vr d-none d-sm-block my-2"></div>
+
+               <!-- Botón Manual de Ayuda -->
+               <a href="ayuda" class="btn btn-outline-primary btn-sm fw-semibold d-flex align-items-center gap-1 border shadow-sm btn-redondo" title="Centro de Ayuda / Manual" target="_blank">
+                  <i class="bi bi-question-circle-fill"></i> <span class="d-none d-md-inline">Ayuda</span>
+               </a>
+
+               <!-- Botón Salir -->
                <button class="btn btn-light btn-sm text-danger fw-semibold d-flex align-items-center gap-1 border shadow-sm btn-redondo" id="btnLogout" title="Cerrar sesión" onclick="cerrar_sesion();">
                   <i class="bi bi-power"></i> <span class="d-none d-md-inline">Salir</span>
                </button>

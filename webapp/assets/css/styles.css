@@ -29,19 +29,7 @@
 
 @font-face {
   font-family: "Inter";
-  src: url(fuentes/inter/Inter-Regular.woff2) format("truetype");
-}
-@font-face {
-  font-family: "Inter-Bold";
-  src: url(fuentes/inter/Inter-Bold.woff2) format("truetype");
-}
-@font-face {
-  font-family: "Inter-Light";
-  src: url(fuentes/inter/Inter-Light.woff2) format("truetype");
-}
-@font-face {
-  font-family: "Inter-SemiBold";
-  src: url(fuentes/inter/Inter-SemiBold.woff2) format("truetype");
+  src: url(fuentes/Inter/Inter-Regular.woff2) format("truetype");
 }
 
 .btn-tab-pedidos {

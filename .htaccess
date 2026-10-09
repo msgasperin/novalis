@@ -9,7 +9,7 @@ RewriteRule ^webapp/ayuda$ webapp/ayuda.php
 RewriteRule ^webapp/reportes/ticket$ webapp/reportes/ticket_pdf.php
 RewriteRule ^webapp/reportes/corte$ webapp/reportes/ticket_corte_caja.php
 
-RewriteRule ^webapp/plataforma$ webapp/plataforma.php
+RewriteRule ^plataforma/ayuda$ plataforma/ayuda_plataforma.php
 RewriteRule ^webapp/reportes/visor_resultados$ webapp/reportes/visor_resultados.php
 
 # ── Headers de seguridad HTTP ────────────────────────────────

@@ -2,13 +2,15 @@
 	require_once('../../../api/config/class.pdo.php');
 	class Login extends Conexion {
 
+      protected PDO $dbh;
+
 		private $max_intentos  = 5;
       private $bloqueo_min   = 15; // minutos de bloqueo
 
 		//Objeto principal del constructor de la clase
 		public function __construct() {
          parent::__construct();
-	   	$this->conectar();
+	   	$this->dbh = $this->getDbh();
 	  	}
 
 		public function login(string $usuario, string $contrasenia, string $fecha_nacimiento, string $tipo_cliente) {	

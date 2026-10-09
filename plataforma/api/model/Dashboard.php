@@ -1,10 +1,11 @@
 <?php
 	require_once('../../../api/config/class.pdo.php');
 	class Dashboard extends Conexion {
+		protected PDO $dbh;
 		//Objeto principal del constructor de la clase
 		public function __construct() {
-	   	parent::__construct();
-	   	$this->conectar();
+         parent::__construct();
+	   	$this->dbh = $this->getDbh();
 	  	}
 		
 		public function busqueda_ordenes_bandeja(int $id_sucursal, string $matriz, array $post) {

@@ -255,7 +255,7 @@ const pinta_ordenes_bandejas = (data) => {
                   }
 
                   html+=`
-                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
                      <i class="bi bi-file-text"></i> 
                   </button>`;
 
@@ -1330,7 +1330,7 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                   </h6>
 
                   <!--
-                  <!-- WhatsApp -->
+                  
                   <div class="row g-2 align-items-center mb-3">
                      <div class="col-12 col-md-5">
                         <div class="form-check">
