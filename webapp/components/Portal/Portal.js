@@ -4,7 +4,6 @@ let arrPromociones   = [];
 let arrEstudiosPromo = [];
 
 const TabPromocionesPortal = async () => {
-
    const res = await valida_menu('portal');
 
    if (!res || res.estatus != 200) {
@@ -13,19 +12,21 @@ const TabPromocionesPortal = async () => {
       return;
    }
 
-   let html =
-   `<div class="row">
+   let html = `
+   <div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-12 mt-2 fw-bold">
-         <div class="fs-4"> <i class="bi bi-percent"></i> Promociones portal</div>
+         <div class="fs-4"><i class="bi bi-percent me-2"></i>Promociones portal</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-12 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaPromocion" onclick="ModalFormPromocion(0, 0,'');"><i class="bi bi-plus-lg"></i> Nueva Promoción</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaPromocion" onclick="ModalFormPromocion(0);">
+            <i class="bi bi-plus-lg"></i> Nueva Promoción
+         </button>
       </div>
    </div>
    <div class="row mt-3">
-      <div class="col-12 col-md-3" align="right">
+      <div class="col-12 col-md-4 ms-auto text-end">
          <div class="input-group">
-            <input type="text" name="inpBusquedaPromocion" id="inpBusquedaPromocion" class="form-control border-end-0" placeholder="Buscar promoción" onkeyUp="buscar_promocion();">
+            <input type="text" name="inpBusquedaPromocion" id="inpBusquedaPromocion" class="form-control border-end-0" placeholder="Buscar promoción..." onkeyup="buscar_promocion();">
             <span class="input-group-text border-start-0 bg-white"><i class="bi bi-search"></i></span>
          </div>
       </div>
@@ -35,13 +36,12 @@ const TabPromocionesPortal = async () => {
    </div>`;
 
    $('#containerMain').html(html);
-   
    listar_promociones();
-}
+};
 
-const ModalFormPromocion = (idPromocion, nomPromocion) => {
-
-   let promocionSeleccionada = arrPromociones.filter(descuento => descuento.id == idPromocion);
+const ModalFormPromocion = (idPromocion = 0) => {
+   let idNum = parseInt(idPromocion) || 0;
+   let promocionSeleccionada = arrPromociones.find(promo => promo.id == idNum);
 
    let titulo          = 'Registrar nueva promoción';
    let badge           = 'NA';
@@ -50,22 +50,26 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
    let precioPromocion = '';
    arrEstudiosPromo    = [];
 
-   if(idPromocion > 0) {
-      titulo           = 'Editar Promoción: '+ nomPromocion;
-      badge            = promocionSeleccionada[0].badge;
-      nombre           = promocionSeleccionada[0].nom_promocion;
-      precioOriginal   = promocionSeleccionada[0].precio_original;
-      precioPromocion  = promocionSeleccionada[0].precio_promocion;
-      arrEstudiosPromo = promocionSeleccionada[0].estudios ? JSON.parse(promocionSeleccionada[0].estudios) : [];
+   if (idNum > 0 && promocionSeleccionada) {
+      titulo           = 'Editar Promoción: ' + (promocionSeleccionada.nom_promocion || '');
+      badge            = promocionSeleccionada.badge || 'NA';
+      nombre           = promocionSeleccionada.nom_promocion || '';
+      precioOriginal   = promocionSeleccionada.precio_original || '';
+      precioPromocion  = promocionSeleccionada.precio_promocion || '';
+      
+      try {
+         arrEstudiosPromo = promocionSeleccionada.estudios ? JSON.parse(promocionSeleccionada.estudios) : [];
+      } catch (e) {
+         arrEstudiosPromo = [];
+      }
    }
-    
 
    let html = `
    <div class="modal fade modal-superior-blur" id="modalFormPromociones" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
-               <h1 class="modal-title fs-5">${titulo}</h1>
+               <h1 class="modal-title fs-5">${escapeHTML(titulo)}</h1>
                <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
@@ -73,7 +77,7 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
             <div class="modal-body">
                <div class="row">
                   <div class="col-12 col-sm-4 mt-3">
-                     <b>Badge *</b>
+                     <label class="form-label fw-bold mb-1" for="badgePromocion">Badge *</label>
                      <select id="badgePromocion" class="form-select">
                         <option value="NA">Seleccionar...</option>
                         <option value="POPULAR">POPULAR</option>
@@ -87,26 +91,26 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
                      </select>
                   </div>
                   <div class="col-12 col-sm-8 mt-3">
-                     <b>Nombre de la promoción *</b>
-                     <input type="text" name="nomPromocion" id="nomPromocion" class="form-control" maxlength="150" value="${nombre}"/>
+                     <label class="form-label fw-bold mb-1" for="nomPromocion">Nombre de la promoción *</label>
+                     <input type="text" name="nomPromocion" id="nomPromocion" class="form-control" maxlength="150" value="${escapeHTML(nombre)}"/>
                   </div>
                   <div class="col-6 mt-3">
-                     <b>Precio original *</b>
-                     <input type="text" inputmode="numeric" name="precioOriginal" id="precioOriginal" class="form-control" maxlength="3" value="${precioOriginal}" onkeypress="return fnValidaNumeros(event);"/>
+                     <label class="form-label fw-bold mb-1" for="precioOriginal">Precio original *</label>
+                     <input type="number" inputmode="decimal" step="0.01" name="precioOriginal" id="precioOriginal" class="form-control" maxlength="10" value="${escapeHTML(precioOriginal.toString())}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-6 mt-3">
-                     <b>Precio promoción *</b>
-                     <input type="text" inputmode="numeric" name="precioPromocion" id="precioPromocion" class="form-control" maxlength="3" value="${precioPromocion}" onkeypress="return fnValidaNumeros(event);"/>
+                     <label class="form-label fw-bold mb-1" for="precioPromocion">Precio promoción *</label>
+                     <input type="number" inputmode="decimal" step="0.01" name="precioPromocion" id="precioPromocion" class="form-control" maxlength="10" value="${escapeHTML(precioPromocion.toString())}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-12 mt-3">
                      <div class="card border-light-subtle shadow-sm">
                         <div class="card-header bg-light fs-6 fw-bold">
-                           <i class="bi bi-tags"></i> Configuración de estudios de la promoción
+                           <i class="bi bi-tags me-1"></i> Configuración de estudios de la promoción
                         </div>
                         <div class="card-body">
                            <div class="row align-items-end">
                               <div class="col-9 col-sm-10 mt-2 mt-sm-0">
-                                 <b>Estudio</b>
+                                 <label class="form-label fw-bold mb-1" for="txtEstudio">Estudio</label>
                                  <input type="text" id="txtEstudio" class="form-control" placeholder="Ej. Biometría Hemática Completa" maxlength="150"/>
                               </div>
                               <div class="col-3 col-sm-2 mt-2 mt-sm-0 text-end">
@@ -118,7 +122,6 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
                            <div class="row mt-3">
                               <div class="col-12">
                                  <div id="contenedorEstudiosPromoAgregados" class="d-flex flex-wrap gap-2 p-2 border rounded bg-white" style="min-height: 48px;">
-                                    <!-- Aquí se inyectan las pills con JS -->
                                     <span class="text-muted small fst-italic id-sin-tubos">No se han agregado estudios a esta promoción.</span>
                                  </div>
                               </div>
@@ -126,15 +129,14 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
                         </div>
                      </div>
                   </div>
-                  <!-- Input oculto para recolectar el JSON en el submit -->
                   <input type="hidden" name="estudiosPromoPortal" id="estudiosPromoPortal" value="[]" />
                </div>
             </div>
-            <div class="modal-footer" align="right">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnSavePromocion" onclick="guardar_promocion('${idPromocion}');">
+            <div class="modal-footer border-0 text-end">
+              <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnSavePromocion" onclick="guardar_promocion(${idNum});">
                 <i class="bi bi-save"></i> Guardar
               </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+              <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
                 Cancelar
               </button>
             </div>
@@ -147,57 +149,66 @@ const ModalFormPromocion = (idPromocion, nomPromocion) => {
    setTimeout(() => {
       $('#badgePromocion').val(badge);
       renderizar_estudios_promo();
-   }, 300);
-}
+   }, 200);
+};
 
 const listar_promociones = async () => {
    activarLoad('Cargando promociones...');
    let respuesta = await obtiene_promociones();
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      closeLoad();
       return;
    }
    else {
-      arrPromociones = respuesta.data;
+      arrPromociones = respuesta.data || [];
       pinta_listado_promociones(arrPromociones);
    }
-}
+};
 
 const pinta_listado_promociones = (data) => {
-   if(data.length == 0) {
+   if (!data || data.length === 0) {
       $('#containerListPromocion').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron promociones registradas</div>');
       closeLoad();
       return;
    }
    
    let html = `<div class="row">`;
-   data.map((row, i) => {
-      html+=`
-      <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardPromocion${row.id}">
-         <div class="card mb-3 shadow">
-            <div class="card-body">
-               <div class="row fs-8">
-                  <div class="col-12 mt-2">
-                     <div>
-                        <span class="badge bg-primary bg-brand-primary text-white text-secondary border">${row.badge}</span>
-                     </div>
-                     <div class="mt-1 fs-6"><b>${row.nom_promocion}</b></div>
-                     <div>Precio original: $${row.precio_original} | <span class="text-success"> Precio promoción: $${row.precio_promocion}</span></div>
-                     <div class="alert alert-secondary p-2 mt-1">
-                        ${JSON.parse(row.estudios).map(e => e.estudio).join('<br>')}
-                     </div>
-                  </div>
+   data.forEach((row) => {
+      let listaEstudiosHtml = '';
+      try {
+         const estudiosArr = JSON.parse(row.estudios || '[]');
+         listaEstudiosHtml = estudiosArr.map(e => escapeHTML(e.estudio || '')).join('<br>');
+      } catch (e) {
+         listaEstudiosHtml = '<span class="text-muted small fst-italic">Sin detalles</span>';
+      }
+
+      html += `
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 mt-2" id="cardPromocion${row.id}">
+         <div class="card mb-3 shadow-sm border-light-subtle h-100">
+            <div class="card-body d-flex flex-column">
+               <div class="mb-2">
+                  <span class="badge bg-primary bg-brand-primary text-white border">${escapeHTML(row.badge || 'PROMO')}</span>
+               </div>
+               <div class="fs-6 fw-bold text-dark mb-1">${escapeHTML(row.nom_promocion || '')}</div>
+               <div class="small text-muted mb-2">
+                  Original: <span class="text-decoration-line-through">$${parseFloat(row.precio_original || 0).toFixed(2)}</span> | 
+                  <span class="text-success fw-bold">Promoción: $${parseFloat(row.precio_promocion || 0).toFixed(2)}</span>
+               </div>
+               <div class="alert alert-secondary p-2 mt-auto mb-0 small">
+                  ${listaEstudiosHtml}
                </div>
             </div>
-            <div class="card-footer bg-white border-top-0 pb-2">
+            <div class="card-footer bg-white border-top-0 pb-3 pt-0">
                <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormPromocion(${row.id},'${row.nom_promocion}');">
+                  <!-- Invocaciones numéricas seguras -->
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormPromocion(${row.id});">
                      <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarPromocion" title="Eliminar" onclick="eliminar_promocion(${row.id},'${row.nom_promocion}');">
+                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarPromocion" title="Eliminar" onclick="eliminar_promocion(${row.id});">
                      <i class="bi bi-trash"></i>
                   </button>               
                </div>
@@ -206,63 +217,57 @@ const pinta_listado_promociones = (data) => {
       </div>`;
    });
 
-   html+=`</div>`;
+   html += `</div>`;
    $('#containerListPromocion').html(html);
    closeLoad();
-}
+};
 
-const guardar_promocion = async (idPromocion) => {
-
+const guardar_promocion = async (idPromocion = 0) => {
+   let idNum           = parseInt(idPromocion) || 0;
    let badgePromocion  = $('#badgePromocion').val().trim();
    let nomPromocion    = $('#nomPromocion').val().trim();
    let precioOriginal  = $('#precioOriginal').val().trim();
    let precioPromocion = $('#precioPromocion').val().trim();
    let msjAccion       = '';
 
-   if (badgePromocion == 'NA') {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar un identificador de la promoción',
-         icon: 'warning'
-      });
+   if (badgePromocion === 'NA') {
+      ToastColor.fire({ text: '¡Atención! Debes seleccionar un identificador de la promoción', icon: 'warning' });
       $('#badgePromocion').focus();
       return;
    }
-   else if (nomPromocion == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre de la promoción',
-         icon: 'warning'
-      });
+   else if (nomPromocion === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el nombre de la promoción', icon: 'warning' });
       $('#nomPromocion').focus();
       return;
    }
-   else if (precioOriginal == '' || parseInt(precioOriginal) <= 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar un precio original y debe ser mayor a 0',
-         icon: 'warning'
-      });
+   else if (precioOriginal === '' || parseFloat(precioOriginal) <= 0) {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar un precio original y debe ser mayor a 0', icon: 'warning' });
       $('#precioOriginal').focus();
       return;
    }
-   else if (precioPromocion == '' || parseInt(precioPromocion) <= 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar un precio de promoción y debe ser mayor a 0',
-         icon: 'warning'
-      });
+   else if (precioPromocion === '' || parseFloat(precioPromocion) <= 0) {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar un precio de promoción y debe ser mayor a 0', icon: 'warning' });
       $('#precioPromocion').focus();
       return;
    }
-   else if (arrEstudiosPromo.length == 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes agregar al menos 1 estudio que incluye la promoción',
-         icon: 'warning'
-      });
+   else if (arrEstudiosPromo.length === 0) {
+      ToastColor.fire({ text: '¡Atención! Debes agregar al menos 1 estudio que incluye la promoción', icon: 'warning' });
       $('#txtEstudio').focus();
       return;
    }
       
-   const objPromocion = { func: 'guarda_promocion', idPromocion, badgePromocion, nomPromocion, precioOriginal, precioPromocion, arrEstudiosPromo };
+   const objPromocion = { 
+      func: 'guarda_promocion', 
+      idPromocion: idNum, 
+      badgePromocion, 
+      nomPromocion, 
+      precioOriginal, 
+      precioPromocion, 
+      arrEstudiosPromo,
+      csrf: CSRF_TOKEN
+   };
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la promoción ' + nomPromocion + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la promoción ' + escapeHTML(nomPromocion) + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
       $('#btnSavePromocion').prop('disabled', false);
       return;
@@ -270,12 +275,11 @@ const guardar_promocion = async (idPromocion) => {
 
    $('#btnSavePromocion').prop('disabled', true);
    let respuesta = await guarda_promocion(objPromocion);
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-      
-      idPromocion > 0 ? msjAccion = '¡Información actualizada!' : msjAccion = '¡Promoción guardada correctamente!';
+   else if (respuesta.estatus == 200) {
+      msjAccion = idNum > 0 ? '¡Información actualizada!' : '¡Promoción guardada correctamente!';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormPromociones').modal('hide');
@@ -286,10 +290,16 @@ const guardar_promocion = async (idPromocion) => {
       $('#btnSavePromocion').prop('disabled', false);
       return;
    }
-}
+};
 
-const eliminar_promocion = async (idPromocion, nomPromocion) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La promoción: ' + nomPromocion + ' será eliminada', 'question', 'Sí, eliminar', 'Cancelar');
+const eliminar_promocion = async (idPromocion) => {
+   let idNum = parseInt(idPromocion) || 0;
+   let promoSeleccionada = arrPromociones.find(p => p.id == idNum);
+   if (!promoSeleccionada) return;
+
+   let nomPromocion = promoSeleccionada.nom_promocion || '';
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La promoción: ' + escapeHTML(nomPromocion) + ' será eliminada', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
       $('.btnEliminarPromocion').prop('disabled', false);
@@ -297,40 +307,37 @@ const eliminar_promocion = async (idPromocion, nomPromocion) => {
    }
 
    $('.btnEliminarPromocion').prop('disabled', true);
-   let respuesta = await elimina_promocion(idPromocion, nomPromocion);
-      if(respuesta.estatus == 403) {
+   let respuesta = await elimina_promocion(idNum, nomPromocion, CSRF_TOKEN);
+   
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Promoción eliminada correctamente!', '', 'success', 2500);
-      $('#cardPromocion'+idPromocion).remove();
-      arrPromociones = arrPromociones.filter(descuento => descuento.id != idPromocion);
+      $('#cardPromocion' + idNum).remove();
+      arrPromociones = arrPromociones.filter(p => p.id != idNum);
       $('.btnEliminarPromocion').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('.btnEliminarPromocion').prop('disabled', false);
       return;
    }
-}
+};
 
 const buscar_promocion = () => {
-   let busqueda = $('#inpBusquedaPromocion').val().trim();
+   let busqueda = $('#inpBusquedaPromocion').val().trim().toLowerCase();
 
    const filtrado = arrPromociones.filter(promo => 
-      promo.nom_promocion.toLowerCase().includes(busqueda.toLowerCase())
+      (promo.nom_promocion || '').toLowerCase().includes(busqueda)
    );
    pinta_listado_promociones(filtrado);
-}
+};
 
 const agregar_estudio_promo_lista = () => {
-
    let estudio = $('#txtEstudio').val().trim();
 
    if (!estudio) {
-      ToastColor.fire({
-         text: '¡Atención! Ingrese el estudio.',
-         icon: 'warning'
-      });
+      ToastColor.fire({ text: '¡Atención! Ingrese el estudio.', icon: 'warning' });
       $('#txtEstudio').focus();
       return;
    }
@@ -341,7 +348,6 @@ const agregar_estudio_promo_lista = () => {
    renderizar_estudios_promo();
 };
 
-// Pinta las etiquetas (pills) en el DIV y actualiza el campo oculto JSON
 const renderizar_estudios_promo = () => {
    let html = '';
 
@@ -352,27 +358,22 @@ const renderizar_estudios_promo = () => {
          html += `
          <span class="badge bg-light text-dark border p-2 d-flex align-items-center gap-2">
             <i class="bi bi-vial-fill text-primary"></i> 
-            <span class="text-secondary">${item.estudio}</span>
+            <span class="text-secondary">${escapeHTML(item.estudio || '')}</span>
             <button type="button" class="btn-close btn-close-xs ms-1" onclick="eliminar_estudio_promo(${index});" aria-label="Eliminar"></button>
          </span>`;
       });
    }
 
-   // Pintar en el contenedor HTML
    $('#contenedorEstudiosPromoAgregados').html(html);
-
-   // Sincronizar el input hidden con la cadena JSON
    $('#estudiosPromoPortal').val(JSON.stringify(arrEstudiosPromo));
 };
 
-// Elimina un ítem por su índice y re-renderiza
 const eliminar_estudio_promo = (index) => {
    arrEstudiosPromo.splice(index, 1);
    renderizar_estudios_promo();
 };
 
 const ModalActualizaWhatsApp = () => {
-
    let whatsapp = $('#whatsAppEmpresa').val().trim();
 
    let html = `
@@ -388,16 +389,16 @@ const ModalActualizaWhatsApp = () => {
             <div class="modal-body">
                <div class="row">
                   <div class="col-12 mt-3">
-                     <b>WhatsApp Activo *</b>
-                     <input type="text" name="whatsAppActivo" id="whatsAppActivo" class="form-control" maxlength="10" value="${whatsapp}">
+                     <label class="form-label fw-bold mb-1" for="whatsAppActivo">WhatsApp Activo *</label>
+                     <input type="tel" inputmode="numeric" name="whatsAppActivo" id="whatsAppActivo" class="form-control" maxlength="10" value="${escapeHTML(whatsapp)}" onkeypress="return fnValidaNumeros(event);">
                   </div>
                </div>
             </div>
-            <div class="modal-footer border-top-0" align="right">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnActualizaWhats" onclick="actualizar_whats();">
+            <div class="modal-footer border-top-0 text-end">
+              <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnActualizaWhats" onclick="actualizar_whats();">
                 <i class="bi bi-save"></i> Guardar
               </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+              <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
                 Cancelar
               </button>
             </div>
@@ -407,22 +408,18 @@ const ModalActualizaWhatsApp = () => {
 
    $('#modalAdminExt5').html(html);
    $('#modalActualizaWhats').modal('show');
-}
+};
 
 const actualizar_whats = async () => {
-
    let whatsapp = $('#whatsAppActivo').val().trim();
 
-   if (whatsapp == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nuevo número de contacto por whatsApp',
-         icon: 'warning'
-      });
+   if (whatsapp === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el nuevo número de contacto por whatsApp', icon: 'warning' });
       $('#whatsAppActivo').focus();
       return;
    }
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El contacto del portal por whatsApp quedará vinculado al número: ' + whatsapp, 'question', 'Sí, actualizar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El contacto del portal por whatsApp quedará vinculado al número: ' + escapeHTML(whatsapp), 'question', 'Sí, actualizar', 'Cancelar');
    
    if (!res.result) {
       $('#btnActualizaWhats').prop('disabled', false);
@@ -430,41 +427,41 @@ const actualizar_whats = async () => {
    }
 
    $('#btnActualizaWhats').prop('disabled', true);
-   let respuesta = await actualiza_whats(whatsapp);
-      if(respuesta.estatus == 403) {
+   let respuesta = await actualiza_whats(whatsapp, CSRF_TOKEN);
+   
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡WhatsApp Actualizado!', '', 'success', 2500);
       $('#modalActualizaWhats').modal('hide');
-      $('#whatsAppEmpresa').val(whatsapp)
+      $('#whatsAppEmpresa').val(whatsapp);
       $('#btnActualizaWhats').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('#btnActualizaWhats').prop('disabled', false);
       return;
    }
-}
+};
 
 const publicar_cambios = async () => {
-
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se obtendrán los últimos cambios realizados y se publicarán en el portal', 'question', 'Sí, publicar', 'Cancelar');
    
    if (!res.result) {
       return;
    }
 
-   let respuesta = await publica_cambios();
-      if(respuesta.estatus == 403) {
+   let respuesta = await publica_cambios(CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Cambios publicados!', '', 'success', 2500);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
-}
+};
 
 // Interfaces
 window.TabPromocionesPortal        = TabPromocionesPortal;
@@ -472,7 +469,7 @@ window.ModalFormPromocion          = ModalFormPromocion;
 window.ModalActualizaWhatsApp      = ModalActualizaWhatsApp;
 
 // Funciones
-window.eliminar_promocion          = eliminar_promocion
+window.eliminar_promocion          = eliminar_promocion;
 window.guardar_promocion           = guardar_promocion; 
 window.buscar_promocion            = buscar_promocion;
 
@@ -480,5 +477,4 @@ window.agregar_estudio_promo_lista = agregar_estudio_promo_lista;
 window.eliminar_estudio_promo      = eliminar_estudio_promo;
 
 window.actualizar_whats            = actualizar_whats;
-
 window.publicar_cambios            = publicar_cambios;

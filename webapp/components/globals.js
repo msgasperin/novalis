@@ -653,6 +653,18 @@ function esStringNumerico(cadena) {
   return !isNaN(num) && typeof cadena === 'string' && cadena.trim() !== '';
 }
 
+const escapeHTML = (str) => {
+    if (!str) return '';
+    return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+
+window.CSRF_TOKEN              = $('#csrfToken').val().trim();
 window.initDataTableExport     = initDataTableExport;
 window.valida_menu             = valida_menu;
 window.comboAnios              = comboAnios;
@@ -688,5 +700,6 @@ window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
 window.USOS_CFDI               = USOS_CFDI;
 window.arrOrdenesBandeja       = arrOrdenesBandeja;
 window.ModalAccesoDenegado     = ModalAccesoDenegado;
+window.escapeHTML              = escapeHTML;
 
 

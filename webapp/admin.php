@@ -50,6 +50,7 @@
 			<input type="hidden" id="cierreCaja" value="<?php echo $_SESSION["fecha_cierre"]; ?>" />
 			<input type="hidden" id="nomEmpresa" value="<?php echo $_SESSION["emp_nombre"]; ?>" />
 			<input type="hidden" id="whatsAppEmpresa" value="<?php echo $_SESSION["emp_whats"]; ?>" />
+			<input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrf_token']; ?>">
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">

@@ -9,7 +9,6 @@ require_once('../../api/config/class.pdo.php');
 require_once('../../api/config/seguridad.php');
 
 $v = new Conexion();
-$v->conectar();
 
 if (!isset($_SESSION['id_usuario'])) {
     header("HTTP/1.1 403 Forbidden");
@@ -29,7 +28,7 @@ $key_query = $_GET['id'];
 // 4. Consultar la información del archivo en la Base de Datos
 // Ajusta los nombres de las columnas y tabla a tu base de datos real
 try {
-    $sql = $v->dbh->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
+    $sql = $v->getDbh()->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
     $sql->execute([$key_query]);
     $archivo_db = $sql->fetch();
 } catch (\PDOException $e) {

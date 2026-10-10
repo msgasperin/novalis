@@ -1,12 +1,13 @@
 <?php
 	require_once('../config/class.pdo.php');
+
 	class Usuarios extends Conexion {
 
 		protected PDO $dbh;
 		//Objeto principal del constructor de la clase
 		public function __construct() {
-	   	parent::__construct();
-	   	$this->dbh = $this->getDbh();
+	   		parent::__construct();
+	   		$this->dbh = $this->getDbh();
 	  	}
 	
 		public function obtiene_usuarios() {
@@ -25,10 +26,10 @@
 		public function usuario_existente(int $id_usuario, string $usuario) {
 			$res = false;
 			try {
-				$sql = $this->dbh->prepare("SELECT id FROM cat_usuarios WHERE usuario = ? AND id <> ?");
+				$sql = $this->dbh->prepare("SELECT id_usuario FROM cat_usuarios WHERE usuario = ? AND id_usuario <> ? AND activo = 1");
 				$sql->execute(array($usuario, $id_usuario));
 				if($sql->rowCount() > 0) {
-          		$res = true;
+          			$res = true;
         		} 
 			}
 			catch (Exception $error) {
@@ -67,8 +68,9 @@
 			try {
 
 				if(empty($post["contrasenia"])) {
+					// FIX APLICADO: Se usa $post["nomUsuario"] en lugar de $post["usuario"] para conservar el nombre real
 					$sql = $this->dbh->prepare("UPDATE cat_usuarios SET id_sucursal_fk = ?, nombre = ?, correo = ?, perfil = ?, user_cap = ?, fecha_cap = ? WHERE id_usuario = ?");
-					$ok = $sql->execute(array($post["sucursalUsuario"], $post["usuario"], $post["mailUsuario"], $post["perfilUsuario"], $user_cap, date('Y-m-d H:i:s'), $post["idUsuario"]));
+					$ok = $sql->execute(array($post["sucursalUsuario"], $post["nomUsuario"], $post["mailUsuario"], $post["perfilUsuario"], $user_cap, date('Y-m-d H:i:s'), $post["idUsuario"]));
 
 					if($ok) {
 						$estatus = 200;
@@ -91,16 +93,16 @@
         		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 			
-      	$res = array('estatus' => $estatus, 'data' => $data, 'mensaje' => $mensaje);
+      		$res = array('estatus' => $estatus, 'data' => $data, 'mensaje' => $mensaje);
 			return $res;
 		}
 
 		public function eliminar_usuario(int $id_usuario) {
-      	$res = false;
+      		$res = false;
 			try {
 				$sql = $this->dbh->prepare("UPDATE cat_usuarios SET activo = ? WHERE id_usuario = ?");
 				if($sql->execute(array(0, $id_usuario))) {
-          		$res = true;
+          			$res = true;
         		}
 			} 
 			catch (Exception $error) {

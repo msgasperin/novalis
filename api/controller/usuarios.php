@@ -1,12 +1,34 @@
 <?php
+  header('Content-Type: application/json; charset=utf-8');
   require_once('../model/Usuarios.php');
   require_once('../model/Globales.php');  
-   $v = new Usuarios();
-   $g = new Globales();
-  $_POST = json_decode(file_get_contents("php://input"), true);
+  
+  $v = new Usuarios();
+  $g = new Globales();
+
+  $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
+  if (strpos($contentType, "application/json") !== false) {
+     $_POST = json_decode(file_get_contents("php://input"), true);
+  }
   
   if(isset($_SESSION["id_usuario"]) && $_SESSION["id_usuario"] != '') {
     if(isset($_POST['func'])) {
+
+      // Verificación CSRF en acciones de escritura
+      if (in_array($_POST['func'], ['guardar', 'eliminar'])) {
+          $csrf_recibido = $_POST['csrf'] ?? '';
+          $csrf_sesion   = $_SESSION['csrf_token'] ?? '';
+
+          if (empty($csrf_recibido) || empty($csrf_sesion) || !hash_equals($csrf_sesion, $csrf_recibido)) {
+            echo json_encode([
+                'estatus' => 422,
+                'mensaje' => 'Petición no autorizada (Token CSRF inválido)',
+                'data'    => []
+            ]);
+            exit;
+          }
+      }
+
       switch ($_POST['func']) {
 
         // Funciones de CRUD de usuarios
@@ -23,12 +45,12 @@
             break;
           }
 
-          $userExist = $v->usuario_existente($_POST["idUsuario"], $_POST["usuario"]);
+          $userExist = $v->usuario_existente((int)$_POST["idUsuario"], $_POST["usuario"]);
           if($userExist) {
             $res = array('estatus' => 202, 'mensaje' => 'El usuario ya existe', 'data'=> []);
           } 
           else {
-            if(!isset($_POST["idUsuario"]) || empty($_POST["nomUsuario"]) || empty($_POST["usuario"]) || !isset($_POST["contrasenia"]) || empty($_POST["perfilUsuario"]) || empty($_POST["sucursalUsuario"])) {
+            if(!isset($_POST["idUsuario"]) || empty($_POST["nomUsuario"]) || empty($_POST["usuario"]) || (!isset($_POST["contrasenia"]) && $_POST["idUsuario"] == 0) || empty($_POST["perfilUsuario"]) || empty($_POST["sucursalUsuario"])) {
               $res = array('estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data'=> []);
               echo json_encode($res);
               break;
@@ -67,7 +89,7 @@
             break;
           }
 
-          $response = $v->eliminar_usuario($_POST["idUsuario"]);
+          $response = $v->eliminar_usuario((int)$_POST["idUsuario"]);
           if($response) {
             $res = array('estatus' => 200, 'data'=>[], 'mensaje' => 'ok');
             $g->bitacora('Usuario eliminado: '.$_POST["nomUsuario"], $_POST["idUsuario"], $_SESSION["id_usuario"], $_SESSION["nombre"]);

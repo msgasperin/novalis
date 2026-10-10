@@ -9,8 +9,8 @@ export const guardar_convenio = async (objConvenio) => {
    return await postJSON('../api/controller/convenios.php', objConvenio);
 };
 
-export const eliminar_convenio = async (idCliente, nomCliente) => {
-   const datos = { func: 'eliminar', idCliente, nomCliente };     
+export const eliminar_convenio = async (idConvenio, nomConvenio, csrf) => {
+   const datos = { func: 'eliminar', idConvenio, nomConvenio, csrf };     
    return await postJSON('../api/controller/convenios.php', datos);
 }
 
@@ -20,8 +20,8 @@ export const obtiene_credenciales_convenio = async (idConvenio) => {
    return respuesta;
 }
 
-export const cambiar_credenciales = async (idConvenio, nomConvenio) => {
-   const datos = { func: 'cambiar_credenciales', idConvenio, nomConvenio };
+export const cambiar_credenciales = async (idConvenio, nomConvenio, csrf) => {
+   const datos = { func: 'cambiar_credenciales', idConvenio, nomConvenio, csrf };
    let respuesta = await postJSON('../api/controller/convenios.php', datos);
    return respuesta;
 }

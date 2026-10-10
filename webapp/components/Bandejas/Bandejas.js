@@ -1,9 +1,19 @@
-import { busqueda_ordenes_bandeja, obtiene_estudios_orden, obtiene_archivos_resultados_orden, sube_pdf_resultado, eliminar_pdf_resultado, marcar_orden_como_parcial, marcar_orden_como_completada, procesar_publicacion_notificacion, notificar_mail_resultados } from "./BandejasServices.js";
+import { 
+   busqueda_ordenes_bandeja, 
+   obtiene_estudios_orden, 
+   obtiene_archivos_resultados_orden, 
+   sube_pdf_resultado, 
+   eliminar_pdf_resultado, 
+   marcar_orden_como_parcial, 
+   marcar_orden_como_completada, 
+   procesar_publicacion_notificacion, 
+   notificar_mail_resultados 
+} from "./BandejasServices.js";
 
-let arrPdfResultados  = [];
+let arrPdfResultados = [];
+let arrOrdenesBandeja = [];
 
 const TabBandejas = async () => {
-
    const res = await valida_menu('bandejas');
 
    if (!res || res.estatus != 200) {
@@ -70,9 +80,8 @@ const TabBandejas = async () => {
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-ENTREGADO" onclick="cambiar_estatus_barra('ENTREGADO');">
             <i class="bi bi-check-circle me-sm-1"></i> Publicadas/Entregadas
          </button>
-      </div>`;
-            
-      html+=`
+      </div>
+      
       <div class="col-xl col-md-6 col-12">
          <button type="button" class="btn-tab-pedidos w-100 py-2 shadow-sm btn-status" id="btn-status-CANCELADO" onclick="cambiar_estatus_barra('CANCELADO');">
             <i class="bi bi-ban me-sm-1"></i> Cancelados
@@ -89,26 +98,24 @@ const TabBandejas = async () => {
 
    $('#containerMain').html(html);
    valida_menu('bandejas');
-}
+};
 
 const cambiar_estatus_barra = (estatus) => {
-   $('.btn-status').removeClass('btn-bandejas').addClass('btn-secondary');
-   $(`#btn-status-${estatus}`).addClass('btn-bandejas');
+   $('.btn-status').removeClass('btn-bandejas').addClass('btn-secondary');$(`#btn-status-${estatus}`).addClass('btn-bandejas');
    obtiene_ordenes_estatus(1, estatus);
-}
+};
 
 const obtiene_ordenes_estatus = async (origen, estatus) => {
-
    let parametro = $('#inpBusquedaOrdenBandeja').val().trim();
    let fechaIni  = $('#filtroFechaInicio').val().trim();
    let fechaFin  = $('#filtroFechaFin').val().trim();
      
-   if(origen == 1) {
+   if (origen == 1) {
       const inicio     = new Date(fechaIni + 'T00:00:00');
       const fin        = new Date(fechaFin + 'T00:00:00');
       const diferencia = (fin - inicio) / (1000 * 60 * 60 * 24);
 
-      if(fechaIni == '' || fechaFin == '') {
+      if (fechaIni == '' || fechaFin == '') {
          ToastColor.fire({
             text: '¡Atención! Debes seleccionar un rango de fechas',
             icon: 'warning'
@@ -125,7 +132,7 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
          return;
       }
    }
-   else if(origen == 2 && parametro == '') { // Búsqueda por folio o paciente      
+   else if (origen == 2 && parametro == '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar el parámetro de búsqueda',
          icon: 'warning'
@@ -134,14 +141,14 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
       return;
    }
 
-
    activarLoad('Cargando ordenes de trabajo...');
    let respuesta = await busqueda_ordenes_bandeja(origen, estatus, fechaIni, fechaFin, parametro);   
-   arrOrdenesBandeja = respuesta.data;
-   if(respuesta.estatus == 403) {
+   
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
+      arrOrdenesBandeja = [];
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('#listado_ordenes_bandeja').html(`<div class="text-center py-5 text-muted p-3 shadow-sm">
          <i class="bi bi-calendar-x fs-1 d-block mb-2 text-danger"></i>
@@ -151,7 +158,8 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
       return;
    }
    else {
-      if(arrOrdenesBandeja.length > 0) {
+      arrOrdenesBandeja = respuesta.data || [];
+      if (arrOrdenesBandeja.length > 0) {
          pinta_ordenes_bandejas(arrOrdenesBandeja);
       }
       else {
@@ -162,10 +170,9 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
          closeLoad();
       }
    }
-}
+};
 
 const pinta_ordenes_bandejas = (data) => {
-
    let html = 
    `<div class="table-responsive rounded-3 border shadow-sm mh-500">
       <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableOrdenesBandeja">
@@ -180,11 +187,14 @@ const pinta_ordenes_bandejas = (data) => {
          </thead>
          <tbody>`;
          
-         let labelPublicada = '';
          data.forEach(row => {
             let isUrgente = (row.es_urgente == 1 || row.es_urgente == '1');
+            let labelPublicada = row.publicada == "1" ? '<span class="badge bg-success bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">Publicada</span>' : '';
 
-            row.publicada == "1" ? labelPublicada = '<span class="badge bg-success bg-opacity-75 rounded-pill px-2 py-1 fw-normal small">Publicada</span>' : labelPublicada  = '';
+            // Sanitización de textos para HTML
+            const pacienteLimpio = escapeHTML(row.paciente_nombre_historico || 'Sin nombre');
+            const convenioLimpio = escapeHTML(row.convenio_nombre_historico || '');
+            const tipoClienteLimpio = escapeHTML(row.tipo_cliente ?? 'PARTICULAR');
 
             html +=
             `<tr id="trBusqueda${row.id}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
@@ -192,7 +202,7 @@ const pinta_ordenes_bandejas = (data) => {
                <td class="text-center">
                   <div class="align-items-center justify-content-center gap-1 mb-1">
                      <span class="font-monospace fw-bold text-primary-emphasis">
-                        #${row.folio}
+                        #${escapeHTML(row.folio)}
                      </span>
                      ${isUrgente && row.estatus != 'CANCELADO' ? `
                         <br><span class="fs-8 text-danger" title="Orden Urgente">
@@ -205,18 +215,18 @@ const pinta_ordenes_bandejas = (data) => {
                </td>
 
                <td>
-                  <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="${row.paciente_nombre_historico || ''}">
-                     ${row.paciente_nombre_historico || 'Sin nombre'}
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="${pacienteLimpio}">
+                     ${pacienteLimpio}
                   </div>
                   <div class="extra-small text-muted lh-sm mt-1">
-                     <span class="fw-semibold text-secondary text-uppercase">${row.tipo_cliente ?? 'PARTICULAR'}</span>
-                     ${row.convenio_nombre_historico ? ` <span class="opacity-50">|</span> ${row.convenio_nombre_historico}` : ''}
+                     <span class="fw-semibold text-secondary text-uppercase">${tipoClienteLimpio}</span>
+                     ${convenioLimpio ? ` <span class="opacity-50">|</span> ${convenioLimpio}` : ''}
                   </div>
                </td>
 
                <td class="text-center small text-muted">
-                  <span class="d-block"><i class="bi bi-calendar3 me-1 opacity-50"></i>${row.fecha_registro ?? ''}</span>
-                  ${row.hora_registro ? `<span class="extra-small text-secondary"><i class="bi bi-clock me-1 opacity-50"></i>${row.hora_registro}</span>` : ''}
+                  <span class="d-block"><i class="bi bi-calendar3 me-1 opacity-50"></i>${escapeHTML(row.fecha_registro ?? '')}</span>
+                  ${row.hora_registro ? `<span class="extra-small text-secondary"><i class="bi bi-clock me-1 opacity-50"></i>${escapeHTML(row.hora_registro)}</span>` : ''}
                </td>
 
                <td class="text-center">
@@ -224,42 +234,40 @@ const pinta_ordenes_bandejas = (data) => {
                </td>
 
                <td class="text-center">
-
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Subir / Gestionar PDF" onclick="ModalGestionPDF(${row.id}, '${row.folio}', '${row.estatus}', '${row.paciente_nombre_historico}');">
+                  <!-- Se pasa ÚNICAMENTE el ID de la orden en los handlers inline -->
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Subir / Gestionar PDF" onclick="ModalGestionPDF(${row.id});">
                      <i class="bi bi-file-arrow-up"></i>
                   </button>
 
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Previsualizar resultados" onclick="ModalViewerResultadosFolio('${row.id}', '${row.folio}');">
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2 btnAcciones" title="Previsualizar resultados" onclick="ModalViewerResultadosFolio(${row.id});">
                      <i class="bi bi-eye"></i>
                   </button>`;
 
-                  if(row.estatus == 'RECEPCION') {
-                     html+=`
-                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" title="Marcar como resultados parciales" onclick="marcar_como_parcial(${row.id}, '${row.folio}');">
+                  if (row.estatus == 'RECEPCION') {
+                     html += `
+                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" title="Marcar como resultados parciales" onclick="marcar_como_parcial(${row.id});">
                         <i class="bi bi-file-earmark-break"></i>
                      </button>`;
                   }
 
-                  if(row.estatus == 'RECEPCION' || row.estatus == 'PROCESO') {
-                     html+=`
-                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnAcciones" title="Marcar como orden completada" onclick="marcar_como_completada(${row.id}, '${row.folio}');">
+                  if (row.estatus == 'RECEPCION' || row.estatus == 'PROCESO') {
+                     html += `
+                     <button type="button" class="btn btn-outline-success btn-redondo btn-sm px-2 btnAcciones" title="Marcar como orden completada" onclick="marcar_como_completada(${row.id});">
                         <i class="bi bi-check2-all"></i>
                      </button>`;
                   }
 
-                  if(row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') {
-                     html+=`
-                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Publicar resultados en plataforma" onclick="ModalPublicarNotificar(${row.id}, '${row.folio}', '${row.paciente_nombre_historico}', '${row.correo}', '${row.telefono}', ${row.publicada}, '${row.fecha_publicada}', '${row.key_query}');">
+                  if (row.estatus == 'PROCESO' || row.estatus == 'LISTO' || row.estatus == 'ENTREGADO') {
+                     html += `
+                     <button type="button" class="btn btn-outline-primary btn-redondo btn-sm px-2 btnAcciones" id="btnPublicado${row.id}" title="Publicar resultados en plataforma" onclick="ModalPublicarNotificar(${row.id});">
                         <i class="bi bi-share"></i>
                      </button>`;
                   }
 
-                  html+=`
-                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id}, '${row.folio}');">
+                  html += `
+                  <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2 btnAcciones" title="Ver detalle de orden" onclick="ModalViewDetallesOrden(${row.id});">
                      <i class="bi bi-file-text"></i> 
-                  </button>`;
-
-                html+=`
+                  </button>
                </td>
             </tr>`;
          });
@@ -281,11 +289,18 @@ const pinta_ordenes_bandejas = (data) => {
       });
    }, 200);
    closeLoad();
-}
+};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GESTIÓN DE SUBIDA DE RESULTADOS PDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
+const ModalGestionPDF = (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
+
+   const folio    = escapeHTML(ordenSelected.folio);
+   const estatus  = escapeHTML(ordenSelected.estatus);
+   const paciente = escapeHTML(ordenSelected.paciente_nombre_historico || 'Sin nombre');
+
    let html = `
    <div class="modal fade modal-superior-blur" id="ModalGestionPDF" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
@@ -303,7 +318,6 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
 
             <div class="modal-body py-3">
                
-               <!-- Ficha Resumen del Paciente y Estudios Solicitados -->
                <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
                   <div class="row g-2 align-items-center mb-2">
                      <div class="col-12 col-md-8">
@@ -318,7 +332,6 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
 
                   <hr class="my-2 opacity-25">
 
-                  <!-- Resumen de estudios que componen la orden -->
                   <div>
                      <span class="text-muted extra-small text-uppercase fw-semibold d-block mb-1">
                         <i class="bi bi-journal-check me-1"></i>Estudios Solicitados en esta Orden:
@@ -329,7 +342,6 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
                   </div>
                </div>
 
-               <!-- Formulario de Carga: Descripción + Selección de PDF -->
                <div class="card border-0 bg-white rounded-3 p-3 mb-3 shadow-sm border-start border-4 border-primary">
                   <h6 class="fw-bold text-dark mb-2 small text-uppercase d-flex align-items-center gap-1">
                      <i class="bi bi-cloud-upload text-primary"></i> Adjuntar Nuevo Documento PDF
@@ -354,15 +366,13 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
 
                      <div class="col-12 col-md-2 text-end">
                         <button type="button" class="btn btn-success btn-sm btn-redondo w-100" id="btnSubirPDF" 
-                              onclick="subir_pdf_resultado(${idOrden}, '${folio}', '${paciente}', '${estatus}');">
+                              onclick="subir_pdf_resultado(${idOrden});">
                            <i class="bi bi-plus-lg me-1"></i> Subir PDF
                         </button><br><br>
                      </div>
                   </div>
-                  
                </div>
 
-               <!-- Tabla de Archivos PDF Adjuntados -->
                <div class="table-responsive rounded-3 border shadow-sm">
                   <table class="table table-hover align-middle mb-0" id="tablaArchivosPDF">
                      <thead class="table-dark text-uppercase small">
@@ -374,7 +384,6 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
                         </tr>
                      </thead>
                      <tbody id="tbodyArchivosPDF">
-                        <!-- Carga dinámica mediante JS -->
                         <tr>
                            <td colspan="4" class="text-center py-4 text-muted">
                               <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
@@ -400,13 +409,11 @@ const ModalGestionPDF = (idOrden, folio, estatus, paciente) => {
    $('#modalAdmin').html(html);
    $('#ModalGestionPDF').modal('show');
    
-   // Cargar resumen de orden y la lista de archivos adjuntos
    obtenerEstudiosOrdenPDF(idOrden);
-   obtenerArchivosOrdenPDF(idOrden, folio, estatus);
+   obtenerArchivosOrdenPDF(idOrden);
 };
 
 const obtenerEstudiosOrdenPDF = async (idOrden) => {
-   // Loader en el contenedor de estudios
    $('#contenedor_estudios_solicitados').html(`
       <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
       <span class="small text-muted">Cargando estudios...</span>
@@ -419,27 +426,23 @@ const obtenerEstudiosOrdenPDF = async (idOrden) => {
       return;
    }
 
-   if(respuesta.estatus != 200 || respuesta.data.length == 0) {
+   if (respuesta.estatus != 200 || !respuesta.data || respuesta.data.length == 0) {
       showMessageSwalTimer('Atención', 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
       $('#ModalGestionPDF').modal('hide');
       $('#contenedor_estudios_solicitados').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
       return;
    }
 
-   // Se envían los datos obtenidos a la función renderizadora
    pinta_estudios_orden_pdf(respuesta.data, idOrden);
-
 };
 
 const pinta_estudios_orden_pdf = (data, idOrden) => {
-   
    let html = '';
    if (data && data.length > 0) {
-
       data.forEach((est) => {
          html += `
          <span class="badge bg-white text-dark border border-secondary-subtle font-monospace fw-normal py-1 px-2 shadow-sm fs-8">
-            <i class="bi bi-check2 text-primary me-1"></i>${est.nombre_estudio_historico}
+            <i class="bi bi-check2 text-primary me-1"></i>${escapeHTML(est.nombre_estudio_historico)}
          </span>`;
       });
    } 
@@ -447,12 +450,9 @@ const pinta_estudios_orden_pdf = (data, idOrden) => {
       html = '<span class="text-muted extra-small">No se registraron estudios en esta orden.</span>';
    }
    $('#contenedor_estudios_solicitados').html(html);
-
 };
 
-const obtenerArchivosOrdenPDF = async (idOrden, folio, estatus) => {
-   
-   // Loader en la tabla de archivos
+const obtenerArchivosOrdenPDF = async (idOrden) => {
    $('#tbodyArchivosPDF').html(`
       <tr>
          <td colspan="4" class="text-center py-4 text-muted">
@@ -463,13 +463,13 @@ const obtenerArchivosOrdenPDF = async (idOrden, folio, estatus) => {
    `);
    
    let respuesta = await obtiene_archivos_resultados_orden(idOrden);
-   arrPdfResultados = respuesta.data;
+   arrPdfResultados = respuesta.data || [];
 
    if (respuesta.estatus == 403) {
       fnNoSesion();
       return;
    }   
-   else if(respuesta.data.length == 0) {
+   else if (arrPdfResultados.length == 0) {
       $('#tbodyArchivosPDF').html(`
          <tr>
             <td colspan="4" class="text-center py-4 text-muted">
@@ -480,28 +480,33 @@ const obtenerArchivosOrdenPDF = async (idOrden, folio, estatus) => {
       `);
       return;
    }
-   // Se envían los datos obtenidos a la función renderizadora
-   pinta_archivos_orden_pdf(arrPdfResultados, idOrden, folio, estatus);   
+
+   pinta_archivos_orden_pdf(arrPdfResultados, idOrden);   
 };
 
-const pinta_archivos_orden_pdf = (data, idOrden, folio, estatus) => {
-   
-   // 3. Renderizar Tabla de Archivos PDF Subidos
+const pinta_archivos_orden_pdf = (data, idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   const estatus = ordenSelected ? ordenSelected.estatus : '';
+
    let html = '';
    if (data && data.length > 0) {
       data.forEach((file) => {
+         const descLimpia = escapeHTML(file.descripcion);
+         const nomOriginalLimpio = escapeHTML(file.nombre_original);
+         const userCapLimpio = escapeHTML(file.user_cap || 'Sistema');
+
          html += `
          <tr id="filaArchivoPDF_${file.id}">
             <td>
-               <div class="fw-bold text-dark mb-0">${file.descripcion}</div>
+               <div class="fw-bold text-dark mb-0">${descLimpia}</div>
                <span class="extra-small text-muted">
-                  <i class="bi bi-person me-1"></i>${file.user_cap || 'Sistema'}
+                  <i class="bi bi-person me-1"></i>${userCapLimpio}
                </span>
             </td>
 
             <td>
-               <div class="text-truncate extra-small font-monospace text-secondary" style="max-width: 240px;" title="${file.nombre_original}">
-                  <i class="bi bi-file-earmark-pdf-fill text-danger me-1 fs-6"></i>${file.nombre_original}
+               <div class="text-truncate extra-small font-monospace text-secondary" style="max-width: 240px;" title="${nomOriginalLimpio}">
+                  <i class="bi bi-file-earmark-pdf-fill text-danger me-1 fs-6"></i>${nomOriginalLimpio}
                </div>
             </td>
 
@@ -513,18 +518,18 @@ const pinta_archivos_orden_pdf = (data, idOrden, folio, estatus) => {
             <td class="text-center">
                <div class="d-flex justify-content-center gap-1">
                   
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Previsualizar resultado" onclick="ModalViewerResultado('${file.key_query_pdf}', '${folio}', 1);">
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Previsualizar resultado" onclick="ModalViewerResultado('${file.key_query_pdf}', ${idOrden});">
                      <i class="bi bi-eye"></i>
                   </button>`;
 
-                  if(estatus != 'ENTREGADO' && estatus != 'CANCELADO') {
-                     html+=`
-                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2 btnEliminarPdfRes" title="Eliminar archivo" onclick="eliminar_resultado(${file.id}, ${idOrden}, '${folio}', '${file.nombre_servidor}', '${file.nombre_original}', '${estatus}')">
+                  if (estatus != 'ENTREGADO' && estatus != 'CANCELADO') {
+                     html += `
+                     <button type="button" class="btn btn-outline-danger btn-redondo btn-sm px-2 btnEliminarPdfRes" title="Eliminar archivo" onclick="eliminar_resultado(${file.id}, ${idOrden});">
                         <i class="bi bi-trash"></i>
                      </button>`;
                   }
 
-                  html+=`
+                  html += `
                </div>
             </td>
          </tr>`;
@@ -543,14 +548,20 @@ const pinta_archivos_orden_pdf = (data, idOrden, folio, estatus) => {
    $('#tbodyArchivosPDF').html(html);
 };
 
-const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
+const subir_pdf_resultado = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
 
-   let file0         = document.getElementById('pdf_archivo');
-   let file          = file0.files[0];
-   let descripcion   = $('#pdf_descripcion').val().trim();
-   let maxBytes      = 5 * 1024 * 1024;
+   const folio    = ordenSelected.folio;
+   const paciente = ordenSelected.paciente_nombre_historico;
+   const estatus  = ordenSelected.estatus;
+
+   let file0       = document.getElementById('pdf_archivo');
+   let file        = file0 ? file0.files[0] : undefined;
+   let descripcion = $('#pdf_descripcion').val().trim();
+   let maxBytes    = 5 * 1024 * 1024;
    
-   if(idOrden == '' || idOrden < 0) {
+   if (!idOrden || idOrden <= 0) {
       ToastColor.fire({
          text: '¡Atención! No se obtuvo un parámetro importante para continuar, actualiza y vuelve a intentarlo',
          icon: 'warning',
@@ -559,7 +570,7 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
       });
       return;
    }
-   else if(descripcion == '') {
+   else if (descripcion == '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar el nombre descriptivo del archivo',
          icon: 'warning',
@@ -574,30 +585,20 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
       $('#pdf_archivo').focus();
       return;
    }
+
    if (!(/\.(pdf)$/i).test(file.name) || file.type !== 'application/pdf') {
       ToastColor.fire({ text: '¡Atención! El archivo debe ser un archivo PDF', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
       $('#pdf_archivo').focus();
       return;
    }
-   else if (file.size > maxBytes)  {
+   else if (file.size > maxBytes) {
       ToastColor.fire({ text: '¡Atención! El archivo excede el tamaño máximo permitido de 5 MB.', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
       $('#pdf_archivo').focus();
       return;
    }
 
-   /*
-   let fileReducido  = await reducirImagen(file).then(fr=>{ return fr; });
-
-   if (fileReducido.size > 1000000) {
-      ToastColor.fire({text: '¡Atención! Debes agregar un archivo más ligero, tamaño máximo 1 MB.', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
-      $('#pdf_archivo').focus();
-      return;
-   }
-   */
-
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'El archivo será almacenado', 'question', 'Sí, Subir', 'Cancelar');
    if (!res.result) {
-      $('#btnGuardarEstudio').prop('disabled', false);
       return;
    }
 
@@ -609,15 +610,15 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
    objSubidaResultado.append('folio', folio);
    objSubidaResultado.append('paciente', paciente); 
    objSubidaResultado.append('descripcion', descripcion);
+   objSubidaResultado.append('CSRF_TOKEN', CSRF_TOKEN);
    objSubidaResultado.append('archivo', file);
 
    let respuesta = await sube_pdf_resultado(objSubidaResultado);  
    
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) { 
-
+   else if (respuesta.estatus == 200) { 
       let objResultado = {
          id: respuesta.data.id,
          orden_folio: respuesta.data.orden_folio,
@@ -632,7 +633,7 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
 
       arrPdfResultados.push(objResultado);
 
-      pinta_archivos_orden_pdf(arrPdfResultados, idOrden, folio, estatus);
+      pinta_archivos_orden_pdf(arrPdfResultados, idOrden);
 
       showMessageSwalTimer('¡Archivo almacenado!', '', 'success', 2500);
       $('#btnSubirPDF').prop('disabled', false);
@@ -644,11 +645,20 @@ const subir_pdf_resultado = async (idOrden, folio, paciente, estatus) => {
       $('#btnSubirPDF').prop('disabled', false);
       return;
    }
-}
+};
 
-const eliminar_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOriginal, estatus) => {
+const eliminar_resultado = async (idArchivo, idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El archivo: ' + nomOriginal + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+   let pdfSelected = arrPdfResultados.find(pdf => pdf.id == idArchivo);
+   if (!pdfSelected) return;
+
+   const folio       = ordenSelected.folio;
+   const nomServidor = pdfSelected.nombre_servidor;
+   const nomOriginal = pdfSelected.nombre_original;
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El archivo: ' + escapeHTML(nomOriginal) + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
       $('.btnEliminarPdfRes').prop('disabled', false);
@@ -657,29 +667,32 @@ const eliminar_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOri
 
    $('.btnEliminarPdfRes').prop('disabled', true);
 
-   let respuesta = await eliminar_pdf_resultado(idArchivo, idOrden, folio, nomServidor, nomOriginal);
-      if(respuesta.estatus == 403) {
+   let respuesta = await eliminar_pdf_resultado(idArchivo, idOrden, folio, nomServidor, nomOriginal, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Resultado PDF eliminado!', '', 'success', 2500);
       
       arrPdfResultados = arrPdfResultados.filter(pdf => pdf.id != idArchivo);
-      pinta_archivos_orden_pdf(arrPdfResultados, idOrden, estatus)
+      pinta_archivos_orden_pdf(arrPdfResultados, idOrden);
       $('.btnEliminarPdfRes').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('.btnEliminarPdfRes').prop('disabled', false);
       return;
    }
-}
-
+};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CAMBIOS DE ESTATUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const marcar_como_parcial = async (idOrden, folio) => {
+const marcar_como_parcial = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada con resultados parciales', 'question', 'Sí, marcar', 'Cancelar');
+   const folio = ordenSelected.folio;
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + escapeHTML(folio) + ' será marcada con resultados parciales', 'question', 'Sí, marcar', 'Cancelar');
    
    if (!res.result) {
       $('.btnAcciones').prop('disabled', false);
@@ -688,25 +701,28 @@ const marcar_como_parcial = async (idOrden, folio) => {
 
    $('.btnAcciones').prop('disabled', true);
 
-   let respuesta = await marcar_orden_como_parcial(idOrden, folio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await marcar_orden_como_parcial(idOrden, folio, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Orden marcada como parcial!', '', 'success', 2000);
       let tabla = $('#tableOrdenesBandeja').DataTable();
       tabla.row($('#trBusqueda' + idOrden)).remove().draw();
-      
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 3000);
       $('.btnAcciones').prop('disabled', false);
       return;
    }
-}
+};
 
-const marcar_como_completada = async (idOrden, folio) => {
+const marcar_como_completada = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + folio + ' será marcada como completada', 'question', 'Sí, marcar', 'Cancelar');
+   const folio = ordenSelected.folio;
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La orden: ' + escapeHTML(folio) + ' será marcada como completada', 'question', 'Sí, marcar', 'Cancelar');
    
    if (!res.result) {
       $('.btnAcciones').prop('disabled', false);
@@ -715,33 +731,33 @@ const marcar_como_completada = async (idOrden, folio) => {
 
    $('.btnAcciones').prop('disabled', true);
 
-   let respuesta = await marcar_orden_como_completada(idOrden, folio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await marcar_orden_como_completada(idOrden, folio, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Orden marcada como completada!', '', 'success', 2500);
       let tabla = $('#tableOrdenesBandeja').DataTable();
       tabla.row($('#trBusqueda' + idOrden)).remove().draw();
-      
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('.btnAcciones').prop('disabled', false);
       return;
    }
-}
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++ VISORES DE RESULTADOS / DETALLE DE LA ORDEN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const ModalViewerResultado = (key_query, folio) => {
-   // 1. Destruir modal previo si existe para liberar memoria
+const ModalViewerResultado = (key_query, idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   const folio = ordenSelected ? escapeHTML(ordenSelected.folio) : '';
 
    const modalExistente = $('#modalViewerResultados');
    if (modalExistente.length) {
       modalExistente.modal('dispose');
    }
 
-   let ruta = `reportes/resultado.php?id=${key_query}`;
+   let ruta = `reportes/resultado.php?id=${encodeURIComponent(key_query)}`;
 
    const html = `
    <div class="modal fade modal-superior-blur" id="modalViewerResultados" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
@@ -759,7 +775,6 @@ const ModalViewerResultado = (key_query, folio) => {
             </div>         
 
             <div class="modal-body p-0 position-relative" style="min-height: 70vh;">
-               <!-- Spinner de carga -->
                <div id="pdfLoader" class="position-absolute top-50 start-50 translate-middle text-center">
                   <div class="spinner-border text-primary" role="status">
                      <span class="visually-hidden">Cargando PDF...</span>
@@ -767,7 +782,6 @@ const ModalViewerResultado = (key_query, folio) => {
                   <p class="small text-muted mt-2 mb-0">Cargando documento...</p>
                </div>
 
-               <!-- Visor iFrame con altura adaptable -->
                <iframe 
                   id="iframePdf"
                   width="100%" 
@@ -791,46 +805,44 @@ const ModalViewerResultado = (key_query, folio) => {
       </div>
    </div>`;
 
-   // Inyectar HTML e inicializar modal
    $('#modalAdminDocs').html(html);
    const modalElement = document.getElementById('modalViewerResultados');
    const myModal = new bootstrap.Modal(modalElement);
    
-   // Evento para vaciar el iframe al cerrar (libera RAM)
-   $(modalElement).on('hidden.bs.modal', function () {
-      $('#iframePdf').attr('src', 'about:blank');
+   $(modalElement).on('hidden.bs.modal', function () {$('#iframePdf').attr('src', 'about:blank');
       $(this).remove();
    });
 
    myModal.show();
 };
 
-const ModalViewerResultadosFolio = async (idOrden, folio) => {
-   
+const ModalViewerResultadosFolio = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
+
+   const folio = escapeHTML(ordenSelected.folio);
    let respuesta = await obtiene_archivos_resultados_orden(idOrden);
 
    if (respuesta.estatus == 403) {
       fnNoSesion();
       return;
    }
-   else if(respuesta.data.length == 0) {
+   else if (!respuesta.data || respuesta.data.length == 0) {
       ToastColor.fire({ text: '¡Atención! No se encontraron archivos ligados a esa orden', icon: 'warning', position: 'top', timer: 4000, timerProgressBar: false });
       return;
    }
      
-   let listaHtml = 
-   `<div class="d-flex gap-2 p-2 bg-light border-bottom overflow-auto">`;
-      respuesta.data.forEach((doc, idx) => {
-         const activeClass = idx === 0 ? 'btn-secondary' : 'btn-outline-secondary';
-         listaHtml += `
-         <button type="button" class="btn ${activeClass} btn-sm text-nowrap btn-tab-pdf btn-redondo text-truncate extra-small font-monospace" style="max-width: 240px;" data-key="${doc.key_query_pdf}">
-            <i class="bi bi-file-earmark-pdf me-1"></i> ${doc.descripcion || 'Estudio ' + (idx + 1)}
-         </button>`;
-      });
-      listaHtml += 
-   `</div>`;
+   let listaHtml = `<div class="d-flex gap-2 p-2 bg-light border-bottom overflow-auto">`;
+   respuesta.data.forEach((doc, idx) => {
+      const activeClass = idx === 0 ? 'btn-secondary' : 'btn-outline-secondary';
+      const descDoc = escapeHTML(doc.descripcion || 'Estudio ' + (idx + 1));
+      listaHtml += `
+      <button type="button" class="btn ${activeClass} btn-sm text-nowrap btn-tab-pdf btn-redondo text-truncate extra-small font-monospace" style="max-width: 240px;" data-key="${doc.key_query_pdf}">
+         <i class="bi bi-file-earmark-pdf me-1"></i> ${descDoc}
+      </button>`;
+   });
+   listaHtml += `</div>`;
    
-
    let primerKey = respuesta.data[0].key_query_pdf;
 
    const html = `
@@ -859,7 +871,7 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
                   id="iframePdf"
                   width="100%" 
                   style="height: 75vh; display: block;" 
-                  src="reportes/resultado.php?id=${primerKey}" 
+                  src="reportes/resultado.php?id=${encodeURIComponent(primerKey)}" 
                   frameborder="0"
                   onload="$('#pdfLoader').hide();"
                ></iframe>
@@ -878,30 +890,28 @@ const ModalViewerResultadosFolio = async (idOrden, folio) => {
    const modalElement = document.getElementById('modalViewerResultados');
    const myModal = new bootstrap.Modal(modalElement);
 
-   // Evento para cambiar de PDF dinámicamente sin cerrar el modal
    $('.btn-tab-pdf').on('click', function() {
-      $('.btn-tab-pdf').removeClass('btn-secondary').addClass('btn-outline-secondary');
-      $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
+      $('.btn-tab-pdf').removeClass('btn-secondary').addClass('btn-outline-secondary');$(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
       
-      const key = $(this).data('key');
-      $('#pdfLoader').show();
-      $('#iframePdf').attr('src', `reportes/resultado.php?id=${key}`);
+      const key = $(this).data('key');$('#pdfLoader').show();
+      $('#iframePdf').attr('src', `reportes/resultado.php?id=${encodeURIComponent(key)}`);
    });
 
-   // Limpieza de memoria al cerrar
-   $(modalElement).on('hidden.bs.modal', function () {
-      $('#iframePdf').attr('src', 'about:blank');
+   $(modalElement).on('hidden.bs.modal', function () {$('#iframePdf').attr('src', 'about:blank');
       $(this).remove();
    });
 
    myModal.show();
-}
+};
 
-const ModalViewDetallesOrden = async (idOrden, folio) => {
-   
+const ModalViewDetallesOrden = async (idOrden) => {
+
    let ordenSelected = arrOrdenesBandeja.find(orden => orden.id == idOrden);
+
+   if (!ordenSelected) return; // La orden no está cargada porque viene de bandejas (checar)
+
+   const folio = escapeHTML(ordenSelected.folio);
    
-   // Helpers visuales para badges
    const bannerUrgente = ordenSelected.es_urgente == 1 
       ? `
       <div class="alert alert-danger border-danger-subtle d-flex mb-3 shadow-sm rounded-3 p-2" role="alert">
@@ -919,6 +929,13 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
    const badgeFactura = ordenSelected.requiere_factura == 1
       ? '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"><i class="bi bi-receipt me-1"></i>Requiere Factura</span>'
       : '';
+
+   const pacienteNombre = escapeHTML(ordenSelected.paciente_nombre_historico || 'Sin registro');
+   const telefono = escapeHTML(ordenSelected.telefono || 'N/A');
+   const correo = escapeHTML(ordenSelected.correo || 'N/A');
+   const sucursal = escapeHTML(ordenSelected.sucursal_historico || 'N/A');
+   const convenio = escapeHTML(ordenSelected.convenio_nombre_historico || 'Particular');
+   const estatusOrden = escapeHTML(ordenSelected.estatus || 'N/A');
 
    const html = `
    <div class="modal fade modal-superior-blur" id="modalViewDetallesOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -938,15 +955,12 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
             <div class="modal-body bg-light">
                <div class="container-fluid p-0">
                   
-                  <!-- Banner Urgente (si aplica) -->
                   ${bannerUrgente}
 
                   <div class="row g-3">
                      
-                     <!-- COLUMNA IZQUIERDA: Información del Paciente, Orden, Estudios y Archivos -->
                      <div class="col-12 col-lg-7">
                         
-                        <!-- Tarjeta Paciente -->
                         <div class="card border-0 shadow-sm mb-3">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
@@ -955,25 +969,24 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                               <div class="row g-2">
                                  <div class="col-12">
                                     <span class="text-muted d-block extra-small">Nombre Completo</span>
-                                    <span class="fw-semibold text-dark fs-6">${ordenSelected.paciente_nombre_historico || 'Sin registro'}</span>
+                                    <span class="fw-semibold text-dark fs-6">${pacienteNombre}</span>
                                  </div>
                                  <div class="col-12 col-sm-6">
                                     <span class="text-muted d-block extra-small">Teléfono</span>
                                     <span class="fw-medium text-dark">
-                                       <i class="bi bi-telephone text-muted me-1"></i>${ordenSelected.telefono || 'N/A'}
+                                       <i class="bi bi-telephone text-muted me-1"></i>${telefono}
                                     </span>
                                  </div>
                                  <div class="col-12 col-sm-6">
                                     <span class="text-muted d-block extra-small">Correo Electrónico</span>
                                     <span class="fw-medium text-dark text-truncate d-block">
-                                       <i class="bi bi-envelope text-muted me-1"></i>${ordenSelected.correo || 'N/A'}
+                                       <i class="bi bi-envelope text-muted me-1"></i>${correo}
                                     </span>
                                  </div>
                               </div>
                            </div>
                         </div>
 
-                        <!-- Tarjeta Contexto de la Orden -->
                         <div class="card border-0 shadow-sm mb-3">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
@@ -982,25 +995,25 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                               <div class="row g-3">
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Sucursal</span>
-                                    <span class="fw-medium text-dark">${ordenSelected.sucursal_historico || 'N/A'}</span>
+                                    <span class="fw-medium text-dark">${sucursal}</span>
                                  </div>
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Convenio</span>
-                                    <span class="fw-medium text-dark">${ordenSelected.convenio_nombre_historico || 'Particular'}</span>
+                                    <span class="fw-medium text-dark">${convenio}</span>
                                  </div>
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Estatus Orden</span>
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-medium">
-                                       ${ordenSelected.estatus || 'N/A'}
+                                       ${estatusOrden}
                                     </span>
                                  </div>
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Fecha Registro</span>
-                                    <span class="fw-medium text-dark">${ordenSelected.fecha_registro || 'N/A'}</span>
+                                    <span class="fw-medium text-dark">${escapeHTML(ordenSelected.fecha_registro || 'N/A')}</span>
                                  </div>
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Hora Registro</span>
-                                    <span class="fw-medium text-dark">${ordenSelected.hora_registro || 'N/A'}</span>
+                                    <span class="fw-medium text-dark">${escapeHTML(ordenSelected.hora_registro || 'N/A')}</span>
                                  </div>
                                  <div class="col-6 col-sm-4">
                                     <span class="text-muted d-block extra-small">Publicación</span>
@@ -1011,36 +1024,30 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                            </div>
                         </div>
 
-                        <!-- Tarjeta Estudios Asignados -->
                         <div class="card border-0 shadow-sm mb-3">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
                                  <i class="bi bi-file-earmark-medical text-primary"></i> Estudios Solicitados
                               </h6>
                               <div id="estudios_detalle_orden" class="row g-2">
-                                 <!-- Se llena dinámicamente con pinta_estudios_orden_detalle -->
                               </div>
                            </div>
                         </div>
 
-                        <!-- Tarjeta Archivos Adjuntos -->
                         <div class="card border-0 shadow-sm">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
                                  <i class="bi bi-paperclip text-primary"></i> Archivos y Resultados PDF
                               </h6>
                               <div id="container_archivos_detalle" class="row g-2">
-                                 <!-- Se llena dinámicamente con pinta_archivos_orden_detalle -->
                               </div>
                            </div>
                         </div>
 
                      </div>
 
-                     <!-- COLUMNA DERECHA: Financiero y Trazabilidad -->
                      <div class="col-12 col-lg-5">
                         
-                        <!-- Tarjeta Financiera -->
                         <div class="card border-0 shadow-sm mb-3">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
@@ -1050,7 +1057,7 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                                  <div class="col-6">
                                     <span class="text-muted d-block extra-small">Estatus Pago</span>
                                     <span class="badge bg-success-subtle text-success border border-success-subtle fw-medium">
-                                       ${ordenSelected.estatus_pago || 'Pendiente'}
+                                       ${escapeHTML(ordenSelected.estatus_pago || 'Pendiente')}
                                     </span>
                                  </div>
                                  <div class="col-6 text-end">
@@ -1072,7 +1079,6 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                            </div>
                         </div>
 
-                        <!-- Tarjeta Trazabilidad / Auditoría -->
                         <div class="card border-0 shadow-sm">
                            <div class="card-body">
                               <h6 class="text-uppercase text-muted fw-bold mb-3 small d-flex align-items-center gap-2">
@@ -1081,40 +1087,36 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
                               
                               <ul class="list-group list-group-flush extra-small">
                                  
-                                 <!-- Completada -->
                                  <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
                                     <div>
                                        <span class="fw-bold d-block text-dark"><i class="bi bi-check-circle me-1 text-success"></i>Completada</span>
-                                       <span class="text-muted">${ordenSelected.user_completo || 'N/A'}</span>
+                                       <span class="text-muted">${escapeHTML(ordenSelected.user_completo || 'N/A')}</span>
                                     </div>
-                                    <span class="text-muted text-end">${ordenSelected.fecha_completada || '-'}</span>
+                                    <span class="text-muted text-end">${escapeHTML(ordenSelected.fecha_completada || '-')}</span>
                                  </li>
 
-                                 <!-- Entregada -->
                                  <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
                                     <div>
                                        <span class="fw-bold d-block text-dark"><i class="bi bi-box-seam me-1 text-primary"></i>Entregada</span>
-                                       <span class="text-muted">${ordenSelected.user_entrego || 'N/A'}</span>
+                                       <span class="text-muted">${escapeHTML(ordenSelected.user_entrego || 'N/A')}</span>
                                     </div>
-                                    <span class="text-muted text-end">${ordenSelected.fecha_entregado || '-'}</span>
+                                    <span class="text-muted text-end">${escapeHTML(ordenSelected.fecha_entregado || '-')}</span>
                                  </li>
 
-                                 <!-- Publicada -->
                                  <li class="list-group-item px-0 d-flex justify-content-between align-items-start bg-transparent">
                                     <div>
                                        <span class="fw-bold d-block text-dark"><i class="bi bi-cloud-upload me-1 text-info"></i>Publicada</span>
-                                       <span class="text-muted">${ordenSelected.user_publico || 'N/A'}</span>
+                                       <span class="text-muted">${escapeHTML(ordenSelected.user_publico || 'N/A')}</span>
                                     </div>
-                                    <span class="text-muted text-end">${ordenSelected.fecha_publicada || '-'}</span>
+                                    <span class="text-muted text-end">${escapeHTML(ordenSelected.fecha_publicada || '-')}</span>
                                  </li>
 
-                                 <!-- Cancelación (si aplica) -->
                                  ${ordenSelected.fecha_cancelacion ? `
                                  <li class="list-group-item px-0 bg-danger-subtle rounded p-2 mt-2">
                                     <span class="fw-bold d-block text-danger"><i class="bi bi-x-circle me-1"></i>Cancelada</span>
-                                    <span class="text-dark d-block">Por: ${ordenSelected.user_cancela || 'N/A'}</span>
-                                    <span class="text-muted d-block">Fecha: ${ordenSelected.fecha_cancelacion}</span>
-                                    <span class="text-muted d-block italic">Motivo: ${ordenSelected.motivo_cancela || 'Sin especificación'}</span>
+                                    <span class="text-dark d-block">Por: ${escapeHTML(ordenSelected.user_cancela || 'N/A')}</span>
+                                    <span class="text-muted d-block">Fecha: ${escapeHTML(ordenSelected.fecha_cancelacion)}</span>
+                                    <span class="text-muted d-block italic">Motivo: ${escapeHTML(ordenSelected.motivo_cancela || 'Sin especificación')}</span>
                                  </li>
                                  ` : ''}
 
@@ -1139,11 +1141,10 @@ const ModalViewDetallesOrden = async (idOrden, folio) => {
    $('#modalAdminExt').html(html);
    $('#modalViewDetallesOrden').modal('show');
    obtenerEstudiosOrdenDetalle(idOrden);
-   obtenerArchivosOrdenDetalle(idOrden, folio);
-}
+   obtenerArchivosOrdenDetalle(idOrden);
+};
 
 const obtenerEstudiosOrdenDetalle = async (idOrden) => {
-   // Loader en el contenedor de estudios
    $('#estudios_detalle_orden').html(`
       <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
       <span class="small text-muted">Cargando estudios...</span>
@@ -1156,7 +1157,7 @@ const obtenerEstudiosOrdenDetalle = async (idOrden) => {
       return;
    }
 
-   if(respuesta.estatus != 200 || respuesta.data.length == 0) {
+   if (respuesta.estatus != 200 || !respuesta.data || respuesta.data.length == 0) {
       showMessageSwalTimer('Atención', 'No se pudieron recuperar los datos de la orden.', 'warning', 2500);
       $('#ModalGestionPDF').modal('hide');
       $('#estudios_detalle_orden').html('<span class="text-danger extra-small">Error al cargar estudios.</span>');
@@ -1166,16 +1167,16 @@ const obtenerEstudiosOrdenDetalle = async (idOrden) => {
 };
 
 const pinta_estudios_orden_detalle = (data, idOrden) => {
-   
    let html = '';
    if (data && data.length > 0) {
       data.forEach((est) => {
+         const estNombre = escapeHTML(est.nombre_estudio_historico);
          html += `
          <div class="col-12 col-sm-6">
             <div class="p-2 border rounded bg-white shadow-sm d-flex align-items-center h-100">
                <i class="bi bi-flask text-primary me-2 fs-5"></i>
-               <span class="fw-medium text-dark small text-truncate" title="${est.nombre_estudio_historico}">
-                  ${est.nombre_estudio_historico}
+               <span class="fw-medium text-dark small text-truncate" title="${estNombre}">
+                  ${estNombre}
                </span>
             </div>
          </div>`;
@@ -1192,15 +1193,17 @@ const pinta_estudios_orden_detalle = (data, idOrden) => {
    $('#estudios_detalle_orden').html(html);
 };
 
-const obtenerArchivosOrdenDetalle = async (idOrden, folio) => {
-        
+const obtenerArchivosOrdenDetalle = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   const folio = ordenSelected ? ordenSelected.folio : '';
+
    let respuesta = await obtiene_archivos_resultados_orden(idOrden);
 
    if (respuesta.estatus == 403) {
       fnNoSesion();
       return;
    }   
-   else if(!respuesta.data || respuesta.data.length == 0) {
+   else if (!respuesta.data || respuesta.data.length == 0) {
       $('#container_archivos_detalle').html(`
          <div class="col-12">
             <div class="alert alert-secondary py-2 px-3 mb-0 small text-center" role="alert">
@@ -1211,40 +1214,41 @@ const obtenerArchivosOrdenDetalle = async (idOrden, folio) => {
       return;
    }
    
-   pinta_archivos_orden_detalle(respuesta.data, folio);   
+   pinta_archivos_orden_detalle(respuesta.data, idOrden);   
 };
 
-const pinta_archivos_orden_detalle = (data, folio) => {
-   
+const pinta_archivos_orden_detalle = (data, idOrden) => {
    let html = '';
    if (data && data.length > 0) {
       data.forEach((file) => {
+         const descLimpia = escapeHTML(file.descripcion || 'Archivo adjunto');
+         const nomOriginalLimpio = escapeHTML(file.nombre_original);
+         const userCapLimpio = escapeHTML(file.user_cap || 'Sistema');
+
          html += `
          <div class="col-12">
             <div class="p-2 border rounded bg-white shadow-sm d-flex align-items-center justify-content-between">
                
-               <!-- Info del Archivo -->
-               <div class="d-flex align-items-center overflow-hidden me-2 pointer" onclick="ModalViewerResultado('${file.key_query_pdf}', '${folio}', 1);">
+               <div class="d-flex align-items-center overflow-hidden me-2 pointer" onclick="ModalViewerResultado('${file.key_query_pdf}', ${idOrden});">
                   <div class="bg-danger-subtle text-danger rounded p-2 me-2 d-flex align-items-center justify-content-center">
                      <i class="bi bi-file-earmark-pdf fs-4"></i>
                   </div>
                   <div class="text-truncate">
-                     <div class="fw-semibold text-dark small text-truncate" title="${file.descripcion || file.nombre_original}">
-                        ${file.descripcion || 'Archivo adjunto'}
+                     <div class="fw-semibold text-dark small text-truncate" title="${descLimpia}">
+                        ${descLimpia}
                      </div>
-                     <div class="extra-small text-muted text-truncate" title="${file.nombre_original}">
-                        ${file.nombre_original}
+                     <div class="extra-small text-muted text-truncate" title="${nomOriginalLimpio}">
+                        ${nomOriginalLimpio}
                      </div>
                   </div>
                </div>
 
-               <!-- Metadata (Usuario y Fecha/Hora) -->
                <div class="text-end text-nowrap extra-small text-muted border-start ps-2">
                   <div>
-                     <i class="bi bi-person me-1 opacity-75"></i>${file.user_cap || 'Sistema'}
+                     <i class="bi bi-person me-1 opacity-75"></i>${userCapLimpio}
                   </div>
                   <div>
-                     <i class="bi bi-calendar3 me-1 opacity-75"></i>${file.fecha || '-'} <span class="ms-1">${file.hora || ''}</span>
+                     <i class="bi bi-calendar3 me-1 opacity-75"></i>${escapeHTML(file.fecha || '-')} <span class="ms-1">${escapeHTML(file.hora || '')}</span>
                   </div>
                </div>
 
@@ -1266,8 +1270,17 @@ const pinta_archivos_orden_detalle = (data, folio) => {
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ PUBLICACIÓN Y NOTIFICACIÓN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, estaPublicada, fechaPublicacion = null, keyQuery) => {
-   // Corrección de sintaxis y estado dinámico (evaluando 1 o true)
+const ModalPublicarNotificar = (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
+
+   const folio            = escapeHTML(ordenSelected.folio);
+   const paciente         = escapeHTML(ordenSelected.paciente_nombre_historico || 'Sin nombre');
+   const correo           = escapeHTML(ordenSelected.correo || '');
+   const telefono         = escapeHTML(ordenSelected.telefono || '');
+   const estaPublicada    = ordenSelected.publicada;
+   const fechaPublicacion = escapeHTML(ordenSelected.fecha_publicada || '');
+
    const publicada = (estaPublicada == 1 || estaPublicada === true);
    
    const tituloModal = publicada ? `Reenviar Notificación - Orden #${folio}` : `Publicar y Notificar - Orden #${folio}`;
@@ -1292,7 +1305,6 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
 
             <div class="modal-body py-3">
                
-               <!-- Ficha Resumen del Paciente -->
                <div class="card border-0 bg-light rounded-3 p-3 mb-3 shadow-sm">
                   <div class="row g-2 align-items-center">
                      <div class="col-12 col-md-7">
@@ -1313,7 +1325,6 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                   </div>
                </div>
 
-               <!-- Mensaje Informativo de Acción sobre el Portal (Reemplaza al Checkbox) -->
                <div class="alert ${publicada ? 'alert-info border-info-subtle' : 'alert-success border-success-subtle'} rounded-3 mb-3 d-flex align-items-center gap-2 py-2 px-3 shadow-sm">
                   <i class="bi ${publicada ? 'bi-info-circle-fill text-info' : 'bi-globe-americas text-success'} fs-5"></i>
                   <span class="small text-dark">
@@ -1323,35 +1334,13 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                   </span>
                </div>
 
-               <!-- Canales de Notificación Directa -->
                <div class="card border-0 bg-white rounded-3 p-3 shadow-sm border-start border-4 border-info">
                   <h6 class="fw-bold text-dark mb-3 small text-uppercase d-flex align-items-center gap-1">
                      <i class="bi bi-chat-left-dots text-info"></i> Canales de Notificación Directa (Opcional)
                   </h6>
 
-                  <!--
-                  
-                  <div class="row g-2 align-items-center mb-3">
-                     <div class="col-12 col-md-5">
-                        <div class="form-check">
-                           <input class="form-check-input" type="checkbox" id="chk_enviar_wa" ${telefono ? 'checked' : 'disabled'}>
-                           <label class="form-check-label fw-semibold text-dark small" for="chk_enviar_wa">
-                              <i class="bi bi-whatsapp text-success me-1"></i> Enviar WhatsApp
-                           </label>
-                        </div>
-                     </div>
-                     <div class="col-12 col-md-7">
-                        <div class="input-group input-group-sm">
-                           <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
-                           <input type="text" class="form-control" id="txt_whatsapp" value="${telefono || ''}" placeholder="Sin teléfono registrado" ${!telefono ? 'disabled' : ''}>
-                        </div>
-                     </div>
-                  </div>
-                  -->
-
                   <hr class="my-2 opacity-25">
 
-                  <!-- Correo Electrónico -->
                   <div class="row g-2 align-items-center">
                      <div class="col-12 col-md-5">
                         <div class="form-check">
@@ -1364,7 +1353,7 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                      <div class="col-12 col-md-7">
                         <div class="input-group input-group-sm">
                            <span class="input-group-text bg-light"><i class="bi bi-at"></i></span>
-                           <input type="email" class="form-control" id="txt_correo" value="${correo || ''}" placeholder="Sin correo registrado" ${!correo ? 'disabled' : ''}>
+                           <input type="email" class="form-control" id="txt_correo" value="${correo}" placeholder="Sin correo registrado" ${!correo ? 'disabled' : ''}>
                         </div>
                      </div>
                   </div>
@@ -1378,7 +1367,7 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
                   Cancelar
                </button>
                <button type="button" class="btn ${btnColor} btn-redondo btn-sm px-4" id="btnEjecutarPublicacion"
-                  onclick="procesa_publicacion_notificacion(${idOrden}, '${keyQuery}', '${folio}');">
+                  onclick="procesa_publicacion_notificacion(${idOrden});">
                   <i class="bi ${iconoModal} me-1"></i> ${btnTexto}
                </button>
             </div>
@@ -1391,48 +1380,51 @@ const ModalPublicarNotificar = (idOrden, folio, paciente, correo, telefono, esta
    $('#ModalPublicarNotificar').modal('show');
 };
 
-const procesa_publicacion_notificacion = async (idOrden, keyQuery, folio) => {
+const procesa_publicacion_notificacion = async (idOrden) => {
+   let ordenSelected = arrOrdenesBandeja.find(o => o.id == idOrden);
+   if (!ordenSelected) return;
 
-   let enviarWhats    = $('#chk_enviar_wa').prop('checked') ? 1 : 0;
-   let enviarMail     = $('#chk_enviar_email').prop('checked') ? 1 : 0;
-   let txt_whatsapp   = $('#txt_whatsapp').val().trim();
-   let txt_correo     = $('#txt_correo').val().trim();
+   const folio    = ordenSelected.folio;
+   const keyQuery = ordenSelected.key_query;
+
+   let enviarWhats  = $('#chk_enviar_wa').prop('checked') ? 1 : 0;
+   let enviarMail   = $('#chk_enviar_email').prop('checked') ? 1 : 0;
+   let txt_whatsapp = $('#txt_whatsapp').length ? $('#txt_whatsapp').val().trim() : '';
+   let txt_correo   = $('#txt_correo').length ? $('#txt_correo').val().trim() : '';
    
-   // Construcción del mensaje con etiquetas HTML
    let mensajeConfirm = '<div style="text-align: left; margin-top: 10px;">';
    mensajeConfirm += '<ul>';
    mensajeConfirm += '  <li>Publicar el resultado en la plataforma del paciente.</li>';
 
    if (enviarWhats === 1) {
-      mensajeConfirm += `  <li>Enviar resultado por WhatsApp al número: <strong>${txt_whatsapp}</strong></li>`;
+      mensajeConfirm += `  <li>Enviar resultado por WhatsApp al número: <strong>${escapeHTML(txt_whatsapp)}</strong></li>`;
    }
    if (enviarMail === 1) {
-      mensajeConfirm += `  <li>Enviar resultado por correo a: <strong>${txt_correo}</strong></li>`;
+      mensajeConfirm += `  <li>Enviar resultado por correo a: <strong>${escapeHTML(txt_correo)}</strong></li>`;
    }
+   mensajeConfirm += '</ul></div>';
 
-   if(enviarWhats == 1 && (txt_whatsapp == '' || txt_whatsapp.length != 10)) {
+   if (enviarWhats == 1 && (txt_whatsapp == '' || txt_whatsapp.length != 10)) {
       ToastColor.fire({
          text: '¡Atención! Si vas a enviar el resultado por WhatsApp necesitas ingresar un número válido de 10 dígitos',
          icon: 'warning',
          position: 'top',
          timerProgressBar: false
       });
-      $('#txt_whatsapp')
       return;
    }
-   else if(enviarMail == 1 && ( txt_correo == '' || !fnValidaMail(txt_correo)  )) {
+   else if (enviarMail == 1 && (txt_correo == '' || !fnValidaMail(txt_correo))) {
       ToastColor.fire({
          text: '¡Atención! Si vas a enviar el resultado por correo necesitas ingresar una cuenta de correo válido',
          icon: 'warning',
          position: 'top',
          timerProgressBar: false
       });
-      $('#txt_correo')
       return;
    }
 
    const res = await showMessageSwalQuestion(
-      `Acciones sobre la orden <strong>#${folio}</strong>`, 
+      `Acciones sobre la orden <strong>#${escapeHTML(folio)}</strong>`, 
       mensajeConfirm, 
       'info', 
       'Sí, publicar', 
@@ -1446,12 +1438,11 @@ const procesa_publicacion_notificacion = async (idOrden, keyQuery, folio) => {
 
    $('.btnAcciones').prop('disabled', true);
 
-   let respuesta = await procesar_publicacion_notificacion(idOrden, folio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await procesar_publicacion_notificacion(idOrden, folio, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Publicación y notificación correcta!', '', 'success', 2500);
       $('#ModalPublicarNotificar').modal('hide');
       
@@ -1461,12 +1452,9 @@ const procesa_publicacion_notificacion = async (idOrden, keyQuery, folio) => {
          orden.fecha_publicada = respuesta.data[0];
       }
       pinta_ordenes_bandejas(arrOrdenesBandeja);
-      if(enviarWhats == 1) {
-         console.log('Enviando resultados por whatsApp');
-      }
 
-      if(enviarMail == 1) {
-         notif_mail_resultados(keyQuery, txt_correo);
+      if (enviarMail == 1) {
+         notif_mail_resultados(keyQuery, txt_correo, CSRF_TOKEN);
       }
    } 
    else {
@@ -1474,13 +1462,12 @@ const procesa_publicacion_notificacion = async (idOrden, keyQuery, folio) => {
       $('.btnAcciones').prop('disabled', false);
       return;
    }
-}
+};
 
-const notif_mail_resultados = async (keyQuery, correo) => {
-   
-   let respuesta = await notificar_mail_resultados(keyQuery, correo);
+const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
+   let respuesta = await notificar_mail_resultados(keyQuery, correo, CSRF_TOKEN);
       
-   if(respuesta.estatus == 200) {
+   if (respuesta.estatus == 200) {
       ToastColor.fire({
          text: '¡Resultados enviados por correo!',
          icon: 'success',
@@ -1490,15 +1477,15 @@ const notif_mail_resultados = async (keyQuery, correo) => {
    }
    else {
       ToastColor.fire({
-         text: '¡Atención! '+respuesta.mensaje,
+         text: '¡Atención! ' + respuesta.mensaje,
          icon: 'error',
          position: 'top',
          timerProgressBar: false
       });
    }
-}
+};
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabBandejas                       = TabBandejas;
 window.ModalGestionPDF                   = ModalGestionPDF;
 window.ModalViewerResultado              = ModalViewerResultado;

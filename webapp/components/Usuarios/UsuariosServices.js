@@ -11,8 +11,8 @@ export const obtiene_usuarios = async () => {
    return respuesta;
 }
 
-export const eliminar_usuario = async (idUsuario, nomUsuario) => {
-   const datos = { func: 'eliminar', idUsuario, nomUsuario };     
+export const eliminar_usuario = async (idUsuario, nomUsuario, csrf) => {
+   const datos = { func: 'eliminar', idUsuario, nomUsuario, csrf };     
    let respuesta = await postJSON('../api/controller/usuarios.php', datos);
    return respuesta;
 }

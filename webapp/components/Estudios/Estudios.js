@@ -4,22 +4,23 @@ let arrEstudios     = [];
 let arrTubosEstudio = [];
 
 const TabEstudios = async () => {
-
    const res = await valida_menu('estudios');
 
    if (!res || res.estatus != 200) {
-      ModalAccesoDenegado('Pauqtes y estudios');
+      ModalAccesoDenegado('Paquetes y estudios');
       $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
       return;
    }
 
-   let html =
-   `<div class="row">
+   let html = `
+   <div class="row">
       <div class="col-xl-10 col-lg-10 col-md-9 col-sm-8 col-6 mt-2 fw-bold">
-         <div class="fs-4"> <i class="bi bi-list-columns"></i> Paquetes / Estudios</div>
+         <div class="fs-4"><i class="bi bi-list-columns me-2"></i>Paquetes / Estudios</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoEstudio" onclick="ModalFormEstudio(0,'');"><i class="bi bi-plus-lg"></i> Nuevo Estudio</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoEstudio" onclick="ModalFormEstudio(0);">
+            <i class="bi bi-plus-lg"></i> Nuevo Estudio
+         </button>
       </div>
    </div>
    <div class="mt-4">
@@ -27,13 +28,12 @@ const TabEstudios = async () => {
    </div>`;
 
    $('#containerMain').html(html);
-   
    listar_estudios('listar_estudios');
-}
+};
 
-const ModalFormEstudio = (idEstudio, nomEstudio) => {
-
-   let estudioSeleccionado = arrEstudios.filter(estudio => estudio.id == idEstudio);
+const ModalFormEstudio = (idEstudio = 0) => {
+   let idNum = parseInt(idEstudio) || 0;
+   let estudioSeleccionado = arrEstudios.find(e => e.id == idNum);
 
    let titulo;
    let nombre              = '';
@@ -45,16 +45,21 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
    let aplicaDescuento     = 'NO';
    arrTubosEstudio         = [];
 
-   if(idEstudio > 0) {
-      titulo              = 'Editar Estudio: '+ nomEstudio;
-      nombre              = estudioSeleccionado[0].nombre;
-      tipo                = estudioSeleccionado[0].tipo;
-      precio_publico      = estudioSeleccionado[0].precio_publico;
-      costo               = estudioSeleccionado[0].costo;
-      indicaciones_toma   = estudioSeleccionado[0].indicaciones_toma;
-      descripcion_estudio = estudioSeleccionado[0].descripcion_estudio;
-      aplicaDescuento     = estudioSeleccionado[0].aplica_desc;
-      arrTubosEstudio     = estudioSeleccionado[0].tubos_json ? JSON.parse(estudioSeleccionado[0].tubos_json) : [];
+   if (idNum > 0 && estudioSeleccionado) {
+      titulo              = 'Editar Estudio: ' + (estudioSeleccionado.nombre || '');
+      nombre              = estudioSeleccionado.nombre || '';
+      tipo                = estudioSeleccionado.tipo || 'NA';
+      precio_publico      = estudioSeleccionado.precio_publico || '';
+      costo               = estudioSeleccionado.costo || '';
+      indicaciones_toma   = estudioSeleccionado.indicaciones_toma || '';
+      descripcion_estudio = estudioSeleccionado.descripcion_estudio || '';
+      aplicaDescuento     = estudioSeleccionado.aplica_desc || 'NO';
+
+      try {
+         arrTubosEstudio  = estudioSeleccionado.tubos_json ? JSON.parse(estudioSeleccionado.tubos_json) : [];
+      } catch (e) {
+         arrTubosEstudio  = [];
+      }
    }
    else {
       titulo = 'Registrar Nuevo Estudio';
@@ -65,7 +70,7 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
       <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
          <div class="modal-content sombra-modal">
             <div class="modal-header modal-head-per">
-               <h1 class="modal-title fs-5">${titulo}</h1>
+               <h1 class="modal-title fs-5">${escapeHTML(titulo)}</h1>
                <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
@@ -73,15 +78,15 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
             <div class="modal-body">
                <div class="row">
                   <div class="col-12 mt-3">
-                     <b>Nombre del estudio / paquete *</b>
-                     <input type="text" name="nomEstudio" id="nomEstudio" class="form-control" maxlength="150" value="${nombre}"/>
+                     <label class="form-label fw-bold mb-1" for="nomEstudio">Nombre del estudio / paquete *</label>
+                     <input type="text" name="nomEstudio" id="nomEstudio" class="form-control" maxlength="150" value="${escapeHTML(nombre)}"/>
                   </div>
                   <div class="col-12 mt-3">
-                     <b>Descripción estudio / paquete</b>
-                     <textarea name="descripcionEstudio" id="descripcionEstudio" class="form-control" rows="3" maxlength="250">${descripcion_estudio}</textarea>
+                     <label class="form-label fw-bold mb-1" for="descripcionEstudio">Descripción estudio / paquete</label>
+                     <textarea name="descripcionEstudio" id="descripcionEstudio" class="form-control" rows="3" maxlength="250">${escapeHTML(descripcion_estudio)}</textarea>
                   </div>
                   <div class="col-6 col-sm-4 mt-3">
-                     <b>Tipo *</b>
+                     <label class="form-label fw-bold mb-1" for="tipoEstudio">Tipo *</label>
                      <select name="tipoEstudio" id="tipoEstudio" class="form-select">
                         <option value="NA">Seleccionar</option>
                         <option value="ESTUDIO">ESTUDIO</option>
@@ -89,30 +94,31 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                      </select>
                   </div>
                   <div class="col-6 col-sm-4 mt-3">
-                     <b>Precio Público *</b>
-                     <input type="number" inputmode="numeric" name="precioPublico" id="precioPublico" class="form-control" maxlength="10" value="${precio_publico}" onkeypress="return fnValidaNumeros(event);"/>
+                     <label class="form-label fw-bold mb-1" for="precioPublico">Precio Público *</label>
+                     <input type="number" inputmode="decimal" step="0.01" name="precioPublico" id="precioPublico" class="form-control" maxlength="10" value="${escapeHTML(precio_publico.toString())}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-6 col-sm-4 mt-3">
-                     <b>Costo *</b>
-                     <input type="number" inputmode="numeric" name="costoEstudio" id="costoEstudio" class="form-control" maxlength="10" value="${costo}" onkeypress="return fnValidaNumeros(event);"/>
+                     <label class="form-label fw-bold mb-1" for="costoEstudio">Costo *</label>
+                     <input type="number" inputmode="decimal" step="0.01" name="costoEstudio" id="costoEstudio" class="form-control" maxlength="10" value="${escapeHTML(costo.toString())}" onkeypress="return fnValidaNumeros(event);"/>
                   </div>
                   <div class="col-6 col-sm-4 mt-3">
-                     <b>¿Aplica descuento?</b>
+                     <label class="form-label fw-bold mb-1" for="estudioAplicaDesc">¿Aplica descuento?</label>
                      <select name="estudioAplicaDesc" id="estudioAplicaDesc" class="form-select">
                         <option value="NO">NO</option>
                         <option value="SI">SI</option>
                      </select>
                   </div>
+
                   <!-- SECCIÓN CONFIGURACIÓN DE ETIQUETAS Y TUBOS -->
                   <div class="col-12 mt-3">
                      <div class="card border-light-subtle shadow-sm">
                         <div class="card-header bg-light fs-6 fw-bold">
-                           <i class="bi bi-tags"></i> Configuración de Etiquetas para Muestras
+                           <i class="bi bi-tags me-1"></i> Configuración de Etiquetas para Muestras
                         </div>
                         <div class="card-body">
                            <div class="row align-items-end">
                               <div class="col-12 col-sm-4">
-                                 <b>Contenedor / Tubo</b>
+                                 <label class="form-label fw-bold mb-1" for="selectTuboMuestra">Contenedor / Tubo</label>
                                  <select id="selectTuboMuestra" class="form-select">
                                     <option value="">Seleccionar...</option>
                                     <option value="Tubo Morado (EDTA)">Tubo Morado (EDTA)</option>
@@ -125,11 +131,11 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                                  </select>
                               </div>
                               <div class="col-12 col-sm-4 mt-2 mt-sm-0">
-                                 <b>Tipo de Muestra</b>
+                                 <label class="form-label fw-bold mb-1" for="txtTipoMuestra">Tipo de Muestra</label>
                                  <input type="text" id="txtTipoMuestra" class="form-control" placeholder="Ej. Sangre Total, Suero, Orina" maxlength="100"/>
                               </div>
                               <div class="col-8 col-sm-2 mt-2 mt-sm-0">
-                                 <b>Cantidad</b>
+                                 <label class="form-label fw-bold mb-1" for="numCantTubo">Cantidad</label>
                                  <input type="number" id="numCantTubo" class="form-control" value="1" min="1" max="10" onkeypress="return fnValidaNumeros(event);"/>
                               </div>
                               <div class="col-4 col-sm-2 mt-2 mt-sm-0 text-end">
@@ -143,7 +149,6 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                            <div class="row mt-3">
                               <div class="col-12">
                                  <div id="contenedorTubosAgregados" class="d-flex flex-wrap gap-2 p-2 border rounded bg-white" style="min-height: 48px;">
-                                    <!-- Aquí se inyectan las pills con JS -->
                                     <span class="text-muted small fst-italic id-sin-tubos">No se han agregado etiquetas a este estudio.</span>
                                  </div>
                               </div>
@@ -151,22 +156,23 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
                         </div>
                      </div>
                   </div>
-                  <!-- Input oculto para recolectar el JSON en el submit -->
+
                   <input type="hidden" name="tubosJson" id="tubosJson" value="[]" />
+
                   <div class="col-12 mt-3">
-                     <b>Indicaciones toma de muestra</b>
-                     <textarea name="indicacionesToma" id="indicacionesToma" class="form-control" rows="3" maxlength="400">${indicaciones_toma}</textarea>
+                     <label class="form-label fw-bold mb-1" for="indicacionesToma">Indicaciones toma de muestra</label>
+                     <textarea name="indicacionesToma" id="indicacionesToma" class="form-control" rows="3" maxlength="400">${escapeHTML(indicaciones_toma)}</textarea>
                   </div>
                </div>
                
             </div>
             <div class="modal-footer border-0 text-end">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarEstudio" onclick="fn_guardar_estudio('${idEstudio}');">
-                <i class="bi bi-save"></i> Guardar
-              </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
-                Cancelar
-              </button>
+               <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarEstudio" onclick="fn_guardar_estudio(${idNum});">
+                  <i class="bi bi-save"></i> Guardar
+               </button> 
+               <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+                  Cancelar
+               </button>
             </div>
          </div>
       </div>
@@ -179,57 +185,42 @@ const ModalFormEstudio = (idEstudio, nomEstudio) => {
       $('#estudioAplicaDesc').val(aplicaDescuento);
       fn_renderizar_tubos();
    }, 200);
-}
+};
 
-// Agrega el tubo/contenedor al arreglo local y desencadena el renderizado
 const fn_agregar_tubo_lista = () => {
    let tubo    = $('#selectTuboMuestra').val();
    let muestra = $('#txtTipoMuestra').val().trim();
    let cant    = parseInt($('#numCantTubo').val()) || 1;
 
-   // Validaciones básicas de entrada
    if (!tubo) {
-      ToastColor.fire({
-         text: '¡Atención! Seleccione un contenedor/tubo.',
-         icon: 'warning'
-      });
+      ToastColor.fire({ text: '¡Atención! Seleccione un contenedor/tubo.', icon: 'warning' });
       $('#selectTuboMuestra').focus();
       return;
    }
    if (!muestra) {
-      ToastColor.fire({
-         text: '¡Atención! Ingrese el tipo de muestra (ej. Sangre Total, Suero, Orina).',
-         icon: 'warning'
-      });
+      ToastColor.fire({ text: '¡Atención! Ingrese el tipo de muestra (ej. Sangre Total, Suero, Orina).', icon: 'warning' });
       $('#txtTipoMuestra').focus();
       return;
    }
    if (cant <= 0) {
-      ToastColor.fire({
-         text: '¡Atención! La cantidad debe ser mayor a 0.',
-         icon: 'warning'
-      });
-      $('#txtTipoMuestra').focus();
+      ToastColor.fire({ text: '¡Atención! La cantidad debe ser mayor a 0.', icon: 'warning' });
+      $('#numCantTubo').focus();
       return;
    }
 
-   // 1. Agregar el elemento al arreglo global
    arrTubosEstudio.push({
       contenedor: tubo,
       muestra: muestra,
       cantidad: cant
    });
 
-   // 2. Limpiar controles del formulario
    $('#selectTuboMuestra').val('');
    $('#txtTipoMuestra').val('');
    $('#numCantTubo').val(1);
 
-   // 3. Refrescar la vista y sincronizar el JSON
    fn_renderizar_tubos();
 };
 
-// Pinta las etiquetas (pills) en el DIV y actualiza el campo oculto JSON
 const fn_renderizar_tubos = () => {
    let html = '';
 
@@ -240,20 +231,16 @@ const fn_renderizar_tubos = () => {
          html += `
          <span class="badge bg-light text-dark border p-2 d-flex align-items-center gap-2">
             <i class="bi bi-vial-fill text-primary"></i> 
-            <b>${item.cantidad}x</b> ${item.contenedor} — <span class="text-secondary">${item.muestra}</span>
+            <b>${parseInt(item.cantidad) || 1}x</b> ${escapeHTML(item.contenedor || '')} — <span class="text-secondary">${escapeHTML(item.muestra || '')}</span>
             <button type="button" class="btn-close btn-close-xs ms-1" onclick="fn_eliminar_tubo_lista(${index});" aria-label="Eliminar"></button>
          </span>`;
       });
    }
 
-   // Pintar en el contenedor HTML
    $('#contenedorTubosAgregados').html(html);
-
-   // Sincronizar el input hidden con la cadena JSON
    $('#tubosJson').val(JSON.stringify(arrTubosEstudio));
 };
 
-// Elimina un ítem por su índice y re-renderiza
 const fn_eliminar_tubo_lista = (index) => {
    arrTubosEstudio.splice(index, 1);
    fn_renderizar_tubos();
@@ -263,22 +250,23 @@ const listar_estudios = async (containerId) => {
    arrTubosEstudio = [];
    activarLoad('Cargando estudios...');
    let respuesta = await obtiene_estudios();
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      closeLoad();
       return;
    }
    else {
-      arrEstudios = respuesta.data;
-      pinta_listado_estudios(containerId, respuesta.data);
+      arrEstudios = respuesta.data || [];
+      pinta_listado_estudios(containerId, arrEstudios);
    }
-}
+};
 
 const pinta_listado_estudios = (containerId, data) => {
-   if(data.length == 0) {
-      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron estudios registrados</div>');
+   if (!data || data.length === 0) {
+      $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron estudios registrados</div>');
       closeLoad();
       return;
    }
@@ -297,31 +285,39 @@ const pinta_listado_estudios = (containerId, data) => {
          </tr>
       </thead>
       <tbody>`;
-         data.map(row => {
-            html+=
-            `<tr id="trEstudios${row.id}">
-               <td class="text-center">${row.id}</td>
-               <td>${row.nombre}</td>
-               <td class="text-center">${row.tipo}</td>
-               <td>$ ${row.costo}</td>
-               <td>$ ${row.precio_publico}</td>
-               <td class="text-center">${row.aplica_desc}</td>
-               <td class="text-center">
-                  <button type="buttton" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormEstudio('${row.id}', '${row.nombre}');" title="Editar estudio">
-                     <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="buttton" class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarEstudio" onclick="fn_eliminar_estudio('${row.id}', '${row.nombre}');" title="Eliminar estudio">
-                     <i class="bi bi-trash"></i>
-                  </button>
-               </td>
-            </tr>`;
-         });
-         html+=
-      `</tbody>
+      
+   data.forEach((row) => {
+      html += `
+      <tr id="trEstudios${row.id}">
+         <td class="text-center">${row.id}</td>
+         <td>${escapeHTML(row.nombre || '')}</td>
+         <td class="text-center">${escapeHTML(row.tipo || '')}</td>
+         <td>$ ${parseFloat(row.costo || 0).toFixed(2)}</td>
+         <td>$ ${parseFloat(row.precio_publico || 0).toFixed(2)}</td>
+         <td class="text-center">${escapeHTML(row.aplica_desc || 'NO')}</td>
+         <td class="text-center">
+            <!-- Llamadas puramente numéricas -->
+            <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" onclick="ModalFormEstudio(${row.id});" title="Editar estudio">
+               <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarEstudio" onclick="fn_eliminar_estudio(${row.id});" title="Eliminar estudio">
+               <i class="bi bi-trash"></i>
+            </button>
+         </td>
+      </tr>`;
+   });
+
+   html += `
+      </tbody>
    </table>`;
-   $('#'+containerId).html(html);
+   
+   $('#' + containerId).html(html);
 
    setTimeout(() => {
+      if ($.fn.DataTable.isDataTable('#tableEstudios')) {
+         $('#tableEstudios').DataTable().destroy();
+      }
+
       new DataTable('#tableEstudios', {   
          language: {
             url: "assets/lib/DataTables/es-ES.json",
@@ -329,11 +325,12 @@ const pinta_listado_estudios = (containerId, data) => {
          responsive: true
       });
    }, 200);
+
    closeLoad();
-}
+};
 
-const fn_guardar_estudio = async (idEstudio) => {
-
+const fn_guardar_estudio = async (idEstudio = 0) => {
+   let idNum              = parseInt(idEstudio) || 0;
    let nomEstudio         = $('#nomEstudio').val().trim();
    let tipoEstudio        = $('#tipoEstudio').val();
    let precioPublico      = $('#precioPublico').val().trim();
@@ -343,37 +340,39 @@ const fn_guardar_estudio = async (idEstudio) => {
    let estudioAplicaDesc  = $('#estudioAplicaDesc').val();
    let msjAccion          = '';
 
-   if (nomEstudio == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre del estudio',
-         icon: 'warning'
-      });
+   if (nomEstudio === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el nombre del estudio', icon: 'warning' });
       $('#nomEstudio').focus();
       return;
    }
-   else if (tipoEstudio == 'NA') {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el tipo de estudio',
-         icon: 'warning'
-      });
+   else if (tipoEstudio === 'NA') {
+      ToastColor.fire({ text: '¡Atención! Debes seleccionar el tipo de estudio', icon: 'warning' });
       $('#tipoEstudio').focus();
       return;
    }
-   else if (parseFloat(precioPublico) == 0 || precioPublico == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el precio público y debe ser mayor a 0',
-         icon: 'warning'
-      });
+   else if (precioPublico === '' || parseFloat(precioPublico) <= 0) {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el precio público y debe ser mayor a 0', icon: 'warning' });
       $('#precioPublico').focus();
       return;
    }
-  
 
-   costo == '' ? costo = 0 : costo;
+   costo = costo === '' ? 0 : parseFloat(costo);
 
-   const objEstudio = { func: 'guardar_estudio', idEstudio, nomEstudio, tipoEstudio, precioPublico, costo, descripcionEstudio, indicacionesToma, estudioAplicaDesc, arrTubosEstudio };
+   const objEstudio = { 
+      func: 'guardar_estudio', 
+      idEstudio: idNum, 
+      nomEstudio, 
+      tipoEstudio, 
+      precioPublico, 
+      costo, 
+      descripcionEstudio, 
+      indicacionesToma, 
+      estudioAplicaDesc, 
+      arrTubosEstudio,
+      csrf: CSRF_TOKEN 
+   };
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + nomEstudio + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del estudio ' + escapeHTML(nomEstudio) + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
       $('#btnGuardarEstudio').prop('disabled', false);
       return;
@@ -381,12 +380,11 @@ const fn_guardar_estudio = async (idEstudio) => {
 
    $('#btnGuardarEstudio').prop('disabled', true);
    let respuesta = await guardar_estudio(objEstudio);
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-      
-      idEstudio > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Estudio guardado correctamente';
+   else if (respuesta.estatus == 200) {
+      msjAccion = idNum > 0 ? 'Información actualizada correctamente' : 'Estudio guardado correctamente';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormEstudio').modal('hide');
@@ -397,36 +395,51 @@ const fn_guardar_estudio = async (idEstudio) => {
       $('#btnGuardarEstudio').prop('disabled', false);
       return;
    }
-}
+};
 
-const fn_eliminar_estudio = async (idEstudio, nomEstudio) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El estudio: ' + nomEstudio + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+const fn_eliminar_estudio = async (idEstudio) => {
+   let idNum = parseInt(idEstudio) || 0;
+   let estudioSeleccionado = arrEstudios.find(e => e.id == idNum);
+   if (!estudioSeleccionado) return;
+
+   let nomEstudio = estudioSeleccionado.nombre || '';
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El estudio: ' + escapeHTML(nomEstudio) + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
-    $('.btnEliminarEstudio').prop('disabled', false);
-    return;
-  }
+      $('.btnEliminarEstudio').prop('disabled', false);
+      return;
+   }
 
    $('.btnEliminarEstudio').prop('disabled', true);
-   let respuesta = await eliminar_estudio(idEstudio, nomEstudio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await eliminar_estudio(idNum, nomEstudio, CSRF_TOKEN );
+   
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('Estudio eliminado correctamente', '', 'success', 2500);
-      let tabla = $('#tableEstudios').DataTable();
-      tabla.row($('#trEstudios' + idEstudio)).remove().draw();
+      
+      if ($.fn.DataTable.isDataTable('#tableEstudios')) {
+         let tabla = $('#tableEstudios').DataTable();
+         tabla.row($('#trEstudios' + idNum)).remove().draw();
+      } else {
+         $('#trEstudios' + idNum).remove();
+      }
+
+      arrEstudios = arrEstudios.filter(e => e.id != idNum);
       $('.btnEliminarEstudio').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('.btnEliminarEstudio').prop('disabled', false);
       return;
    }
-}
+};
 
 // Interfaces
 window.TabEstudios            = TabEstudios;
 window.ModalFormEstudio       = ModalFormEstudio;
+
 // Funciones
 window.fn_eliminar_estudio    = fn_eliminar_estudio;
 window.fn_guardar_estudio     = fn_guardar_estudio;

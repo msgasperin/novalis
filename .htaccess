@@ -1,7 +1,7 @@
 Options +FollowSymLinks
 RewriteEngine on
 
-RewriteRule ^index$ index.php
+RewriteRule ^inicio$ index.php
 
 RewriteRule ^webapp/inicio$ webapp/index.php
 RewriteRule ^webapp/admin$ webapp/admin.php

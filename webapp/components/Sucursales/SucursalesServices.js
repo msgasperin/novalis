@@ -11,8 +11,8 @@ export const obtiene_sucursales = async () => {
    return respuesta;
 }
 
-export const eliminar_sucursal = async (idSucursal, nomSucursal) => {
-   const datos = { func: 'eliminar', idSucursal, nomSucursal };
+export const eliminar_sucursal = async (idSucursal, nomSucursal, CSRF_TOKEN) => {
+   const datos = { func: 'eliminar', idSucursal, nomSucursal, CSRF_TOKEN };
    let respuesta = await postJSON('../api/controller/sucursales.php', datos);
    return respuesta;
 }

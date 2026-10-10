@@ -13,7 +13,7 @@ $v->conectar();
 $keyQuery = $_GET["kq"] ?? '';
 
 // 1. CONSULTA ÚNICA DE DATOS PRINCIPALES DE LA ORDEN
-$sqlDatosOrden = $v->dbh->prepare(
+$sqlDatosOrden = $v->getDbh()->prepare(
     "SELECT O.id, folio, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, 
             DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, 
             paciente_nombre_historico, convenio_nombre_historico, estatus_pago, 
@@ -45,11 +45,11 @@ if (!$orden) {
 }
 
 // 2. CONSULTAS ÚNICAS DE ESTUDIOS Y ABONOS
-$sqlEstudios = $v->dbh->prepare("SELECT nombre_estudio_historico, precio_aplicado, aplico_desc FROM orden_detalles WHERE orden_id = ?");
+$sqlEstudios = $v->getDbh()->prepare("SELECT nombre_estudio_historico, precio_aplicado, aplico_desc FROM orden_detalles WHERE orden_id = ?");
 $sqlEstudios->execute([$orden["id"]]);
 $estudios = $sqlEstudios->fetchAll(PDO::FETCH_ASSOC);
 
-$sqlAbonos = $v->dbh->prepare("SELECT DATE_FORMAT(fecha_pago, '%d/%m/%Y') AS fecha, metodo_pago, monto FROM orden_pagos WHERE orden_id = ? ORDER BY id ASC");
+$sqlAbonos = $v->getDbh()->prepare("SELECT DATE_FORMAT(fecha_pago, '%d/%m/%Y') AS fecha, metodo_pago, monto FROM orden_pagos WHERE orden_id = ? ORDER BY id ASC");
 $sqlAbonos->execute([$orden["id"]]);
 $abonos = $sqlAbonos->fetchAll(PDO::FETCH_ASSOC);
 

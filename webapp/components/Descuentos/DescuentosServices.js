@@ -11,8 +11,8 @@ export const obtiene_descuentos = async () => {
    return respuesta;
 }
 
-export const eliminar_descuento = async (idDescuento, conceptoDescuento) => {
-   const datos = { func: 'eliminar_descuento', idDescuento, conceptoDescuento };     
+export const eliminar_descuento = async (idDescuento, conceptoDescuento, csrf) => {
+   const datos = { func: 'eliminar_descuento', idDescuento, conceptoDescuento, csrf };     
    let respuesta = await postJSON('../api/controller/descuentos.php', datos);
    return respuesta;
 }

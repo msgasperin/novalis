@@ -1,11 +1,19 @@
-import { abrir_caja, cerrar_caja, obtener_historial_movimientos_caja, registrar_movimiento, eliminar_movimiento, obtener_mis_cortes_caja, obtener_movimientos_corte } from "./CajaServices.js";
+import { 
+   abrir_caja, 
+   cerrar_caja, 
+   obtener_historial_movimientos_caja, 
+   registrar_movimiento, 
+   eliminar_movimiento, 
+   obtener_mis_cortes_caja, 
+   obtener_movimientos_corte 
+} from "./CajaServices.js";
 
 let arrMovimientos = [];
+let arrCortes = [];
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ABRIR CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const ModalAbrirCaja = async () => {
-
    const res = await valida_menu('caja');
 
    if (!res || res.estatus != 200) {
@@ -20,7 +28,6 @@ const ModalAbrirCaja = async () => {
          <div class="modal-content sombra-modal border-0">
             <div class="modal-body p-4 text-center">
                
-               <!-- ÍCONO DE ENCABEZADO -->
                <div class="mb-3">
                   <div class="rounded-circle bg-primary-subtle mx-auto p-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
                      <i class="bi bi-door-open-fill text-primary fs-1"></i>
@@ -31,10 +38,10 @@ const ModalAbrirCaja = async () => {
                <p class="text-muted small mb-4">Ingresa el fondo inicial entregado en efectivo para operar durante el turno.</p>
                
                <div class="bg-light rounded-3 p-3 border mb-4 text-start">
-                  <label class="text-muted fs-7 d-block text-uppercase fw-semibold mb-2">Fondo Inicial (Efectivo)</label>
+                  <label class="text-muted fs-7 d-block text-uppercase fw-semibold mb-2" for="inpFondoInicial">Fondo Inicial (Efectivo)</label>
                   <div class="input-group input-group-lg">
                      <span class="input-group-text bg-white border-end-0 fw-bold text-secondary">$</span>
-                     <input type="number" step="0.50" min="0" class="form-control border-start-0 fw-bold fs-4 text-end" id="inpFondoInicial" name="fondo_inicial" autofocus  onkeypress="return fnValidaNumeros(event);" onpaste="return false;">
+                     <input type="number" step="0.50" min="0" class="form-control border-start-0 fw-bold fs-4 text-end" id="inpFondoInicial" name="fondo_inicial" autofocus onkeypress="return fnValidaNumeros(event);" onpaste="return false;">
                   </div>
                </div>
 
@@ -62,21 +69,21 @@ const ModalAbrirCaja = async () => {
 
    $('#modalAdminExt').html(html);
    $('#modalAbrirCaja').modal('show');
-}
+};
 
 const abre_caja = async () => {
    let fondoInicial = $('#inpFondoInicial').val().trim();
       
-   if (parseFloat(fondoInicial < 0) || fondoInicial == '') {
+   if (fondoInicial === '' || parseFloat(fondoInicial) < 0) {
       ToastColor.fire({
-         text: '¡Atención! Debes ingresar un monto mayor a 0',
+         text: '¡Atención! Debes ingresar un monto mayor o igual a 0',
          icon: 'warning'
       });
       $('#inpFondoInicial').focus();
       return;
    }
    
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se abrirá la caja con un fondo de $' + fondoInicial, 'question', 'Sí, abrir', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se abrirá la caja con un fondo de $' + escapeHTML(fondoInicial), 'question', 'Sí, abrir', 'Cancelar');
    
    if (!res.result) {
       $('#btnAbreCaja').prop('disabled', false);
@@ -85,13 +92,13 @@ const abre_caja = async () => {
 
    $('#btnAbreCaja').prop('disabled', true);
 
-   let objCaja = { fondoInicial, func: 'abrir_caja' };
+   let objCaja = { fondoInicial, func: 'abrir_caja', csrf: CSRF_TOKEN };
 
    let respuesta = await abrir_caja(objCaja);
-      if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Caja Abierta!', '', 'success', 2500);
       $('#modalAbrirCaja').modal('hide');
       $('#estatusCaja').val('abierta');
@@ -106,7 +113,7 @@ const abre_caja = async () => {
       $('#btnAbreCaja').prop('disabled', false);
       return;
    }
-}
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CERRAR CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -170,7 +177,7 @@ const ModalCerrarCaja = (idCaja = 0) => {
                </div>
 
                <div class="text-start mb-4">
-                  <label class="text-muted fs-7 text-uppercase fw-semibold mb-1">Observaciones / Notas de Cierre</label>
+                  <label class="text-muted fs-7 text-uppercase fw-semibold mb-1" for="obsCierre">Observaciones / Notas de Cierre</label>
                   <textarea class="form-control form-control-sm" id="obsCierre" name="obsCierre" rows="2" placeholder="Opcional: Detalla cualquier incidencia del turno..."></textarea>
                </div>
 
@@ -181,7 +188,7 @@ const ModalCerrarCaja = (idCaja = 0) => {
                      </button>
                   </div>
                   <div class="col-md-6">
-                     <button type="submit" class="btn btn-dark btn-lib btn-redondo w-100" id="btnCerrarCaja" onclick="cierra_caja();">
+                     <button type="button" class="btn btn-dark btn-lib btn-redondo w-100" id="btnCerrarCaja" onclick="cierra_caja(${idCaja});">
                         <i class="bi bi-lock-fill me-1"></i> Finalizar Turno
                      </button>
                   </div>
@@ -194,24 +201,27 @@ const ModalCerrarCaja = (idCaja = 0) => {
 
    $('#modalAdminExt').html(html);
    $('#modalCerrarCaja').modal('show');
-}
+};
 
-const cierra_caja = async () => {
-   
+const cierra_caja = async (idCaja = 0) => {
    let decEfectivo      = $('#decEfectivo').val().trim();
    let decTarjeta       = $('#decTarjeta').val().trim();
    let decTransferencia = $('#decTransferencia').val().trim();
    let obsCierre        = $('#obsCierre').val().trim();
       
-   if ( (parseFloat(decEfectivo < 0) || decEfectivo == '') && (parseFloat(decTarjeta < 0) || decTarjeta == '') && (parseFloat(decTransferencia < 0) || decTransferencia == '') ) {
+   const valEfectivo = parseFloat(decEfectivo) || 0;
+   const valTarjeta  = parseFloat(decTarjeta) || 0;
+   const valTransf   = parseFloat(decTransferencia) || 0;
+
+   if (valEfectivo < 0 || valTarjeta < 0 || valTransf < 0 || (valEfectivo === 0 && valTarjeta === 0 && valTransf === 0 && decEfectivo === '' && decTarjeta === '' && decTransferencia === '')) {
       ToastColor.fire({
-         text: '¡Atención! Al menos uno de los conceptos debe ser mayor a 0',
+         text: '¡Atención! Al menos uno de los conceptos debe ingresarse correctamente',
          icon: 'warning'
       });
       return;
    }
    
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se cerrará la caja', 'question', 'Sí, cerrar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se cerrará la caja activa', 'question', 'Sí, cerrar', 'Cancelar');
    
    if (!res.result) {
       $('#btnCerrarCaja').prop('disabled', false);
@@ -220,13 +230,13 @@ const cierra_caja = async () => {
 
    $('#btnCerrarCaja').prop('disabled', true);
 
-   let objCaja = { decEfectivo, decTarjeta, decTransferencia, obsCierre, func: 'cerrar_caja' };
+   let objCaja = { idCaja, decEfectivo: valEfectivo, decTarjeta: valTarjeta, decTransferencia: valTransf, obsCierre, func: 'cerrar_caja', csrf: CSRF_TOKEN };
 
    let respuesta = await cerrar_caja(objCaja);
-      if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Caja Cerrada!', '', 'success', 2500);
       $('#modalCerrarCaja').modal('hide');
       $('#estatusCaja').val('cerrada');
@@ -241,19 +251,16 @@ const cierra_caja = async () => {
       $('#btnCerrarCaja').prop('disabled', false);
       return;
    }
-}
-
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ MOVIMIENTOS MANUALES CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const ModalMovimientosCaja = () => { 
-
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalMovimientosCaja" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-xl">
          <div class="modal-content sombra-modal border-0">
             
-            <!-- HEADER MODAL -->
             <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 align-items-center">
                <div class="d-flex align-items-center">
                   <div class="rounded-circle bg-primary-subtle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -280,6 +287,7 @@ const ModalMovimientosCaja = () => {
                         </div>
                      </div>
                      <div class="col-md-7 col-12 text-md-end text-start">
+                        <!-- Pasa tipo por constante segura de JS -->
                         <button class="btn btn-sm btn-outline-success btn-redondo me-1" onclick="ModalRegistroMovimientoCaja('ingreso');">
                            <i class="bi bi-plus-circle me-1"></i> Registrar Ingreso
                         </button>
@@ -289,7 +297,6 @@ const ModalMovimientosCaja = () => {
                      </div>
                   </div>
 
-                  <!-- METRICAS RÁPIDAS DEL DÍA -->
                   <div class="row g-2 mb-3">
                      <div class="col-6">
                         <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 text-center">
@@ -305,7 +312,6 @@ const ModalMovimientosCaja = () => {
                      </div>
                   </div>
 
-                  <!-- TABLA DE MOVIMIENTOS -->
                   <div class="table-responsive rounded-3 border bg-white" style="max-height: 280px; overflow-y: auto;">
                      <table class="table table-hover align-middle mb-0" id="tablaMovimientos">
                         <thead class="bg-light sticky-top fs-8 text-uppercase text-muted">
@@ -321,7 +327,7 @@ const ModalMovimientosCaja = () => {
                         </thead>
                         <tbody id="tbodyMovimientos" class="fs-7">
                            <tr>
-                              <td colspan="5" class="text-center py-4 text-muted">
+                              <td colspan="7" class="text-center py-4 text-muted">
                                  <i class="bi bi-arrow-repeat spin fs-4 d-block mb-1"></i>
                                  Cargando movimientos...
                               </td>
@@ -345,15 +351,14 @@ const ModalMovimientosCaja = () => {
    $('#modalAdmin').html(html);
    $('#modalMovimientosCaja').modal('show');
    obtiene_historial_movimientos_caja('tbodyMovimientos');
-}
+};
 
 const obtiene_historial_movimientos_caja = async (containerId) => {
-
    let fecha      = $('#filtroFechaMov').val().trim();
    let html       = '';
    arrMovimientos = [];
    
-   if(fecha == '') {
+   if (fecha === '') {
       html = 
       `<tr>
          <td colspan="7" class="text-center py-4 text-muted">
@@ -362,19 +367,19 @@ const obtiene_historial_movimientos_caja = async (containerId) => {
          </td>
       </tr>`;
 
-      $('#'+containerId).html(html);
+      $('#' + containerId).html(html);
       return;
    }
    
    let respuesta = await obtener_historial_movimientos_caja(fecha);
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
-   else if(respuesta.data.length == 0) {
+   else if (!respuesta.data || respuesta.data.length === 0) {
       html = 
       `<tr>
          <td colspan="7" class="text-center py-4 text-muted">
@@ -382,43 +387,44 @@ const obtiene_historial_movimientos_caja = async (containerId) => {
             No se encontraron movimientos en esa fecha
          </td>
       </tr>`;
-      $('#'+containerId).html(html);
+      $('#' + containerId).html(html);
       return;
    }
    else {
-      arrMovimientos = await respuesta.data;
+      arrMovimientos = respuesta.data;
       pinta_movimientos_caja(arrMovimientos, containerId);
    }
-}
+};
 
 const pinta_movimientos_caja = (data, containerId) => {
-
    let html          = '';
    let icon          = '';
    let totalIngresos = 0;
    let totalEgresos  = 0;
 
    data.forEach(row => {
+      const montoNum = parseFloat(row.monto) || 0;
 
-      if(row.tipo == 'ingreso') {
+      if (row.tipo === 'ingreso') {
          icon = '<i class="bi bi-arrow-right-circle text-success" title="Ingreso"></i>';
-         totalIngresos += parseFloat(row.monto);
+         totalIngresos += montoNum;
       }
       else {
-      icon = '<i class="bi bi-arrow-left-circle text-danger" title="Egreso"></i>';
-      totalEgresos += parseFloat(row.monto);
+         icon = '<i class="bi bi-arrow-left-circle text-danger" title="Egreso"></i>';
+         totalEgresos += montoNum;
       }      
 
       html += 
       `<tr>
-         <td class="ps-3 py-2">${icon} ${row.hora}</td>
-         <td class="py-2">${row.usuario_registro}</td>
-         <td class="py-2">${row.concepto}</td>
-         <td class="py-2">${row.forma_pago}</td>
-         <td class="py-2 text-end">$${row.monto}</td>
-         <td class="text-center py-2">${row.comprobante ?? ''}</td>
+         <td class="ps-3 py-2">${icon} ${escapeHTML(row.hora || '')}</td>
+         <td class="py-2">${escapeHTML(row.usuario_registro || '')}</td>
+         <td class="py-2">${escapeHTML(row.concepto || '')}</td>
+         <td class="py-2">${escapeHTML(row.forma_pago || '')}</td>
+         <td class="py-2 text-end">$${montoNum.toFixed(2)}</td>
+         <td class="text-center py-2">${escapeHTML(row.comprobante ?? '')}</td>
          <td class="text-center py-2">
-            <button type="button" class="btn btn-sm btn-outline-danger btn-redondo btnAccionMov" onclick="elimina_movimiento(${row.id_movimiento}, '${row.tipo}', '${row.monto}');">
+            <!-- ÚNICAMENTE se envía el id_movimiento numérico en el onClick inline -->
+            <button type="button" class="btn btn-sm btn-outline-danger btn-redondo btnAccionMov" onclick="elimina_movimiento(${row.id_movimiento});">
                <i class="bi bi-trash"></i>
             </button>
          </td>
@@ -426,36 +432,36 @@ const pinta_movimientos_caja = (data, containerId) => {
    });
 
    $('#' + containerId).html(html);
-   $('#lblTotalIngresos').html('$'+parseFloat(totalIngresos).toFixed(2));
-   $('#lblTotalEgresos').html('$'+parseFloat(totalEgresos).toFixed(2));
-}
+   $('#lblTotalIngresos').html('$' + parseFloat(totalIngresos).toFixed(2));
+   $('#lblTotalEgresos').html('$' + parseFloat(totalEgresos).toFixed(2));
+};
 
 const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
-
    let fecha = $('#filtroFechaMov').val().trim();
 
-   if (fecha == '') {
+   if (fecha === '') {
       ToastColor.fire({
          text: '¡Atención! Debes seleccionar la fecha en la que registrarás el movimiento',
          icon: 'warning'
       });
-      $('#filtroFechaMov').focus()
+      $('#filtroFechaMov').focus();
       return;
    }
    
+   const tipoLimpio = (tipoMovimiento === 'egreso') ? 'egreso' : 'ingreso';
+
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalRegistroMovimientoCaja" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
          <div class="modal-content sombra-modal border-0">
             
-            <!-- HEADER MODAL -->
             <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 align-items-center">
                <div class="d-flex align-items-center">
                   <div class="rounded-circle bg-primary-subtle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
                      <i class="bi bi-arrow-down-up text-primary fs-6"></i>
                   </div>
                   <div>
-                     <h5 class="fw-bold text-dark mb-0">Registrar ${tipoMovimiento}</h5>
+                     <h5 class="fw-bold text-dark mb-0">Registrar ${escapeHTML(tipoLimpio)}</h5>
                   </div>
                </div>
                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -467,12 +473,12 @@ const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
                   <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
                      <span class="badge" id="badgeTipoMov"></span>
                      <h6 class="fw-bold mb-0 ms-2 text-dark" id="tituloFormMovimiento">Nuevo Registro</h6>
-                     <div class="small text-muted">${fecha}</div>
+                     <div class="small text-muted ms-auto">${escapeHTML(fecha)}</div>
                   </div>
 
                   <div class="row g-3">
                      <div class="col-md-6">
-                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">Monto ($) *</label>
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1" for="montoMovimiento">Monto ($) *</label>
                         <div class="input-group">
                            <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
                            <input type="number" step="0.50" min="0.50" class="form-control border-start-0 fw-bold text-end" id="montoMovimiento" name="montoMovimiento" placeholder="0.00" required onkeypress="return fnValidaNumeros(event);" onpaste="return false;">
@@ -480,7 +486,7 @@ const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
                      </div>
 
                      <div class="col-md-6">
-                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">Forma de Pago *</label>
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1" for="formaPagoMov">Forma de Pago *</label>
                         <select class="form-select" id="formaPagoMov" name="formaPagoMov" required>
                            <option value="EFECTIVO" selected>EFECTIVO</option>
                            <option value="TARJETA DE CREDITO">TARJETA DE CRÉDITO</option>
@@ -490,12 +496,12 @@ const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
                      </div>
 
                      <div class="col-12">
-                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">Concepto / Motivo *</label>
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1" for="conceptoMovimiento">Concepto / Motivo *</label>
                         <input type="text" class="form-control" id="conceptoMovimiento" name="conceptoMovimiento" placeholder="Ej. Fondo para cambio, compra de papelería, garrafón de agua..." maxlength="255" required>
                      </div>
 
                      <div class="col-12">
-                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">No. Comprobante / Ticket (Opcional)</label>
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1" for="comprobanteMovimiento">No. Comprobante / Ticket (Opcional)</label>
                         <input type="text" class="form-control form-control-sm" id="comprobanteMovimiento" name="comprobanteMovimiento" placeholder="Ej. Folio de factura, ticket o nota" maxlength="100">
                      </div>
                   </div>
@@ -507,8 +513,8 @@ const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
                         </button>
                      </div>
                      <div class="col-6">
-                        <button type="button" class="btn btn-dark btn-lib btn-redondo w-100" id="btnGuardarMov" onclick="registra_movimiento('${tipoMovimiento}');">
-                           <i class="bi bi-check-circle-fill me-1"></i> Guardar ${tipoMovimiento}
+                        <button type="button" class="btn btn-dark btn-lib btn-redondo w-100" id="btnGuardarMov" onclick="registra_movimiento('${tipoLimpio}');">
+                           <i class="bi bi-check-circle-fill me-1"></i> Guardar ${escapeHTML(tipoLimpio)}
                         </button>
                      </div>
                   </div>
@@ -522,16 +528,16 @@ const ModalRegistroMovimientoCaja = (tipoMovimiento) => {
 
    $('#modalAdminExt').html(html);
    $('#modalRegistroMovimientoCaja').modal('show');
-}
+};
 
 const registra_movimiento = async (tipoMovimiento) => {
-
-   let montoMovimiento       = $('#montoMovimiento').val().trim();   
+   let montoMovimiento       = $('#montoMovimiento').val().trim();    
    let formaPagoMov          = $('#formaPagoMov').val().trim();
    let conceptoMovimiento    = $('#conceptoMovimiento').val().trim();
    let comprobanteMovimiento = $('#comprobanteMovimiento').val().trim();
+   let valMonto              = parseFloat(montoMovimiento) || 0;
     
-   if(parseFloat(montoMovimiento < 0) || montoMovimiento == '') {
+   if (valMonto <= 0 || montoMovimiento === '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar un monto mayor a 0',
          icon: 'warning'
@@ -539,7 +545,7 @@ const registra_movimiento = async (tipoMovimiento) => {
       $('#montoMovimiento').focus();
       return;
    }
-   else if(conceptoMovimiento == '') {
+   else if (conceptoMovimiento === '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar el concepto o motivo del movimiento',
          icon: 'warning'
@@ -548,7 +554,7 @@ const registra_movimiento = async (tipoMovimiento) => {
       return;
    }
    
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El movimiento por $' + montoMovimiento + ' será registrado', 'question', 'Sí, registrar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El movimiento por $' + escapeHTML(montoMovimiento) + ' será registrado', 'question', 'Sí, registrar', 'Cancelar');
    
    if (!res.result) {
       $('#btnGuardarMov').prop('disabled', false);
@@ -557,32 +563,39 @@ const registra_movimiento = async (tipoMovimiento) => {
 
    $('#btnGuardarMov').prop('disabled', true);
 
-   let objMovimiento = { tipoMovimiento, montoMovimiento, formaPagoMov, conceptoMovimiento, comprobanteMovimiento, func: 'registrar_movimiento' };
+   let objMovimiento = { 
+      tipoMovimiento, 
+      montoMovimiento: valMonto, 
+      formaPagoMov, 
+      conceptoMovimiento, 
+      comprobanteMovimiento, 
+      func: 'registrar_movimiento', 
+      csrf: CSRF_TOKEN 
+   };
 
    let respuesta = await registrar_movimiento(objMovimiento);
-      if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Movimiento registrado!', '', 'success', 2500);
       $('#modalRegistroMovimientoCaja').modal('hide');
 
-      let objArrMovimiento = {};
-      objArrMovimiento.id_movimiento    = respuesta.data[0];
-      objArrMovimiento.sucursal_id      = respuesta.data[1];
-      objArrMovimiento.caja_id          = respuesta.data[2];
-      objArrMovimiento.tipo             = tipoMovimiento;
-      objArrMovimiento.concepto         = conceptoMovimiento;
-      objArrMovimiento.monto            = montoMovimiento;
-      objArrMovimiento.forma_pago       = formaPagoMov;
-      objArrMovimiento.comprobante      = comprobanteMovimiento;
-      objArrMovimiento.fecha_movimiento = respuesta.data[3];
-      objArrMovimiento.hora             = respuesta.data[4];
-      objArrMovimiento.usuario_registro = respuesta.data[5];
+      let objArrMovimiento = {
+         id_movimiento:    respuesta.data[0],
+         sucursal_id:      respuesta.data[1],
+         caja_id:          respuesta.data[2],
+         tipo:             tipoMovimiento,
+         concepto:         conceptoMovimiento,
+         monto:            valMonto,
+         forma_pago:       formaPagoMov,
+         comprobante:      comprobanteMovimiento,
+         fecha_movimiento: respuesta.data[3],
+         hora:             respuesta.data[4],
+         usuario_registro: respuesta.data[5]
+      };
 
       arrMovimientos.push(objArrMovimiento);
-
       pinta_movimientos_caja(arrMovimientos, 'tbodyMovimientos');
    } 
    else {
@@ -590,19 +603,27 @@ const registra_movimiento = async (tipoMovimiento) => {
       $('#btnGuardarMov').prop('disabled', false);
       return;
    }
-}
+};
 
-const elimina_movimiento = async (idMovimiento, tipo, monto) => {
+const elimina_movimiento = async (idMovimiento) => {
+   let idNum = parseInt(idMovimiento) || 0;
 
-   if(idMovimiento == '' || parseInt(idMovimiento) == 0) {
+   if (idNum <= 0) {
       ToastColor.fire({
          text: '¡Atención! Faltaron parámetros importantes, reinicia y vuelve a intentarlo',
          icon: 'warning'
       });      
       return;
    }
+
+   // Se obtiene el objeto del movimiento en JS a partir de su ID
+   let movSelected = arrMovimientos.find(mov => mov.id_movimiento == idNum);
+   if (!movSelected) return;
+
+   const tipo  = movSelected.tipo;
+   const monto = movSelected.monto;
    
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El movimiento de ' + tipo + ' por $' + monto + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El movimiento de ' + escapeHTML(tipo) + ' por $' + escapeHTML(String(monto)) + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
       $('.btnAccionMov').prop('disabled', false);
@@ -611,16 +632,15 @@ const elimina_movimiento = async (idMovimiento, tipo, monto) => {
 
    $('.btnAccionMov').prop('disabled', true);
 
-   let objMovimiento = { idMovimiento, tipo, monto, func: 'eliminar_movimiento' };
+   let objMovimiento = { idMovimiento: idNum, tipo, monto, func: 'eliminar_movimiento', csrf: CSRF_TOKEN };
 
    let respuesta = await eliminar_movimiento(objMovimiento);
-      if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Movimiento eliminado!', '', 'success', 2500);
-      arrMovimientos = arrMovimientos.filter(mov => mov.id_movimiento != idMovimiento);      
+      arrMovimientos = arrMovimientos.filter(mov => mov.id_movimiento != idNum);      
       pinta_movimientos_caja(arrMovimientos, 'tbodyMovimientos');
    } 
    else {
@@ -628,17 +648,16 @@ const elimina_movimiento = async (idMovimiento, tipo, monto) => {
       $('.btnAccionMov').prop('disabled', false);
       return;
    }
-}
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CORTES DE CAJA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 const ModalMiCorte = () => {
-   
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalMiCorte" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-xl">
          <div class="modal-content sombra-modal border-0">
             
-            <!-- HEADER -->
             <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 align-items-center">
                <div class="d-flex align-items-center">
                   <div class="rounded-circle bg-dark-subtle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -653,11 +672,10 @@ const ModalMiCorte = () => {
 
             <div class="modal-body p-4">
 
-               <!-- FILTRO RÁPIDO DE FECHA -->
                <div class="bg-light rounded-3 p-3 border mb-3">
                   <div class="row g-2 align-items-end">
                      <div class="col-md-5 col-6">
-                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1">Fecha</label>
+                        <label class="form-label text-muted fs-7 text-uppercase fw-semibold mb-1" for="filtroMiCorteFecha">Fecha</label>
                         <input type="date" class="form-control form-control-sm fw-semibold" id="filtroMiCorteFecha" value="${fecActual}">
                      </div>
                      <div class="col-md-7 col-6 text-end">
@@ -668,7 +686,6 @@ const ModalMiCorte = () => {
                   </div>
                </div>
 
-               <!-- TABLA DE MIS CORTES -->
                <div class="table-responsive rounded-3 border bg-white" style="max-height: 320px; overflow-y: auto;">
                   <table class="table table-hover align-middle mb-0" id="tablaMisCortes">
                      <thead class="bg-light sticky-top fs-7 text-uppercase text-muted">
@@ -682,7 +699,7 @@ const ModalMiCorte = () => {
                      </thead>
                      <tbody id="tbodyMisCortes" class="fs-7">
                         <tr>
-                           <td colspan="6" class="text-center py-4 text-muted">
+                           <td colspan="5" class="text-center py-4 text-muted">
                               <i class="bi bi-arrow-repeat spin fs-4 d-block mb-1"></i>
                               Cargando mis cortes del día...
                            </td>
@@ -693,7 +710,6 @@ const ModalMiCorte = () => {
 
             </div>
 
-            <!-- FOOTER -->
             <div class="modal-footer border-top-0 pt-0 px-4 pb-3">
                <button type="button" class="btn btn-sm btn-outline-secondary btn-redondo" data-bs-dismiss="modal">Cerrar</button>
             </div>
@@ -705,50 +721,48 @@ const ModalMiCorte = () => {
    $('#modalAdmin').html(html);
    $('#modalMiCorte').modal('show');
    obtiene_mis_cortes_caja('tbodyMisCortes');
-}
+};
 
 const obtiene_mis_cortes_caja = async (containerId) => {
    let fecha = $('#filtroMiCorteFecha').val().trim();
-   let html  = '';
-   
-   // Validación estricta: debe existir fecha seleccionada
+   arrCortes = [];
+
    if (fecha === '') {
-      html = 
-      `<tr>
-         <td colspan="6" class="text-center py-4 text-muted">
-            <i class="bi bi-exclamation-circle fs-4 d-block mb-1 text-warning"></i>
-            Debes seleccionar una fecha para consultar tus cortes
-         </td>
-      </tr>`;
-      $('#' + containerId).html(html);
+      $('#' + containerId).html(`
+         <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+               <i class="bi bi-exclamation-circle fs-4 d-block mb-1 text-warning"></i>
+               Debes seleccionar una fecha para consultar cortes
+            </td>
+         </tr>
+      `);
       return;
    }
-   
-   let respuesta = await obtener_mis_cortes_caja(fecha);
 
+   let respuesta = await obtener_mis_cortes_caja(fecha);
    if (respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if (respuesta.estatus != 200) {
-      showMessageSwalTimer('Ocurrió un error: ', respuesta.mensaje, 'error', 2500);
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
-   else if (respuesta.data.length == 0) {
-      html = 
-      `<tr>
-         <td colspan="6" class="text-center py-4 text-muted">
-            <i class="bi bi-calendar-x fs-4 d-block mb-1 text-danger"></i>
-            No se encontraron cortes de caja en la fecha seleccionada
-         </td>
-      </tr>`;
-      $('#' + containerId).html(html);
+   else if (!respuesta.data || respuesta.data.length === 0) {
+      $('#' + containerId).html(`
+         <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+               <i class="bi bi-calendar-x fs-4 d-block mb-1 text-danger"></i>
+               No se encontraron cortes registrados en esta fecha
+            </td>
+         </tr>
+      `);
       return;
    }
    else {
-      let data = await respuesta.data;
-      pinta_mis_cortes_caja(data, containerId);
+      arrCortes = respuesta.data;
+      pinta_mis_cortes_caja(arrCortes, containerId);
    }
-}
+};
 
 const pinta_mis_cortes_caja = (data, containerId) => {
    let html = '';
@@ -811,7 +825,7 @@ const pinta_mis_cortes_caja = (data, containerId) => {
                   <i class="bi bi-list-task"></i>
                </button>
                <a href="reportes/corte?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-outline-dark rounded-circle" title="Imprimir ticket">
-                  <i class="bi bi-printer"></i>
+               <i class="bi bi-printer"></i>
                </a>
             </div>
          </td>
@@ -977,10 +991,10 @@ const pinta_movimientos_corte_caja = (data, containerPagos, containerMovimientos
       pagos.forEach(p => {
          htmlPagos += `
          <tr>
-            <td class="text-nowrap text-center fs-7">${p.fecha_pago}</td>
+            <td class="text-nowrap text-center fs-7">${escapeHTML(p.fecha_pago)}</td>
             <td>${p.usuario_recibio}</td>
-            <td class="text-center"><span class="badge bg-light text-dark border text-capitalize">${p.metodo_pago}</span></td>
-            <td class="text-muted fs-7">${p.referencia_pago || '-'}</td>
+            <td class="text-center"><span class="badge bg-light text-dark border text-capitalize">${escapeHTML(p.metodo_pago)}</span></td>
+            <td class="text-muted fs-7">${escapeHTML(p.referencia_pago || '-')}</td>
             <td class="text-end pe-3 fw-semibold text-success">+$${parseFloat(p.monto).toFixed(2)}</td>
          </tr>`;
       });

@@ -10,18 +10,18 @@ export const guardar_lista_precio = async (objListaPrecios) => {
    return await postJSON('../api/controller/precios.php', objListaPrecios);
 };
 
-export const generar_lista_precios_base = async (idListaPrecios, nomListaPrecios) => {   
-   let datos = { func: 'generar_lista_precios_base', idListaPrecios, nomListaPrecios };
+export const generar_lista_precios_base = async (idListaPrecios, nomListaPrecios, csrf) => {   
+   let datos = { func: 'generar_lista_precios_base', idListaPrecios, nomListaPrecios, csrf };
    return await postJSON('../api/controller/precios.php', datos);
 };
 
-export const vaciar_lista_precios = async (idListaPrecios, nomListaPrecios) => {   
-   let datos = { func: 'vaciar_lista_precios', idListaPrecios, nomListaPrecios };
+export const vaciar_lista_precios = async (idListaPrecios, nomListaPrecios, csrf) => {   
+   let datos = { func: 'vaciar_lista_precios', idListaPrecios, nomListaPrecios, csrf };
    return await postJSON('../api/controller/precios.php', datos);
 };
 
-export const eliminar_lista_precios = async (idListaPrecios, nomListaPrecios) => {
-   const datos = { func: 'eliminar_lista_precios', idListaPrecios, nomListaPrecios };     
+export const eliminar_lista_precios = async (idListaPrecios, nomListaPrecios, csrf) => {
+   const datos = { func: 'eliminar_lista_precios', idListaPrecios, nomListaPrecios, csrf };     
    return await postJSON('../api/controller/precios.php', datos);
 }
 
@@ -35,24 +35,24 @@ export const agregar_estudio_lista = async (objEstudio) => {
    return await postJSON('../api/controller/precios.php', objEstudio);
 };
 
-export const actualizar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio) => {
-   const datos = { func: 'actualizar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio };     
+export const actualizar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio, csrf) => {
+   const datos = { func: 'actualizar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, nuevoPrecio, csrf };     
    return await postJSON('../api/controller/precios.php', datos);
 }
 
-export const eliminar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio) => {
-   const datos = { func: 'eliminar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio };     
+export const eliminar_precio_especifico = async (idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio, csrf) => {
+   const datos = { func: 'eliminar_precio_especifico', idPrecio, nomEstudio, idListaPrecios, nomListaPrecios, precio, csrf };     
    let respuesta = await postJSON('../api/controller/precios.php', datos);
    return respuesta;
 }
 
-export const actualizacion_masiva_precios = async (idListaPrecios, nomListaPrecios, subirBajar, porcentaje) => {
-   const datos = { func: 'actualizacion_masiva_precios', idListaPrecios, nomListaPrecios, subirBajar, porcentaje };     
+export const actualizacion_masiva_precios = async (idListaPrecios, nomListaPrecios, subirBajar, porcentaje, csrf) => {
+   const datos = { func: 'actualizacion_masiva_precios', idListaPrecios, nomListaPrecios, subirBajar, porcentaje, csrf };     
    return await postJSON('../api/controller/precios.php', datos);
 }
 
-export const marcar_precio_defecto = async (idListaPrecios, nomListaPrecios) => {
-   const datos = { func: 'marcar_precio_defecto', idListaPrecios, nomListaPrecios };     
+export const marcar_precio_defecto = async (idListaPrecios, nomListaPrecios, csrf) => {
+   const datos = { func: 'marcar_precio_defecto', idListaPrecios, nomListaPrecios, csrf };     
    let respuesta = await postJSON('../api/controller/precios.php', datos);
    return respuesta;
 }

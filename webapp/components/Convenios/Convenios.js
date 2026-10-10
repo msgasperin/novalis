@@ -1,10 +1,15 @@
-import { obtiene_convenios, guardar_convenio, eliminar_convenio, obtiene_credenciales_convenio, cambiar_credenciales } from "./ConveniosServices.js";
+import { 
+   obtiene_convenios, 
+   guardar_convenio, 
+   eliminar_convenio, 
+   obtiene_credenciales_convenio, 
+   cambiar_credenciales 
+} from "./ConveniosServices.js";
 import { obtiene_lista_precios } from "../Precios/PreciosServices.js";
 
 let arrConvenios = [];
 
 const TabConvenios = async () => {
-
    const res = await valida_menu('convenios');
 
    if (!res || res.estatus != 200) {
@@ -13,10 +18,10 @@ const TabConvenios = async () => {
       return;
    }
 
-   let html =
-   `<div class="row">
+   let html = `
+   <div class="row">
       <div class="col-xl-10 col-lg-10 col-md-10 col-sm-8 col-6 mt-2 fw-bold">
-         <div class="fs-4"> <i class="bi bi-building-gear"></i>Convenios</div>
+         <div class="fs-4"><i class="bi bi-building-gear me-2"></i>Convenios</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-2 col-sm-4 col-6 mt-2">
          <button class="btn btn-dark btn-lib btn-redondo w-100 fs-6" type="button" id="btnNuevoConvenio" onclick="ModalFormConvenio(0);">
@@ -27,13 +32,13 @@ const TabConvenios = async () => {
    <div class="row mt-2">
       <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-6">
          <div class="input-group">
-            <input type="text" name="inpBusquedaConvenio" id="inpBusquedaConvenio" class="form-control border-end-0" placeholder="Buscar convenio"  onkeyUp="fn_buscar_convenios();">
+            <input type="text" name="inpBusquedaConvenio" id="inpBusquedaConvenio" class="form-control border-end-0" placeholder="Buscar convenio" onkeyup="fn_buscar_convenios();">
             <span class="input-group-text border-start-0 bg-white"><i class="bi bi-search"></i></span>
          </div>
       </div>
       <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-6">
          <div class="input-group">
-            <select name="filtro_tipo_convenio" id="filtro_tipo_convenio" class="form-select" onChange="fn_filtrar_convenios();">
+            <select name="filtro_tipo_convenio" id="filtro_tipo_convenio" class="form-select" onchange="fn_filtrar_convenios();">
                <option value="TODOS">Todos</option>
                <option value="LABORATORIO">LABORATORIO</option>
                <option value="EMPRESA">EMPRESA</option>
@@ -48,141 +53,141 @@ const TabConvenios = async () => {
 
    $('#containerMain').html(html);
    fn_obtiene_convenios('listado_convenios');
-}
+};
 
 const fn_filtrar_convenios = () => {
-   let filtrado    = [];
+   let filtrado = [];
    let tipoConvenio = $('#filtro_tipo_convenio').val().trim();
 
-   if(tipoConvenio == 'TODOS') {
+   if (tipoConvenio === 'TODOS') {
       filtrado = arrConvenios;
-   }
-   else {
-      filtrado = arrConvenios.filter(convenio => convenio.tipo == tipoConvenio);   
+   } else {
+      filtrado = arrConvenios.filter(convenio => convenio.tipo === tipoConvenio);   
    }
 
    fn_pinta_listado_convenios('listado_convenios', filtrado);
-}
+};
 
 const fn_buscar_convenios = () => {
-   // Capturamos el valor, limpiamos espacios y removemos acentos
    let busqueda = $('#inpBusquedaConvenio').val().trim().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-   // Filtramos el arreglo comparando ambas cadenas sin acentos
    const filtrado = arrConvenios.filter(convenio => {
-      const tituloSinAcentos = convenio.nombre_comercial.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");      
+      const tituloSinAcentos = (convenio.nombre_comercial || '').toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");      
       return tituloSinAcentos.includes(busqueda);
    });   
 
    fn_pinta_listado_convenios('listado_convenios', filtrado);
-}
+};
 
 const fn_obtiene_convenios = async (containerId) => {
    activarLoad('Cargando convenios...');
    let respuesta = await obtiene_convenios();
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+      $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
       closeLoad();
       return;
    }
    else {
-      arrConvenios = await respuesta.data;
-      if(arrConvenios.length > 0) {
+      arrConvenios = respuesta.data || [];
+      if (arrConvenios.length > 0) {
          fn_pinta_listado_convenios(containerId, arrConvenios);
       }
       else {
-         $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+         $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
          closeLoad();
       }
    }
-}
+};
 
 const fn_pinta_listado_convenios = (containerId, data) => {
    const contenedor = document.getElementById(containerId);
    
    let iconTipoConvenio = '';
-   let html = 
-   `<div class="row g-4">`;
-      data.forEach((row, i) => {
-         
-         row.tipo == 'LABORATORIO' ? iconTipoConvenio = '<i class="bi bi-droplet"></i>'
-         : row.tipo == 'EMPRESA' ? iconTipoConvenio = '<i class="bi bi-building"></i>'
-         : row.tipo == 'DOCTOR' ? iconTipoConvenio = '<i class="bi bi-clipboard2-pulse"></i>' : '<i class="bi bi-ban"></i>';
+   let html = `<div class="row g-4">`;
 
-         html += `
-         <div class="col-12 col-md-6 col-lg-4" id="cardConvenio${row.id_convenio}">
-            <div class="card h-100 shadow border-0">
+   data.forEach((row) => {
+      iconTipoConvenio = row.tipo === 'LABORATORIO' ? '<i class="bi bi-droplet"></i>'
+         : row.tipo === 'EMPRESA' ? '<i class="bi bi-building"></i>'
+         : row.tipo === 'DOCTOR' ? '<i class="bi bi-clipboard2-pulse"></i>' : '<i class="bi bi-ban"></i>';
 
-               <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-                  <span class="badge rounded-pill px-3 py-1 bg-success bg-opacity-10 border-1 text-success border-success">
-                     <i class="bi bi-circle-fill me-1"></i> Activo
-                  </span>
-                  <small class="text-muted">ID: #${row.id_convenio}</small>
-               </div>
+      html += `
+      <div class="col-12 col-md-6 col-lg-4" id="cardConvenio${row.id_convenio}">
+         <div class="card h-100 shadow border-0">
 
-               <div class="card-body pt-2 mt-2">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+               <span class="badge rounded-pill px-3 py-1 bg-success bg-opacity-10 border-1 text-success border-success">
+                  <i class="bi bi-circle-fill me-1"></i> Activo
+               </span>
+               <small class="text-muted">ID: #${row.id_convenio}</small>
+            </div>
 
-                  <div class="d-flex align-items-center gap-3 mb-3">
-                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 circle-card-avatar">
-                        ${iniciales(row.nombre_comercial)}
-                     </div>
-                     <div>
-                        <div class="mb-0 fw-bold text-dark fs-7">${row.nombre_comercial}</div>
-                        <small class="text-muted fs-8">${iconTipoConvenio} ${row.tipo}</small>
-                     </div>
+            <div class="card-body pt-2 mt-2">
+
+               <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 circle-card-avatar">
+                     ${iniciales(row.nombre_comercial)}
                   </div>
-
-                  <!-- Contacto + teléfono -->
-                  <div class="row g-2 mb-2">
-                     <div class="col-7">
-                        <small class="text-muted d-block fs-7">Contacto</small>
-                        <small class="fw-medium text-dark">${row.persona_contacto}</small>
-                     </div>
-                     <div class="col-5 border-start">
-                        <small class="text-muted d-block fs-7">Teléfono</small>
-                        <small class="fw-medium text-dark">${row.telefono_contacto ?? 'S/D'}</small>
-                     </div>
-                  </div>
-
-                  <!-- Correo -->
                   <div>
-                     <small class="text-muted d-block fs-7">Correo</small>
-                     <small class="text-dark"><i class="bi bi-envelope me-1 text-success"></i>${row.correo_contacto ?? 'S/D'}</small>
+                     <div class="mb-0 fw-bold text-dark fs-7">${escapeHTML(row.nombre_comercial || '')}</div>
+                     <small class="text-muted fs-8">${iconTipoConvenio} ${escapeHTML(row.tipo || '')}</small>
                   </div>
                </div>
 
-               <!-- Footer -->
-               <div class="card-footer bg-white border-top-0 pb-2">
-                  <div class="d-flex justify-content-end gap-2">
-
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', '${row.id_convenio}', '${row.nombre_comercial}');">
-                        <i class="bi bi-receipt"></i>
-                     </button>
-                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio('${row.id_convenio}');">
-                        <i class="bi bi-pencil"></i>
-                     </button>
-                     <button type="buttton" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesConvenio('${row.id_convenio}', '${row.nombre_comercial}');" title="Ver credenciales de acceso">
-                        <i class="bi bi-shield-lock"></i>
-                     </button>
-                     <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio}, '${row.nombre_comercial}');">
-                        <i class="bi bi-trash"></i>
-                     </button>
-
+               <!-- Contacto + teléfono -->
+               <div class="row g-2 mb-2">
+                  <div class="col-7">
+                     <small class="text-muted d-block fs-7">Contacto</small>
+                     <small class="fw-medium text-dark">${escapeHTML(row.persona_contacto || 'S/D')}</small>
                   </div>
+                  <div class="col-5 border-start">
+                     <small class="text-muted d-block fs-7">Teléfono</small>
+                     <small class="fw-medium text-dark">${escapeHTML(row.telefono_contacto || 'S/D')}</small>
+                  </div>
+               </div>
+
+               <!-- Correo -->
+               <div>
+                  <small class="text-muted d-block fs-7">Correo</small>
+                  <small class="text-dark"><i class="bi bi-envelope me-1 text-success"></i>${escapeHTML(row.correo_contacto || 'S/D')}</small>
                </div>
             </div>
-         </div>`;
-      });
-      html += 
-   `</div>`;
+
+            <!-- Footer con llamadas puramente numéricas -->
+            <div class="card-footer bg-white border-top-0 pb-2">
+               <div class="d-flex justify-content-end gap-2">
+
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', ${row.id_convenio});">
+                     <i class="bi bi-receipt"></i>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio(${row.id_convenio});">
+                     <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesConvenio(${row.id_convenio});" title="Ver credenciales de acceso">
+                     <i class="bi bi-shield-lock"></i>
+                  </button>
+                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio});">
+                     <i class="bi bi-trash"></i>
+                  </button>
+
+               </div>
+            </div>
+         </div>
+      </div>`;
+   });
+
+   html += `</div>`;
    contenedor.innerHTML = html;
    closeLoad();
-}
+};
 
-const ModalCredencialesConvenio = (idConvenio, nomConvenio) => {
+const ModalCredencialesConvenio = (idConvenio) => {
+   let idNum = parseInt(idConvenio) || 0;
+   let convenio = arrConvenios.find(c => c.id_convenio == idNum);
+   if (!convenio && idNum > 0) return;
+
    let html = `
    <div class="modal fade modal-superior-blur" id="modalCredencialesConvenio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -191,12 +196,12 @@ const ModalCredencialesConvenio = (idConvenio, nomConvenio) => {
                <div id="container_credenciales_convenio"></div>
             </div>
             <div class="modal-footer border-0 text-end">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnCambiarCredenciales" onclick="fn_cambiar_credenciales_convenio(${idConvenio}, '${nomConvenio}');">
-                <i class="bi bi-shield-lock"></i> Cambiar credenciales
-              </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
-                Cerrar
-              </button>
+               <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnCambiarCredenciales" onclick="fn_cambiar_credenciales_convenio(${idNum});">
+                  <i class="bi bi-shield-lock"></i> Cambiar credenciales
+               </button> 
+               <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+                  Cerrar
+               </button>
             </div>
          </div>
       </div>
@@ -204,61 +209,70 @@ const ModalCredencialesConvenio = (idConvenio, nomConvenio) => {
 
    $('#modalAdmin').html(html);
    $('#modalCredencialesConvenio').modal('show');
-   fn_ver_credenciales_convenio(idConvenio, nomConvenio);
-}
+   fn_ver_credenciales_convenio(idNum);
+};
 
-const fn_cambiar_credenciales_convenio = async (idConvenio, nomConvenio) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Las credenciales del convenio: ' + nomConvenio + ' serán cambiadas', 'question', 'Sí, cambiar', 'Cancelar');
+const fn_cambiar_credenciales_convenio = async (idConvenio) => {
+   let idNum = parseInt(idConvenio) || 0;
+   let convenio = arrConvenios.find(c => c.id_convenio == idNum);
+   if (!convenio) return;
+
+   let nomConvenio = convenio.nombre_comercial || '';
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Las credenciales del convenio: ' + escapeHTML(nomConvenio) + ' serán cambiadas', 'question', 'Sí, cambiar', 'Cancelar');
    
    if (!res.result) {
       $('#btnCambiarCredenciales').prop('disabled', false);
       return;
    }
    
-   nomConvenio = quitarAcentos(nomConvenio);
+   let nomLimpio = quitarAcentos(nomConvenio);
 
    $('#btnCambiarCredenciales').prop('disabled', true);
-   let respuesta = await cambiar_credenciales(idConvenio, nomConvenio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await cambiar_credenciales(idNum, nomLimpio, CSRF_TOKEN);
+   
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('¡Credenciales actualizadas correctamente!', '', 'success', 2500);
-      fn_ver_credenciales_convenio(idConvenio, nomConvenio);
+      fn_ver_credenciales_convenio(idNum);
       $('#btnCambiarCredenciales').prop('disabled', false);
-      
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('#btnCambiarCredenciales').prop('disabled', false);
       return;
    }
-}
+};
 
-const fn_ver_credenciales_convenio = async (idConvenio, nomConvenio) => {
+const fn_ver_credenciales_convenio = async (idConvenio) => {
+   let idNum = parseInt(idConvenio) || 0;
+   let convenio = arrConvenios.find(c => c.id_convenio == idNum);
+   let nomConvenio = convenio ? convenio.nombre_comercial : '';
 
-   let respuesta      = await obtiene_credenciales_convenio(idConvenio);
-   if(respuesta.estatus == 403) {
+   let respuesta = await obtiene_credenciales_convenio(idNum);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
    else {
-      const credenciales = respuesta.data;
+      const credenciales = respuesta.data || [];
 
-      if(credenciales.length == 0) {
+      if (credenciales.length === 0) {
          $('#container_credenciales_convenio').html(`<div class="alert alert-info p-2 text-center">No se encontraron las credenciales del convenio, vuelve a intentarlo</div>`);
       }
       else {
-         let html = 
-         `<div class="card border-0 shadow-sm bg-light mb-4">
+         let html = `
+         <div class="card border-0 shadow-sm bg-light mb-4">
             <div class="card-header bg-white border-0 pt-3 pb-2 border-bottom">
                <div class="d-flex align-items-center text-dark">
                   <i class="bi bi-person-badge-fill fs-4 me-2 text-secondary"></i>
                   <div>
-                     <small class="d-block text-muted lh-1 mb-1">Paciente</small>
-                     <h6 class="mb-0 fw-bold">${nomConvenio}</h6>
+                     <small class="d-block text-muted lh-1 mb-1">Convenio</small>
+                     <h6 class="mb-0 fw-bold">${escapeHTML(nomConvenio)}</h6>
                   </div>
                </div>
             </div>
@@ -267,14 +281,14 @@ const fn_ver_credenciales_convenio = async (idConvenio, nomConvenio) => {
                   <i class="bi bi-person-fill fs-5 me-2 text-primary"></i>
                   <div>
                      <small class="d-block text-muted lh-1">Usuario</small>
-                     <span class="fw-bold text-dark">${credenciales[0].user_plataforma}</span>
+                     <span class="fw-bold text-dark">${escapeHTML(credenciales[0].user_plataforma || '')}</span>
                   </div>
                </div>                  
                <div class="d-flex align-items-center text-secondary">
                   <i class="bi bi-key-fill fs-5 me-2 text-warning"></i>
                   <div>
                      <small class="d-block text-muted lh-1">Contraseña</small>
-                     <span class="font-monospace text-dark">${credenciales[0].contrasenia}</span>
+                     <span class="font-monospace text-dark">${escapeHTML(credenciales[0].contrasenia || '')}</span>
                   </div>
                </div>
             </div>
@@ -282,11 +296,11 @@ const fn_ver_credenciales_convenio = async (idConvenio, nomConvenio) => {
          $('#container_credenciales_convenio').html(html);
       }
    }
-}
+};
 
-const ModalFormConvenio = (idConvenio) => {
-
-   let convenioSeleccionado = arrConvenios.filter(convenio => convenio.id_convenio == idConvenio);
+const ModalFormConvenio = (idConvenio = 0) => {
+   let idNum = parseInt(idConvenio) || 0;
+   let convenioSeleccionado = arrConvenios.find(c => c.id_convenio == idNum);
 
    let titulo;
    let nombre_comercial    = '';
@@ -297,15 +311,15 @@ const ModalFormConvenio = (idConvenio) => {
    let lista_precio_id     = 0;
    let tipo                = 'NA';
 
-   if(idConvenio > 0) {
-      titulo              = 'Editar Convenio: '+ convenioSeleccionado[0].nombre_comercial ?? '';
-      nombre_comercial    = convenioSeleccionado[0].nombre_comercial ?? '';
-      persona_contacto    = convenioSeleccionado[0].persona_contacto ?? '';
-      telefono_contacto   = convenioSeleccionado[0].telefono_contacto ?? '';
-      correo_contacto     = convenioSeleccionado[0].correo_contacto ?? '';
-      direccion           = convenioSeleccionado[0].direccion ?? '';
-      lista_precio_id     = convenioSeleccionado[0].lista_precio_id;
-      tipo                = convenioSeleccionado[0].tipo;
+   if (idNum > 0 && convenioSeleccionado) {
+      titulo              = 'Editar Convenio: ' + (convenioSeleccionado.nombre_comercial || '');
+      nombre_comercial    = convenioSeleccionado.nombre_comercial || '';
+      persona_contacto    = convenioSeleccionado.persona_contacto || '';
+      telefono_contacto   = convenioSeleccionado.telefono_contacto || '';
+      correo_contacto     = convenioSeleccionado.correo_contacto || '';
+      direccion           = convenioSeleccionado.direccion || '';
+      lista_precio_id     = convenioSeleccionado.lista_precio_id || 0;
+      tipo                = convenioSeleccionado.tipo || 'NA';
    }
    else {
       titulo = 'Registrar Nuevo Convenio';
@@ -317,7 +331,7 @@ const ModalFormConvenio = (idConvenio) => {
          <div class="modal-content sombra-modal">
             
             <div class="modal-header modal-head-per">
-               <h1 class="modal-title fs-5">${titulo}</h1>
+               <h1 class="modal-title fs-5">${escapeHTML(titulo)}</h1>
                <button type="button" class="btn btn-outline-light btn-sm btn-redondo" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                </button>
@@ -326,11 +340,11 @@ const ModalFormConvenio = (idConvenio) => {
             <div class="modal-body bg-light">
                <div class="row">
                   <div class="col-12 mt-3">
-                     <b>Nombre *</b>
-                     <input type="text" name="nomConvenio" id="nomConvenio" class="form-control" maxlength="200" value="${nombre_comercial}">
+                     <label class="form-label fw-bold mb-1" for="nomConvenio">Nombre *</label>
+                     <input type="text" name="nomConvenio" id="nomConvenio" class="form-control" maxlength="200" value="${escapeHTML(nombre_comercial)}">
                   </div>
                   <div class="col-md-3 col-sm-6 col-12 mt-3">
-                     <b>Tipo *</b>
+                     <label class="form-label fw-bold mb-1" for="tipoConvenio">Tipo *</label>
                      <select name="tipoConvenio" id="tipoConvenio" class="form-select">
                         <option value="NA">Seleccionar</option>
                         <option value="LABORATORIO">LABORATORIO</option>
@@ -339,176 +353,170 @@ const ModalFormConvenio = (idConvenio) => {
                      </select>
                   </div>
                   <div class="col-md-9 col-sm-5 col-12 mt-3">
-                     <b>Persona de Contacto *</b>
-                     <input type="text" name="personaContactoConvenio" id="personaContactoConvenio" class="form-control" maxlength="200" value="${persona_contacto}">
+                     <label class="form-label fw-bold mb-1" for="personaContactoConvenio">Persona de Contacto *</label>
+                     <input type="text" name="personaContactoConvenio" id="personaContactoConvenio" class="form-control" maxlength="200" value="${escapeHTML(persona_contacto)}">
                   </div>
                   <div class="col-md-3 col-sm-3 col-12 mt-3">
-                     <b>Teléfono *</b>
-                     <input type="tel" inputmode="tel" name="telConvenio" id="telConvenio" class="form-control" maxlength="10" onkeypress="return fnValidaNumeros(event);" value="${telefono_contacto}">
+                     <label class="form-label fw-bold mb-1" for="telConvenio">Teléfono *</label>
+                     <input type="tel" inputmode="tel" name="telConvenio" id="telConvenio" class="form-control" maxlength="10" onkeypress="return fnValidaNumeros(event);" value="${escapeHTML(telefono_contacto)}">
                   </div>
                   <div class="col-md-5 col-sm-5 col-12 mt-3">
-                     <b>Correo</b>
-                     <input type="mail" inputmode="mail" name="correoConvenio" id="correoConvenio" class="form-control" maxlength="100" value="${correo_contacto}">
+                     <label class="form-label fw-bold mb-1" for="correoConvenio">Correo</label>
+                     <input type="email" inputmode="email" name="correoConvenio" id="correoConvenio" class="form-control" maxlength="100" value="${escapeHTML(correo_contacto)}">
                   </div>
                   <div class="col-md-4 col-sm-6 col-12 mt-3">
-                     <b>Tipo de precio *</b>
+                     <label class="form-label fw-bold mb-1" for="precioConvenio">Tipo de precio *</label>
                      <select name="precioConvenio" id="precioConvenio" class="form-select">
                         <option value="0">Seleccionar</option>
                      </select>
                   </div>
                   <div class="col-12 mt-3">
-                     <b>Dirección *</b>
-                     <textarea name="direccionConvenio" id="direccionConvenio" class="form-control" rows="3" maxlength="300">${direccion}</textarea>
+                     <label class="form-label fw-bold mb-1" for="direccionConvenio">Dirección *</label>
+                     <textarea name="direccionConvenio" id="direccionConvenio" class="form-control" rows="3" maxlength="300">${escapeHTML(direccion)}</textarea>
                   </div>
                </div>
             </div>
             
-            <div class="modal-footer bg-light border-0" align="right">
-               <button type="button" class="btn btn-dark btn-redondo btn-lib" id="btnGuardarConvenio" onclick="fn_guardar_convenio(${idConvenio});">
+            <div class="modal-footer bg-light border-0 text-end">
+               <button type="button" class="btn btn-dark btn-redondo btn-lib" id="btnGuardarConvenio" onclick="fn_guardar_convenio(${idNum});">
                   Guardar
                </button>
-               <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+               <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
                   Cerrar
                </button>
             </div>
          </div>
       </div>
    </div>`;
+
    $('#modalAdminExt').html(html);
    $('#modalFormConvenio').modal('show');
 
    combo_listas_precios('precioConvenio');
 
-   if(idConvenio > 0) {
+   if (idNum > 0) {
       setTimeout(() => {
          $('#tipoConvenio').val(tipo);
          $('#precioConvenio').val(lista_precio_id);
       }, 300);
    }
-}
+};
 
 const combo_listas_precios = async (containerId) => {
    let comboListasPrecios = '<option value="0">Seleccionar</option>';
    let respuesta = await obtiene_lista_precios();
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
    else {
-      let res = await respuesta.data;
-      if(res.length > 0) {
-         res.map((lista) => {
-            comboListasPrecios +=`<option value="${lista.id}">${lista.nombre}</option>`;
+      let res = respuesta.data || [];
+      if (res.length > 0) {
+         res.forEach((lista) => {
+            comboListasPrecios += `<option value="${lista.id}">${escapeHTML(lista.nombre || '')}</option>`;
          });
-         $('#'+containerId).html(comboListasPrecios);
+         $('#' + containerId).html(comboListasPrecios);
       }      
    }
-}
+};
 
-const fn_guardar_convenio = async (idConvenio, origen) => {
-
+const fn_guardar_convenio = async (idConvenio = 0) => {
+   let idNum              = parseInt(idConvenio) || 0;
    let nomConvenio        = $('#nomConvenio').val().trim();
    let tipo               = $('#tipoConvenio').val();
    let personaContacto    = $('#personaContactoConvenio').val().trim();
    let telefono           = $('#telConvenio').val().trim();
    let correo             = $('#correoConvenio').val().trim();
-   let precio             = $('#precioConvenio').val();
+   let precio             = parseInt($('#precioConvenio').val()) || 0;
    let direccion          = $('#direccionConvenio').val().trim();
    let msjAccion;
 
-   if (nomConvenio == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre del cliente del convenio',
-         icon: 'warning'
-      });
+   if (nomConvenio === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el nombre del cliente del convenio', icon: 'warning' });
       $('#nomConvenio').focus();
       return;
    }
-   else if (tipo == 'NA') {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el tipo de cliente del convenio',
-         icon: 'warning'
-      });
+   else if (tipo === 'NA') {
+      ToastColor.fire({ text: '¡Atención! Debes seleccionar el tipo de cliente del convenio', icon: 'warning' });
       $('#tipoConvenio').focus();
       return;
    }
-   else if (personaContacto == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el nombre de la persona de contacto',
-         icon: 'warning'
-      });
+   else if (personaContacto === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el nombre de la persona de contacto', icon: 'warning' });
       $('#personaContactoConvenio').focus();
       return;
    }
-   else if (telefono == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar el teléfono de contacto del cliente del convenio',
-         icon: 'warning'
-      });
+   else if (telefono === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar el teléfono de contacto del cliente del convenio', icon: 'warning' });
       $('#telConvenio').focus();
       return;
    }
-   else if(correo != '') {
-      if(!fnValidaMail(correo)) {
-         ToastColor.fire({
-            text: '¡Atención! Debes ingresar una cuenta de correo válida',
-            icon: 'warning'
-         });
-         $('#correoConvenio').focus();
+   else if (correo !== '' && !fnValidaMail(correo)) {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar una cuenta de correo válida', icon: 'warning' });
+      $('#correoConvenio').focus();
       return;
-      }
    }
-   else if (parseInt(precio) == 0) {
-      ToastColor.fire({
-         text: '¡Atención! Debes seleccionar el tipo de precio para el cliente',
-         icon: 'warning'
-      });
+   else if (precio === 0) {
+      ToastColor.fire({ text: '¡Atención! Debes seleccionar el tipo de precio para el cliente', icon: 'warning' });
       $('#precioConvenio').focus();
       return;
    }
-   else if (direccion == '') {
-      ToastColor.fire({
-         text: '¡Atención! Debes ingresar la dirección del cliente',
-         icon: 'warning'
-      });
+   else if (direccion === '') {
+      ToastColor.fire({ text: '¡Atención! Debes ingresar la dirección del cliente', icon: 'warning' });
       $('#direccionConvenio').focus();
       return;
    }
       
-   let objConvenio = { 'func': 'guardar', idConvenio, nomConvenio, tipo, personaContacto, telefono, correo, precio, direccion };
+   let objConvenio = { 
+      func: 'guardar', 
+      idConvenio: idNum, 
+      nomConvenio, 
+      tipo, 
+      personaContacto, 
+      telefono, 
+      correo, 
+      precio, 
+      direccion, 
+      csrf: CSRF_TOKEN 
+   };
       
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El convenio: ' + nomConvenio + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El convenio: ' + escapeHTML(nomConvenio) + ' será registrado', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
       $('#btnGuardarConvenio').prop('disabled', false);
       return;
    }
 
-   $('#btnGuardarConvenio').prop('disabled',true);
+   $('#btnGuardarConvenio').prop('disabled', true);
    let respuesta = await guardar_convenio(objConvenio);
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-
-      idConvenio > 0 ? msjAccion = 'Información actualizada correctamente' : msjAccion = 'Convenio guardado correctamente';
+   else if (respuesta.estatus == 200) {
+      msjAccion = idNum > 0 ? 'Información actualizada correctamente' : 'Convenio guardado correctamente';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormConvenio').modal('hide');
-      $('#btnGuardarConvenio').prop('disabled',false);
+      $('#btnGuardarConvenio').prop('disabled', false);
       fn_obtiene_convenios('listado_convenios');
    }
    else {
       showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
-      $('#btnGuardarConvenio').prop('disabled',false);
+      $('#btnGuardarConvenio').prop('disabled', false);
       return;
    }
-}
+};
 
-const fn_eliminar_convenio = async (idConvenio, nomConvenio) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El Convenio: ' + nomConvenio + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+const fn_eliminar_convenio = async (idConvenio) => {
+   let idNum = parseInt(idConvenio) || 0;
+   let convenio = arrConvenios.find(c => c.id_convenio == idNum);
+   if (!convenio) return;
+
+   let nomConvenio = convenio.nombre_comercial || '';
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El Convenio: ' + escapeHTML(nomConvenio) + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
       $('.btnEliminarConvenio').prop('disabled', false);
@@ -517,24 +525,23 @@ const fn_eliminar_convenio = async (idConvenio, nomConvenio) => {
 
    $('.btnEliminarConvenio').prop('disabled', true);
 
-   let respuesta = await eliminar_convenio(idConvenio, nomConvenio);
-      if(respuesta.estatus == 403) {
+   let respuesta = await eliminar_convenio(idNum, nomConvenio, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('Convenio eliminado correctamente', '', 'success', 2500);
-      $('#cardConvenio'+idConvenio).remove();
-      arrConvenios = arrConvenios.filter(convenio => convenio.id_convenio != idConvenio);
+      $('#cardConvenio' + idNum).remove();
+      arrConvenios = arrConvenios.filter(c => c.id_convenio != idNum);
       $('.btnEliminarConvenio').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       $('.btnEliminarConvenio').prop('disabled', false);
       return;
    }
-}
+};
 
-
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabConvenios                     = TabConvenios;
 window.ModalFormConvenio                = ModalFormConvenio;
 window.ModalCredencialesConvenio        = ModalCredencialesConvenio;
@@ -544,4 +551,3 @@ window.fn_filtrar_convenios             = fn_filtrar_convenios;
 window.fn_guardar_convenio              = fn_guardar_convenio;
 window.fn_eliminar_convenio             = fn_eliminar_convenio;
 window.fn_cambiar_credenciales_convenio = fn_cambiar_credenciales_convenio;
-

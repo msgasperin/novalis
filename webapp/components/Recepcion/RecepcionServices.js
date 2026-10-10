@@ -20,18 +20,18 @@ export const registrar_orden = async (objOrden) => {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CARRITO DE ESTUDIOS EN RECEPCIÓN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-export const agregar_estudio_carrito = async (idEstudio) => {
-   const datos = { func: 'agregar_estudio_carrito', idEstudio };
+export const agregar_estudio_carrito = async (idEstudio, csrf) => {
+   const datos = { func: 'agregar_estudio_carrito', idEstudio, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
-export const borrar_carrito_recepcion = async () => {
-   const datos = { func: 'borrar_carrito_recepcion' };
+export const borrar_carrito_recepcion = async (csrf) => {
+   const datos = { func: 'borrar_carrito_recepcion', csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
-export const borrar_estudio_carrito = async (idCarrito) => {
-   const datos = { func: 'borrar_estudio_carrito', idCarrito };
+export const borrar_estudio_carrito = async (idCarrito, csrf) => {
+   const datos = { func: 'borrar_estudio_carrito', idCarrito, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
@@ -47,26 +47,26 @@ export const obtener_saldos_orden = async (idOrden) => {
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
-export const registra_abono = async (idOrden, metodoPago, monto) => {
-   const datos = { func: 'registra_abono', idOrden, metodoPago, monto };
+export const registra_abono = async (idOrden, metodoPago, monto, csrf) => {
+   const datos = { func: 'registra_abono', idOrden, metodoPago, monto, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
-export const elimina_abono = async (idAbono, idOrden) => {
-   const datos = { func: 'elimina_abono', idAbono, idOrden };
+export const elimina_abono = async (idAbono, idOrden, csrf) => {
+   const datos = { func: 'elimina_abono', idAbono, idOrden, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CANCELAR ORDEN +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export const cancela_orden = async (idOrden, folioOrden, motivo) => {
-   const datos = { func: 'cancela_orden', idOrden, folioOrden, motivo };
+export const cancela_orden = async (idOrden, folioOrden, motivo, csrf) => {
+   const datos = { func: 'cancela_orden', idOrden, folioOrden, motivo, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ORDEN ENTREGADA +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export const marcar_orden_como_entregada = async (idOrden, folio) => {
-   const datos = { func: 'marcar_orden_como_entregada', idOrden, folio };
+export const marcar_orden_como_entregada = async (idOrden, folio, csrf) => {
+   const datos = { func: 'marcar_orden_como_entregada', idOrden, folio, csrf };
    return await postJSON('../api/controller/recepcion.php', datos);
 }

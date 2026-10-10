@@ -2,11 +2,12 @@
 
 require('../../api/config/class.pdo.php');
 
-$token           = isset($_GET['token']) ? trim($_GET['token']) : '';
-$ordenEncontrada = false;
-$datosOrden      = [];
-$archivosPDF     = [];
+$token                  = isset($_GET['token']) ? trim($_GET['token']) : '';
+$ordenEncontrada        = false;
+$datosOrden             = [];
+$archivosPDF            = [];
 $_SESSION['id_usuario'] = 1;
+$estudiosSolicitados    = [];
 
 if($mensajeError == '') {
    if (!empty($token)) {
@@ -17,7 +18,7 @@ if($mensajeError == '') {
       $tiempo_limite_consulta = time() - (30 * 24 * 60 * 60);
 
       // Consulta para validar el token y traer los datos de la orden
-      $stmt = $v->dbh->prepare("SELECT id, folio, paciente_nombre_historico, fecha_cap, DATE_FORMAT(fecha_cap,'%d-%m-%Y') AS fecha_cap_format FROM ordenes_trabajo WHERE key_query = ? AND publicada = 1 AND estatus <> 'CANCELADO' LIMIT 1");
+      $stmt = $v->getDbh()->prepare("SELECT id, folio, paciente_nombre_historico, fecha_cap, DATE_FORMAT(fecha_cap,'%d-%m-%Y') AS fecha_cap_format FROM ordenes_trabajo WHERE key_query = ? AND publicada = 1 AND estatus <> 'CANCELADO' LIMIT 1");
       $stmt->execute([$token]);
 
       if ($stmt->rowCount() > 0) {
@@ -30,13 +31,13 @@ if($mensajeError == '') {
             $ordenEncontrada = true;
 
             // Consultamos los estudios solicitados
-            $sqlEstudios = $v->dbh->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
+            $sqlEstudios = $v->getDbh()->prepare("SELECT nombre_estudio_historico FROM orden_detalles WHERE orden_id = ?");
             $sqlEstudios->execute([$datosOrden['id']]);
             $estudiosSolicitados = $sqlEstudios->fetchAll(PDO::FETCH_ASSOC);
 
             // Consultar los PDF adjuntos/asociados a esta orden de trabajo
-            $stmtPdf = $v->dbh->prepare("SELECT id, nombre_original, descripcion, nombre_servidor, fecha_cap, key_query_pdf FROM orden_resultados_pdf WHERE orden_id = ? ORDER BY id ASC");
-            $stmtPdf->execute([$datosOrden['id']]);
+            $stmtPdf = $v->getDbh()->prepare("SELECT id, nombre_original, descripcion, nombre_servidor, fecha_cap, key_query_pdf FROM orden_resultados_pdf WHERE orden_id = ? AND activo = ? ORDER BY id ASC");
+            $stmtPdf->execute([$datosOrden['id'], 1]);
             $archivosPDF = $stmtPdf->fetchAll(PDO::FETCH_ASSOC);
          }
       } else {

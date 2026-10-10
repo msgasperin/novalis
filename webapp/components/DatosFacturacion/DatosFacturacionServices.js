@@ -11,8 +11,8 @@ export const obtiene_datos_facturacion = async (tipoReceptor, idReceptor) => {
    return respuesta;
 }
 
-export const elimina_datos_facturacion = async (idDatosFacturacion, nomReceptor) => {
-   const datos = { func: 'elimina_datos_facturacion', idDatosFacturacion, nomReceptor };     
+export const elimina_datos_facturacion = async (idDatosFacturacion, nomReceptor, csrf) => {
+   const datos = { func: 'elimina_datos_facturacion', idDatosFacturacion, nomReceptor, csrf };     
    let respuesta = await postJSON('../api/controller/datos_facturacion.php', datos);
    return respuesta;
 }

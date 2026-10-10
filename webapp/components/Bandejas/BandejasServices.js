@@ -19,27 +19,27 @@ export const sube_pdf_resultado = async (objSubidaResultado) => {
    return await postFormData('../api/controller/bandejas.php', objSubidaResultado);
 };
 
-export const eliminar_pdf_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOriginal) => {
-   const datos = { func: 'eliminar_pdf_resultado', idArchivo, idOrden, folio, nomServidor, nomOriginal };
+export const eliminar_pdf_resultado = async (idArchivo, idOrden, folio, nomServidor, nomOriginal, CSRF_TOKEN) => {
+   const datos = { func: 'eliminar_pdf_resultado', idArchivo, idOrden, folio, nomServidor, nomOriginal, CSRF_TOKEN };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const marcar_orden_como_parcial = async (idOrden, folio) => {
-   const datos = { func: 'marcar_orden_como_parcial', idOrden, folio };
+export const marcar_orden_como_parcial = async (idOrden, folio, CSRF_TOKEN) => {
+   const datos = { func: 'marcar_orden_como_parcial', idOrden, folio, CSRF_TOKEN };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const marcar_orden_como_completada = async (idOrden, folio) => {
-   const datos = { func: 'marcar_orden_como_completada', idOrden, folio };
+export const marcar_orden_como_completada = async (idOrden, folio, CSRF_TOKEN) => {
+   const datos = { func: 'marcar_orden_como_completada', idOrden, folio, CSRF_TOKEN };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const procesar_publicacion_notificacion = async (idOrden, folio, paciente, correo, telefono) => {
-   const datos = { func: 'procesar_publicacion_notificacion', idOrden, folio, paciente, correo, telefono };
+export const procesar_publicacion_notificacion = async (idOrden, folio, CSRF_TOKEN) => {
+   const datos = { func: 'procesar_publicacion_notificacion', idOrden, folio, CSRF_TOKEN };
    return await postJSON('../api/controller/bandejas.php', datos);
 }
 
-export const notificar_mail_resultados = async (keyQuery, correo) => {
-   const datos = { func: 'notificar_mail_resultados', keyQuery, correo };
+export const notificar_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
+   const datos = { func: 'notificar_mail_resultados', keyQuery, correo, CSRF_TOKEN };
    return await postJSON('../api/controller/enviar_resultados_mail.php', datos);
 }

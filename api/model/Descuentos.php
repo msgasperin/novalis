@@ -1,84 +1,96 @@
 <?php
 	require_once('../config/class.pdo.php');
+
 	class Descuentos extends Conexion {
 		protected PDO $dbh;
-		//Objeto principal del constructor de la clase
+
 		public function __construct() {
-	   	parent::__construct();
-	   	$this->dbh = $this->getDbh();
-	  	}
-	
-		public function obtiene_descuentos() {
+			parent::__construct();
+			$this->dbh = $this->getDbh();
+		}
+
+		public function obtiene_descuentos(): array {
 			$res = [];
 			try {				
-				$sql = $this->dbh->prepare("SELECT id, concepto_desc, porcentaje_desc FROM cat_descuentos_generales WHERE activo = 1");
+				$sql = $this->dbh->prepare("SELECT id, concepto_desc, porcentaje_desc FROM cat_descuentos_generales WHERE activo = 1 ORDER BY id DESC");
 				$sql->execute();				
 				$res = $sql->fetchAll(PDO::FETCH_ASSOC);
 			} catch (Exception $error) {
-        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				error_log("Error en obtiene_descuentos: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 			
 			return $res;
 		}
 
-		public function guardar_descuento(array $post, string $user_cap) {
+		public function guardar_descuento(array $post, string $user_cap): array {
 			$estatus = 500;
 			$data    = [0];
 			$mensaje = 'Error al intentar guardar el descuento';
-			try {
-				$sql = $this->dbh->prepare("INSERT INTO cat_descuentos_generales (concepto_desc, porcentaje_desc, user_cap) VALUES (?,?,?)");
-				$ok = $sql->execute(array($post["conceptoDescuento"], $post["porcentajeDescuento"], $user_cap));
 
-				if($ok) {
-					$estatus = 200;
-					$data    = [$this->dbh->lastInsertId()];
-					$mensaje = 'ok';
+			try {
+				$concepto   = trim($post["conceptoDescuento"] ?? '');
+				$porcentaje = (float)($post["porcentajeDescuento"] ?? 0);
+
+				$sql = $this->dbh->prepare("INSERT INTO cat_descuentos_generales (concepto_desc, porcentaje_desc, user_cap, fecha_cap) VALUES (?, ?, ?, ?)");
+				$ok  = $sql->execute([$concepto, $porcentaje, $user_cap, date('Y-m-d H:i:s')]);
+
+				if ($ok) {
+					$idInsertado = (int)$this->dbh->lastInsertId();
+					$estatus     = 200;
+					$data        = [$idInsertado];
+					$mensaje     = 'ok';
 				}
 			} 
 			catch (Exception $error) {
-				error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				error_log("Error en guardar_descuento: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 							
-			$res = array('estatus' => $estatus, 'data' => $data, 'mensaje' => $mensaje);
-			return $res;
+			return ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
 		}
 
-		public function actualizar_descuento(array $post, string $user_cap) {
+		public function actualizar_descuento(array $post, string $user_cap): array {
 			$estatus = 500;
 			$data    = [0];
 			$mensaje = 'Error al intentar actualizar el descuento';
+
 			try {
+				$idDescuento = (int)$post["idDescuento"];
+				$concepto    = trim($post["conceptoDescuento"] ?? '');
+				$porcentaje  = (float)($post["porcentajeDescuento"] ?? 0);
 
 				$sql = $this->dbh->prepare("UPDATE cat_descuentos_generales SET concepto_desc = ?, porcentaje_desc = ?, user_cap = ?, fecha_cap = ? WHERE id = ?");
-				$ok = $sql->execute(array($post["conceptoDescuento"], $post["porcentajeDescuento"], $user_cap, date('Y-m-d H:i:s'), $post["idDescuento"]));
+				$ok  = $sql->execute([$concepto, $porcentaje, $user_cap, date('Y-m-d H:i:s'), $idDescuento]);
 
-				if($ok) {
+				if ($ok) {
 					$estatus = 200;
-					$data    = [$post["idDescuento"]];
+					$data    = [$idDescuento];
+					$mensaje = $sql->rowCount() > 0 ? 'ok' : 'No hubo cambios que actualizar';
+				}
+			} 
+			catch (Exception $error) {
+				error_log("Error en actualizar_descuento: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+		}
+
+		public function eliminar_descuento(int $id_descuento): array {
+			$estatus = 500;
+			$mensaje = 'Error al eliminar el descuento';
+			$data    = [];
+
+			try {
+				$sql = $this->dbh->prepare("UPDATE cat_descuentos_generales SET activo = ? WHERE id = ?");
+				if ($sql->execute([0, $id_descuento])) {
+					$estatus = 200;
 					$mensaje = 'ok';
 				}
 			} 
 			catch (Exception $error) {
-        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
-			}
-			
-      	$res = array('estatus' => $estatus, 'data' => $data, 'mensaje' => $mensaje);
-			return $res;
-		}
-
-		public function eliminar_descuento(int $id_descuento) {
-      	$res = false;
-			try {
-				$sql = $this->dbh->prepare("UPDATE cat_descuentos_generales SET activo = ? WHERE id = ?");
-				if($sql->execute(array(0, $id_descuento))) {
-          		$res = true;
-        		}
-			} 
-			catch (Exception $error) {
-        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+				error_log("Error en eliminar_descuento: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
 			}
 						
-			return $res;
+			return ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
 		}
 
 	}

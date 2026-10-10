@@ -11,20 +11,20 @@ export const obtiene_promociones = async () => {
    return respuesta;
 }
 
-export const elimina_promocion = async (idPromocion, nomPromocion) => {
-   const datos = { func: 'elimina_promocion', idPromocion, nomPromocion };     
+export const elimina_promocion = async (idPromocion, nomPromocion, csrf) => {
+   const datos = { func: 'elimina_promocion', idPromocion, nomPromocion, csrf };     
    let respuesta = await postJSON('../api/controller/portal.php', datos);
    return respuesta;
 }
 
-export const actualiza_whats = async (whatsapp) => {
-   const datos = { func: 'actualiza_whats', whatsapp };     
+export const actualiza_whats = async (whatsapp, csrf) => {
+   const datos = { func: 'actualiza_whats', whatsapp, csrf };     
    let respuesta = await postJSON('../api/controller/portal.php', datos);
    return respuesta;
 }
 
-export const publica_cambios = async () => {
-   const datos = { func: 'publica_cambios' };     
+export const publica_cambios = async (csrf) => {
+   const datos = { func: 'publica_cambios', csrf };     
    let respuesta = await postJSON('../api/controller/portal.php', datos);
    return respuesta;
 }

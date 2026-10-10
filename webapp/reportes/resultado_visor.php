@@ -19,7 +19,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
 $key_query = $_GET['token'];
 
 try {
-    $sql = $v->dbh->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
+    $sql = $v->getDbh()->prepare("SELECT id, orden_folio, nombre_servidor FROM orden_resultados_pdf WHERE key_query_pdf = ? LIMIT 1");
     $sql->execute([$key_query]);
     $archivo_db = $sql->fetch();
 } catch (\PDOException $e) {

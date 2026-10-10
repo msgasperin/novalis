@@ -13,7 +13,7 @@ $v->conectar();
 $key_query = $_GET["kq"] ?? 0;
 
 // 1. CONSULTA ÚNICA DE LA SESIÓN DE CAJA
-$sqlSesion = $v->dbh->prepare(
+$sqlSesion = $v->getDbh()->prepare(
    "SELECT CS.id_caja, CS.id_sucursal, CS.fondo_inicial, 
       DATE_FORMAT(CS.fecha_apertura, '%d-%m-%Y %h:%i %p') AS fecha_apertura, 
       DATE_FORMAT(CS.fecha_cierre, '%d-%m-%Y %h:%i %p') AS fecha_cierre, 
@@ -36,7 +36,7 @@ if (!$caja) {
 }
 
 // 2. CONSULTAS ÚNICAS DE MOVIMIENTOS MANUALES Y PAGOS RECIBIDOS
-$sqlMovimientos = $v->dbh->prepare(
+$sqlMovimientos = $v->getDbh()->prepare(
    "SELECT id_movimiento, tipo, concepto, monto, forma_pago, comprobante, DATE_FORMAT(fecha_movimiento, '%d-%m-%Y %h:%i %p') AS fecha_movimiento, usuario_registro 
    FROM caja_movimientos 
    WHERE activo = 1 AND caja_id = ? 
@@ -45,7 +45,7 @@ $sqlMovimientos = $v->dbh->prepare(
 $sqlMovimientos->execute([$caja["id_caja"]]);
 $movimientos = $sqlMovimientos->fetchAll(PDO::FETCH_ASSOC);
 
-$sqlPagos = $v->dbh->prepare(
+$sqlPagos = $v->getDbh()->prepare(
    "SELECT monto, metodo_pago, referencia_pago, usuario_recibio, DATE_FORMAT(fecha_pago, '%d-%m-%Y %h:%i %p') AS fecha_pago 
    FROM orden_pagos 
    WHERE estatus = 1 AND caja_id = ? 

@@ -19,7 +19,7 @@ const TabUsuarios = async () => {
          <div class="fs-4"> <i class="bi bi-person-gear"></i> Usuarios</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoUsuario" onclick="ModalFormUsuario(0, 0,'');"><i class="bi bi-plus-lg"></i> Nuevo Usuario</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevoUsuario" onclick="ModalFormUsuario(0);"><i class="bi bi-plus-lg"></i> Nuevo Usuario</button>
       </div>
    </div>
    <div class="row mt-3">
@@ -39,11 +39,12 @@ const TabUsuarios = async () => {
    listar_usuarios();
 }
 
-const ModalFormUsuario = (idUsuario, nomUsuario) => {
+const ModalFormUsuario = (idUsuario) => {
 
-   let usuarioSeleccionado = arrUsuarios.filter(usuario => usuario.id_usuario == idUsuario);
+   let idNum = parseInt(idUsuario) || 0;
+   let usuarioSeleccionado = arrUsuarios.find(usuario => parseInt(usuario.id_usuario) === idNum);
 
-   let titulo;
+   let titulo   = '';
    let nombre   = '';
    let usuario  = '';
    let correo   = '';
@@ -51,13 +52,13 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
    let sucursal = 0;
    let disabled = '';
 
-   if(idUsuario > 0) {
-      titulo      = 'Editar Usuario: '+ nomUsuario;
-      nombre      = usuarioSeleccionado[0].nombre;
-      usuario     = usuarioSeleccionado[0].usuario;
-      correo      = usuarioSeleccionado[0].correo;
-      perfil      = usuarioSeleccionado[0].perfil;
-      sucursal    = usuarioSeleccionado[0].id_sucursal_fk;
+   if(idNum > 0 && usuarioSeleccionado) {
+      titulo      = 'Editar Usuario: ' + escapeHTML(usuarioSeleccionado.nombre || '');
+      nombre      = usuarioSeleccionado.nombre || '';
+      usuario     = usuarioSeleccionado.usuario || '';
+      correo      = usuarioSeleccionado.correo || '';
+      perfil      = usuarioSeleccionado.perfil || 'NA';
+      sucursal    = usuarioSeleccionado.id_sucursal_fk || 0;
       disabled    = 'disabled';
    }
    else {
@@ -78,11 +79,11 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                <div class="row">
                   <div class="col-12 mt-3">
                      <b>Nombre del usuario *</b>
-                     <input type="text" name="nomUsuario" id="nomUsuario" class="form-control" maxlength="250" value="${nombre}"/>
+                     <input type="text" name="nomUsuario" id="nomUsuario" class="form-control" maxlength="250" value="${escapeHTML(nombre)}"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Usuario *</b>
-                     <input type="text" name="usuario" id="usuario" class="form-control" maxlength="50" ${disabled} value="${usuario}"/>
+                     <input type="text" name="usuario" id="usuario" class="form-control" maxlength="50" ${disabled} value="${escapeHTML(usuario)}"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Contraseña *</b>
@@ -90,7 +91,7 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                   </div>
                   <div class="col-12 mt-3">
                      <b>Correo</b>
-                     <input type="email" name="mailUsuario" id="mailUsuario" class="form-control" value="${correo}"/>
+                     <input type="email" name="mailUsuario" id="mailUsuario" class="form-control" value="${escapeHTML(correo)}"/>
                   </div>
                   <div class="col-12 mt-3">
                      <b>Perfil *</b>
@@ -112,10 +113,10 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
                </div>
             </div>
             <div class="modal-footer" align="right">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnSaveUser" onclick="fn_guardar_usuario('${idUsuario}');">
+              <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnSaveUser" onclick="fn_guardar_usuario(${idNum});">
                 <i class="bi bi-save"></i> Guardar
               </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+              <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
                 Cancelar
               </button>
             </div>
@@ -129,10 +130,9 @@ const ModalFormUsuario = (idUsuario, nomUsuario) => {
    setTimeout(() => {
       $('#perfilUsuario').val(perfil);
       $('#sucursalUsuario').val(sucursal);
-   }, 700);
+   }, 300);
 
    combo_listas_sucursales('sucursalUsuario');
-   
 }
 
 const combo_listas_sucursales = async (containerId) => {
@@ -146,10 +146,10 @@ const combo_listas_sucursales = async (containerId) => {
       return;
    }
    else {
-      let res = await respuesta.data;
+      let res = respuesta.data || [];
       if(res.length > 0) {
-         res.map((sucursal) => {
-            comboListaSucursales +=`<option value="${sucursal.id}">${sucursal.nombre}</option>`;
+         res.forEach((sucursal) => {
+            comboListaSucursales += `<option value="${sucursal.id}">${escapeHTML(sucursal.nombre || '')}</option>`;
          });
          $('#'+containerId).html(comboListaSucursales);
       }      
@@ -167,21 +167,21 @@ const listar_usuarios = async () => {
       return;
    }
    else {
-      arrUsuarios = respuesta.data;
-      pinta_listado_usuario(respuesta.data);
+      arrUsuarios = respuesta.data || [];
+      pinta_listado_usuario(arrUsuarios);
    }
 }
 
 const pinta_listado_usuario = (data) => {
-   if(data.length == 0) {
+   if(!data || data.length == 0) {
       $('#containerListUsuarios').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron usuarios registrados</div>');
       closeLoad();
       return;
    }
    
    let html = `<div class="row">`;
-   data.map((row, i) => {
-      html+=`
+   data.forEach((row) => {
+      html += `
       <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardUsuario${row.id_usuario}">
          <div class="card mb-3 shadow">
             <div class="card-body">
@@ -190,18 +190,18 @@ const pinta_listado_usuario = (data) => {
                      <i class="bi bi-person-circle fs-4 text-secondary"></i>
                   </div>
                   <div class="col-10 mt-2">
-                     <div class="mt-1"><b>${row.nombre}</b></div>
-                     <div><i class="bi bi-at fs-6"></i>${row.correo}</div>
-                     <div class="text-muted fs-8">${row.perfil}</div>
+                     <div class="mt-1"><b>${escapeHTML(row.nombre || '')}</b></div>
+                     <div><i class="bi bi-at fs-6"></i>${escapeHTML(row.correo || '')}</div>
+                     <div class="text-muted fs-8">${escapeHTML(row.perfil || '')}</div>
                   </div>
                </div>
             </div>
             <div class="card-footer bg-white border-top-0 pb-2">
                <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormUsuario(${row.id_usuario},'${row.nombre}');">
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormUsuario(${row.id_usuario});">
                      <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarCliente" title="Eliminar" onclick="fn_eliminar_usuario(${row.id_usuario},'${row.nombre}');">
+                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarCliente" title="Eliminar" onclick="fn_eliminar_usuario(${row.id_usuario});">
                      <i class="bi bi-trash"></i>
                   </button>               
                </div>
@@ -210,13 +210,14 @@ const pinta_listado_usuario = (data) => {
       </div>`;
    });
 
-   html+=`</div>`;
+   html += `</div>`;
    $('#containerListUsuarios').html(html);
    closeLoad();
 }
 
 const fn_guardar_usuario = async (idUsuario) => {
 
+   let idNum           = parseInt(idUsuario) || 0;
    let nomUsuario      = $('#nomUsuario').val().trim();
    let usuario         = $('#usuario').val().trim();
    let contrasenia     = $('#contrasenia').val().trim();
@@ -241,7 +242,7 @@ const fn_guardar_usuario = async (idUsuario) => {
       $('#usuario').focus();
       return;
    }
-   else if (idUsuario == 0 && contrasenia == '') {
+   else if (idNum == 0 && contrasenia == '') {
       ToastColor.fire({
          text: '¡Atención! Debes ingresar la contraseña',
          icon: 'warning'
@@ -256,7 +257,7 @@ const fn_guardar_usuario = async (idUsuario) => {
             icon: 'warning'
          });
          $('#mailUsuario').focus();
-      return;
+         return;
       }
    }
    else if (perfilUsuario == 'NA') {
@@ -276,7 +277,17 @@ const fn_guardar_usuario = async (idUsuario) => {
       return;
    }
 
-   const objUser = { func: 'guardar', idUsuario, nomUsuario, usuario, contrasenia, mailUsuario, perfilUsuario, sucursalUsuario };
+   const objUser = { 
+      func: 'guardar', 
+      idUsuario: idNum, 
+      nomUsuario, 
+      usuario, 
+      contrasenia, 
+      mailUsuario, 
+      perfilUsuario, 
+      sucursalUsuario,
+      csrf: CSRF_TOKEN 
+   };
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del usuario ' + nomUsuario + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -290,8 +301,7 @@ const fn_guardar_usuario = async (idUsuario) => {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
-      
-      idUsuario > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Usuario guardado correctamente';
+      idNum > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Usuario guardado correctamente';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormUsuarios').modal('hide');
@@ -302,39 +312,45 @@ const fn_guardar_usuario = async (idUsuario) => {
       $('#btnSaveUser').prop('disabled', false);
       return;
    }
-
 }
 
-const fn_eliminar_usuario = async (idUsuario, nomUsuario) => {
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El usuario: ' + nomUsuario + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
+const fn_eliminar_usuario = async (idUsuario) => {
+
+   let idNum = parseInt(idUsuario) || 0;
+   let usuarioObj = arrUsuarios.find(u => parseInt(u.id_usuario) === idNum);
+   let nomUsuario = usuarioObj ? usuarioObj.nombre || '' : '';
+
+   if (idNum <= 0) return;
+
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'El usuario: ' + escapeHTML(nomUsuario) + ' será eliminado', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
-    $('.btnUsuariosDel').prop('disabled', false);
-    return;
-  }
+      $('.btnEliminarCliente').prop('disabled', false);
+      return;
+   }
 
-   $('.btnUsuariosDel').prop('disabled', true);
-   let respuesta = await eliminar_usuario(idUsuario, nomUsuario);
-      if(respuesta.estatus == 403) {
+   $('.btnEliminarCliente').prop('disabled', true);
+   let respuesta = await eliminar_usuario(idNum, nomUsuario, CSRF_TOKEN);
+   if(respuesta.estatus == 403) {
       fnNoSesion();
    }
    else if(respuesta.estatus == 200) {
       showMessageSwalTimer('Usuario eliminado correctamente', '', 'success', 2500);
-      $('#cardUsuario'+idUsuario).remove();
-      arrUsuarios = arrUsuarios.filter(usuario => usuario.id_usuario != idUsuario);
-      $('.btnUsuariosDel').prop('disabled', false);
+      $('#cardUsuario' + idNum).remove();
+      arrUsuarios = arrUsuarios.filter(usuario => parseInt(usuario.id_usuario) !== idNum);
+      $('.btnEliminarCliente').prop('disabled', false);
    } else {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('.btnUsuariosDel').prop('disabled', false);
+      $('.btnEliminarCliente').prop('disabled', false);
       return;
    }
 }
 
 const fn_buscar_usuario = () => {
-   let busqueda = $('#inpBusquedaUsuario').val().trim();
+   let busqueda = $('#inpBusquedaUsuario').val().trim().toLowerCase();
 
    const filtrado = arrUsuarios.filter(usuario => 
-      usuario.nombre.toLowerCase().includes(busqueda.toLowerCase())
+      (usuario.nombre || '').toLowerCase().includes(busqueda)
    );
    pinta_listado_usuario(filtrado);
 }

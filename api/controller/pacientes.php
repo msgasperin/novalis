@@ -1,4 +1,5 @@
 <?php
+   header('Content-Type: application/json; charset=utf-8');
    require_once('../model/Pacientes.php');
    require_once('../model/Globales.php');
    
@@ -10,108 +11,124 @@
       $_POST = json_decode(file_get_contents("php://input"), true);
    } 
   
-   if(isset($_SESSION["id_usuario"]) && $_SESSION["id_usuario"] != '') {
-      if(isset($_POST['func'])) {
+   if (isset($_SESSION["id_usuario"]) && !empty($_SESSION["id_usuario"])) {
+      if (isset($_POST['func'])) {
+
+         // ── Validación CSRF para acciones de escritura / modificación ──
+         if (in_array($_POST['func'], ['valida_coincidencia_paciente', 'guardar_paciente', 'eliminar_paciente', 'cambiar_credenciales'])) {
+            $csrf_recibido = $_POST['CSRF_TOKEN'] ?? $_POST['csrf'] ?? '';
+            $csrf_sesion   = $_SESSION['csrf_token'] ?? '';
+
+            if (empty($csrf_recibido) || empty($csrf_sesion) || !hash_equals($csrf_sesion, $csrf_recibido)) {
+               echo json_encode([
+                  'estatus' => 422,
+                  'mensaje' => 'Petición no autorizada (Token CSRF inválido), reinicia sesión e inténtalo de nuevo',
+                  'data'    => []
+               ]);
+               exit;
+            }
+         }
+
          switch ($_POST['func']) {
 
-         // ********************************************************** Funciones de CRUD cat_lista_precios **********************************************************************
+            case 'obtiene_credenciales_pacientes':
+               if (empty($_POST["idPaciente"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros obligatorios', 'data' => []]);
+                  break;
+               }
 
-         case 'obtiene_credenciales_pacientes':
-            $res = $v->obtiene_credenciales_pacientes($_POST["idPaciente"]); 
-            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
-         break;
+               $res = $v->obtiene_credenciales_pacientes((int)$_POST["idPaciente"]); 
+               echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+            break;
 
-         case 'busca_paciente_coincidencia':
-            $res = $v->busca_pacientes_coincidencia($_POST["parametro"]); 
-            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
-         break;
+            case 'busca_paciente_coincidencia':
+               $parametro = trim($_POST["parametro"] ?? '');
+               $res = $v->busca_pacientes_coincidencia($parametro); 
+               echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+            break;
 
-         case 'busca_paciente_fecha_nac':
-            $res = $v->busca_pacientes_fecha_nac($_POST["fecha"]); 
-            echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
-         break;
+            case 'busca_paciente_fecha_nac':
+               $fecha = trim($_POST["fecha"] ?? '');
+               $res = $v->busca_pacientes_fecha_nac($fecha); 
+               echo json_encode(["estatus" => 200, "mensaje" => "", "data" => $res]);
+            break;
 
-          case 'valida_coincidencia_paciente':   
-            
-            if(!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {
-               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+            case 'valida_coincidencia_paciente':   
+               if (!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros obligatorios para realizar esta acción', 'data' => []]);
+                  break;
+               }
+
+               $res = $v->valida_coincidencia_paciente($_POST["nomPaciente"], $_POST["apPaterno"], $_POST["apMaterno"] ?? '', $_POST["fechaNacimiento"]);
                echo json_encode($res);
-               break;
-            }
+            break;
 
-            $res = $v->valida_coincidencia_paciente($_POST["nomPaciente"], $_POST["apPaterno"], $_POST["apMaterno"], $_POST["fechaNacimiento"]);
-            if(!empty($res)) {
-               $estatus = 201;
-               $mensaje = 'ok';
-               $data    = $res;
+            case 'guardar_paciente':   
+               if (!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros obligatorios para realizar esta acción', 'data' => []]);
+                  break;
+               }
+               
+               $idPaciente = (int)$_POST["idPaciente"];
+
+               if ($idPaciente === 0) {
+                  $res         = $v->guardar_paciente($_POST, $_SESSION["nombre"]);
+                  $msjBitacora = 'Paciente registrado: ' . $_POST["nomPaciente"];
+                  $idBitacora  = (int)($res["data"][0] ?? 0);
+               }
+               else {
+                  $res         = $v->actualizar_paciente($_POST, $_SESSION["nombre"]);
+                  $msjBitacora = 'Paciente modificado: ' . $_POST["nomPaciente"];
+                  $idBitacora  = $idPaciente;
+               }
+
+               if ($res["estatus"] == 200) {
+                  $g->bitacora($msjBitacora, $idBitacora, $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }            
                echo json_encode($res);
-               break;
-            }
-                      
-            echo json_encode($res);
-         break;
+            break;
 
-         case 'guardar_paciente':   
-            
-            if(!isset($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"]) || empty($_POST["fechaNacimiento"]) || empty($_POST["sexoBiologico"])) {
-               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+            case 'eliminar_paciente':
+               if (empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []]);
+                  break;
+               }
+
+               $idPaciente  = (int)$_POST["idPaciente"];
+               $nomPaciente = $_POST["nomPaciente"];
+               $res         = $v->eliminar_paciente($idPaciente);
+
+               if ($res["estatus"] == 200) {
+                  $g->bitacora('Paciente eliminado: ' . $nomPaciente, $idPaciente, $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }            
                echo json_encode($res);
-               break;
-            }
-            
-            if(intval($_POST["idPaciente"]) == 0) {
-               $res         = $v->guardar_paciente($_POST, $_SESSION["nombre"]);
-               $msjBitacora = 'Paciente registrado: ';
-            }
-            else {
-               $res = $v->actualizar_paciente($_POST, $_SESSION["nombre"]);
-               $msjBitacora = 'Paciente modificado: ';
-            }
+            break;
 
-            if($res["estatus"] == 200) {
-               $g->bitacora($msjBitacora.$_POST["nomPaciente"], $res["data"][0], $_SESSION["id_usuario"], $_SESSION["nombre"]);
-            }            
-            echo json_encode($res);
-         break;
+            case 'cambiar_credenciales':
+               if (empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []]);
+                  break;
+               }
 
-         case 'eliminar_paciente':
+               $idPaciente  = (int)$_POST["idPaciente"];
+               $nomPaciente = $_POST["nomPaciente"];
+               $res         = $v->cambiar_credenciales($idPaciente);
 
-            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"])) {
-               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
+               if ($res["estatus"] == 200) {
+                  $g->bitacora('Credenciales actualizadas del paciente: ' . $nomPaciente, $idPaciente, $_SESSION["id_usuario"], $_SESSION["nombre"]);
+               }            
                echo json_encode($res);
-               break;
-            }
+            break;
 
-            $res = $v->eliminar_paciente($_POST["idPaciente"]);
-            if($res["estatus"] == 200) {
-               $g->bitacora('Paciente eliminado: '.$_POST["nomPaciente"], $_POST["idPaciente"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
-            }            
-            echo json_encode($res);
-         break;
-
-         case 'cambiar_credenciales':
-
-            if(empty($_POST["idPaciente"]) || empty($_POST["nomPaciente"]) || empty($_POST["apPaterno"])) {
-               $res = ['estatus' => 500, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []];
-               echo json_encode($res);
-               break;
-            }
-
-            $res = $v->cambiar_credenciales($_POST["idPaciente"]);
-            if($res["estatus"] == 200) {
-               $g->bitacora('Credenciales actuaalizadas del paciente: '.$_POST["nomPaciente"], $_POST["idPaciente"], $_SESSION["id_usuario"], $_SESSION["nombre"]);
-            }            
-            echo json_encode($res);
-         break;
-
-         default:
-            echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", 'data' => []]); // Función no encontrada
-         break;
+            default:
+               echo json_encode(["estatus" => 401, "mensaje" => "Función no encontrada", 'data' => []]);
+            break;
          }
       }
-      else
-         echo json_encode(["estatus" => 406, "mensaje" => "Parámetros incompletos", 'data' => []]); // Parámatros no enviados
+      else {
+         echo json_encode(["estatus" => 406, "mensaje" => "Parámetros incompletos", 'data' => []]);
+      }
    } else {
-      echo json_encode(["estatus" => 403, "mensaje" => "Sin permiso", 'data' => []]); // Sin sesión de usuarios
+      echo json_encode(["estatus" => 403, "mensaje" => "Sin permiso", 'data' => []]);
    }
 ?>

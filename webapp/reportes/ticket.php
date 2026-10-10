@@ -10,7 +10,7 @@
   $v = new Conexion();
   $v->conectar();
 
-  $sql = $v->dbh->prepare("SELECT id_pedido, folio, tipo_pedido, nom_cliente_hist, nom_categoria_cliente_hist, nom_lista_precios_fk, subtotal, descuento, total, cargo_extra, motivo_cargo_extra, abonos, debiente, monto_devoluciones, DATE_FORMAT(fecha_entrega,'%d-%m-%Y') AS fecha_entrega, DATE_FORMAT(fecha_cap,'%d-%m-%Y') AS fecha_cap, user_cap, estatus FROM pedido WHERE key_query = ?");
+  $sql = $v->getDbh()->prepare("SELECT id_pedido, folio, tipo_pedido, nom_cliente_hist, nom_categoria_cliente_hist, nom_lista_precios_fk, subtotal, descuento, total, cargo_extra, motivo_cargo_extra, abonos, debiente, monto_devoluciones, DATE_FORMAT(fecha_entrega,'%d-%m-%Y') AS fecha_entrega, DATE_FORMAT(fecha_cap,'%d-%m-%Y') AS fecha_cap, user_cap, estatus FROM pedido WHERE key_query = ?");
   $sql->execute(array($_GET["k"]));
   $row = $sql->fetch(PDO::FETCH_ASSOC);
 
@@ -216,7 +216,7 @@
         </table>
 
         <table class="mt-1 borde2 text11" border="0" width="100%" cellpadding="2">';
-          $det = $v->dbh->prepare("SELECT nom_producto_hist, cantidad, precio_unitario_hist, por_descuento, monto_descuento, subtotal_linea, total_linea FROM pedido_detalle WHERE id_pedido_fk = ?");
+          $det = $v->getDbh()->prepare("SELECT nom_producto_hist, cantidad, precio_unitario_hist, por_descuento, monto_descuento, subtotal_linea, total_linea FROM pedido_detalle WHERE id_pedido_fk = ?");
           $det->execute(array($row["id_pedido"]));
           $alto = 280;
           $c    = 0;

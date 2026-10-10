@@ -3,7 +3,6 @@ import { obtiene_sucursales, guardar_sucursal, eliminar_sucursal } from "./Sucur
 let arrSucursales = [];
 
 const TabSucursales = async () => {
-
    const res = await valida_menu('sucursales');
 
    if (!res || res.estatus != 200) {
@@ -18,7 +17,7 @@ const TabSucursales = async () => {
          <div class="fs-4"> <i class="bi bi-shop-window"></i> Sucursales</div>
       </div>
       <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mt-2">
-         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaSucursal" onclick="ModalFormSucursal(0,'');"><i class="bi bi-plus-lg"></i> Nueva Sucursal</button>
+         <button class="btn btn-secondary btn-lib btn-redondo w-100" type="button" id="btnNuevaSucursal" onclick="ModalFormSucursal(0);"><i class="bi bi-plus-lg"></i> Nueva Sucursal</button>
       </div>
    </div>
    <div class="row mt-3">
@@ -34,29 +33,24 @@ const TabSucursales = async () => {
    </div>`;
 
    $('#containerMain').html(html);
-   
    listar_sucursales('listar_sucursales');
 }
 
-const ModalFormSucursal = (idSucursal, nomSucursal) => {
+const ModalFormSucursal = (idSucursal) => {
+   let sucursalSeleccionada = arrSucursales.find(sucursal => sucursal.id == idSucursal);
 
-   let sucursalSeleccionada = arrSucursales.filter(sucursal => sucursal.id == idSucursal);
-
-   let titulo;
+   let titulo    = 'Registrar Nueva Sucursal';
    let nombre    = '';
    let direccion = '';
    let telefono  = '';
    let matriz    = 0;
 
-   if(idSucursal > 0) {
-      titulo    = 'Editar Sucursal: '+ nomSucursal;
-      nombre    = sucursalSeleccionada[0].nombre;
-      direccion = sucursalSeleccionada[0].direccion;
-      telefono  = sucursalSeleccionada[0].telefono;
-      matriz    = sucursalSeleccionada[0].matriz;
-   }
-   else {
-      titulo = 'Registrar Nueva Sucursal';
+   if (idSucursal > 0 && sucursalSeleccionada) {
+      nombre    = escapeHTML(sucursalSeleccionada.nombre);
+      direccion = escapeHTML(sucursalSeleccionada.direccion);
+      telefono  = escapeHTML(sucursalSeleccionada.telefono);
+      matriz    = sucursalSeleccionada.matriz;
+      titulo    = 'Editar Sucursal: ' + nombre;
    }   
 
    let html = `
@@ -93,10 +87,10 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
                </div>
             </div>
             <div class="modal-footer" align="right">
-              <button type="buttton" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarSucursal" onclick="fn_guardar_sucursal('${idSucursal}');">
+              <button type="button" class="btn btn-secondary btn-lib btn-redondo" id="btnGuardarSucursal" onclick="fn_guardar_sucursal(${idSucursal});">
                 <i class="bi bi-save"></i> Guardar
               </button> 
-              <button type="buttton" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
+              <button type="button" class="btn btn-outline-dark btn-redondo" data-bs-dismiss="modal">
                 Cancelar
               </button>
             </div>
@@ -112,10 +106,10 @@ const ModalFormSucursal = (idSucursal, nomSucursal) => {
 const listar_sucursales = async (containerId) => {
    activarLoad('Cargando sucursales...');
    let respuesta = await obtiene_sucursales();
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus != 200) {
+   else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
       return;
    }
@@ -126,15 +120,24 @@ const listar_sucursales = async (containerId) => {
 }
 
 const pinta_listado_sucursales = (containerId, data) => {
-   if(data.length == 0) {
-      $('#'+containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron sucursales registradas</div>');
+   if (!data || data.length === 0) {
+      $('#' + containerId).html(`
+         <div align="center">
+            <img src="assets/images/no_encontrado.png" class="img img-fluid"><br>
+            No se encontraron sucursales registradas
+         </div>
+      `);
       closeLoad();
       return;
    }
    
    let html = `<div class="row">`;
    data.map(row => {
-      html+=`
+      const nombreLimpio    = escapeHTML(row.nombre);
+      const direccionLimpia = escapeHTML(row.direccion);
+      const telefonoLimpio  = escapeHTML(row.telefono);
+
+      html += `
       <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardSucursal${row.id}">
          <div class="card mb-3 shadow">
             <div class="card-body">
@@ -143,38 +146,37 @@ const pinta_listado_sucursales = (containerId, data) => {
                      <i class="bi bi-shop fs-4 text-secondary"></i>
                   </div>
                   <div class="col-10 mt-2">
-                     <div class="mt-1"><b>${row.nombre}</b></div>
-                     <div class="mt-1"><b>${row.direccion}</b></div>
-                     <div class="text-muted fs-8">${row.telefono}</div>
+                     <div class="mt-1"><b>${nombreLimpio}</b></div>
+                     <div class="mt-1"><b>${direccionLimpia}</b></div>
+                     <div class="text-muted fs-8">${telefonoLimpio}</div>
                   </div>
                </div>
             </div>
             <div class="card-footer bg-white border-top-0 pb-2">
                <div class="d-flex justify-content-end gap-2">
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormSucursal(${row.id},'${row.nombre}');">
+                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormSucursal(${row.id});">
                      <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarSucursal" title="Eliminar" onclick="fn_eliminar_sucursal(${row.id},'${row.nombre}');">
+                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarSucursal" title="Eliminar" onclick="fn_eliminar_sucursal(${row.id});">
                      <i class="bi bi-trash"></i>
-                  </button>               
+                  </button>
                </div>
             </div>
          </div>
       </div>`;
    });
 
-   html+=`</div>`;
-   $('#'+containerId).html(html);
+   html += `</div>`;
+   $('#' + containerId).html(html);
    closeLoad();
-}
+};
 
 const fn_guardar_sucursal = async (idSucursal) => {
-
    let nomSucursal       = $('#nomSucursal').val().trim();
    let direccionSucursal = $('#direccionSucursal').val().trim();
    let telSucursal       = $('#telSucursal').val().trim();
    let matriz            = $('#matriz').val();
-   let msjAccion       = '';
+   let msjAccion         = '';
 
    if (nomSucursal == '') {
       ToastColor.fire({
@@ -193,10 +195,12 @@ const fn_guardar_sucursal = async (idSucursal) => {
       return;
    }
   
+   const objSucursal = { func: 'guardar', idSucursal, nomSucursal, direccionSucursal, telSucursal, matriz, CSRF_TOKEN };
 
-   const objSucursal = { func: 'guardar', idSucursal, nomSucursal, direccionSucursal, telSucursal, matriz };
+   // Sanitizamos la variable nomSucursal para evitar XSS dentro del SweetAlert
+   const nomSucursalEscapado = escapeHTML(nomSucursal);
 
-   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la sucursal ' + nomSucursal + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
+   const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información de la sucursal ' + nomSucursalEscapado + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
       $('#btnGuardarSucursal').prop('disabled', false);
       return;
@@ -204,11 +208,10 @@ const fn_guardar_sucursal = async (idSucursal) => {
 
    $('#btnGuardarSucursal').prop('disabled', true);
    let respuesta = await guardar_sucursal(objSucursal);
-   if(respuesta.estatus == 403) {
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
-      
+   else if (respuesta.estatus == 200) {
       idSucursal > 0 ? msjAccion = 'Información actualizada' : msjAccion = 'Sucursal guardada correctamente';
 
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
@@ -222,22 +225,27 @@ const fn_guardar_sucursal = async (idSucursal) => {
    }
 }
 
-const fn_eliminar_sucursal = async (idSucursal, nomSucursal) => {
+const fn_eliminar_sucursal = async (idSucursal) => {
+   let sucursalSeleccionada = arrSucursales.find(sucursal => sucursal.id == idSucursal);
+   if (!sucursalSeleccionada) return;
+
+   let nomSucursal = escapeHTML(sucursalSeleccionada.nombre);
+
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La sucursal: ' + nomSucursal + ' será eliminada', 'question', 'Sí, eliminar', 'Cancelar');
    
    if (!res.result) {
-    $('.btnEliminarSucursal').prop('disabled', false);
-    return;
-  }
+      $('.btnEliminarSucursal').prop('disabled', false);
+      return;
+   }
 
    $('.btnEliminarSucursal').prop('disabled', true);
-   let respuesta = await eliminar_sucursal(idSucursal, nomSucursal);
-      if(respuesta.estatus == 403) {
+   let respuesta = await eliminar_sucursal(idSucursal, sucursalSeleccionada.nombre, CSRF_TOKEN);
+   if (respuesta.estatus == 403) {
       fnNoSesion();
    }
-   else if(respuesta.estatus == 200) {
+   else if (respuesta.estatus == 200) {
       showMessageSwalTimer('Sucursal eliminada correctamente', '', 'success', 2500);
-      $('#cardSucursal'+idSucursal).remove();
+      $('#cardSucursal' + idSucursal).remove();
       arrSucursales = arrSucursales.filter(sucursal => sucursal.id != idSucursal);
       $('.btnEliminarSucursal').prop('disabled', false);
    } else {

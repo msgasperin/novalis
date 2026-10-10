@@ -74,7 +74,7 @@
 
       $keyQuery = $_GET["kq"] ?? '';
 
-      $sqlDatosOrden = $v->dbh->prepare(
+      $sqlDatosOrden = $v->getDbh()->prepare(
          "SELECT O.folio, O.paciente_nombre_historico, C.tubos_json, DATE_FORMAT(O.fecha_cap, '%d/%m/%Y') AS fecha_registro
          FROM ordenes_trabajo AS O
          INNER JOIN orden_detalles AS OD ON O.id = OD.orden_id

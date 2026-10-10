@@ -25,20 +25,20 @@ const fn_login = async () => {
     return;
   }
 
-  $('#btnLogin').prop('disabled',true);
+  $('#btnLogin').prop('disabled', true);
   let res = await valida_login(user, pass, csrf);
-  if(res.estatus == 200) {
+  if (res.estatus == 200) {
     showMessageSwalTimer('¡Inicio de sesión correcto!', '', 'success', 2500);
     redireccionar("admin", 1000);
   }
-  else if(res.estatus == 202) {
-    showMessageSwalTimer('Usuario no encontrado', '', 'info', 2500);
-    $('#btnLogin').prop('disabled',false);
+  else if (res.estatus == 202) {
+    showMessageSwalTimer('Usuario o contraseña incorrectos', '', 'info', 2500);
+    $('#btnLogin').prop('disabled', false);
     return;
   }
-  else if(res.estatus == 202) {
+  else if (res.estatus == 428) {
     showMessageSwalTimer('Debes ingresar usuario y contraseña', '', 'info', 2500);
-    $('#btnLogin').prop('disabled',false);
+    $('#btnLogin').prop('disabled', false);
     return;
   }
   else if (res.estatus == 429) { 
@@ -47,37 +47,35 @@ const fn_login = async () => {
   }
   else {
     showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');
-    $('#btnLogin').prop('disabled',false);
+    $('#btnLogin').prop('disabled', false);
   }
 }
 
 const fn_cerrar_sesion = async () => {
-  
-  let clienteMasg = $('#clienteMasg').val();
   const res = await showMessageSwalQuestion('¿Estás seguro?', 'Se cerrará la sesión', 'question', 'Sí, cerrar', 'Cancelar');
    
   if (!res.result) {
     return;
   }
 
-  let respuesta = await cerrar_sesion();
-  if(respuesta.estatus == 200) {
+  let respuesta = await cerrar_sesion({ csrf: typeof CSRF_TOKEN !== 'undefined' ? CSRF_TOKEN : '' });
+  if (respuesta.estatus == 200) {
     showMessageSwalTimer('¡Sesión finalizada correctamente!', '', 'success', 2500);
     redireccionar("inicio", 1000);
   }
   else {
-    showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');
+    showMessageSwal('Ocurrio un error: ', respuesta.mensaje || 'Error al cerrar sesión', 'error');
   }
 }
 
 const cierre_sesion = async () => {
-  let respuesta = await cerrar_sesion();
-  if(respuesta.estatus == 200) {
+  let respuesta = await cerrar_sesion({ csrf: typeof CSRF_TOKEN !== 'undefined' ? CSRF_TOKEN : '' });
+  if (respuesta.estatus == 200) {
     showMessageSwalTimer('¡Sesión finalizada correctamente!', '', 'success', 2500);
     redireccionar("inicio", 1000);
   }
   else {
-    showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');
+    showMessageSwal('Ocurrio un error: ', respuesta.mensaje || 'Error al cerrar sesión', 'error');
   }
 }
 
@@ -86,7 +84,7 @@ const ver_password = (campo, icon) => {
   var tipo = input.getAttribute("type");
   if (tipo == 'password') {
     input.setAttribute('type', 'text');
-    $('#eyePassword').html('<i class="bi bi-eye"></i>');
+    $('#' + icon).html('<i class="bi bi-eye"></i>');
   } else {
     input.setAttribute('type', 'password');
     $('#' + icon).html('<i class="bi bi-eye-slash"></i>');
@@ -94,7 +92,7 @@ const ver_password = (campo, icon) => {
 }
 
 const redireccionar = (dir, tiempo) => {
-  setTimeout("location.href='" + dir + "'", tiempo);
+  setTimeout(() => { location.href = dir; }, tiempo);
 }
 
 window.fn_login         = fn_login;

@@ -16,14 +16,14 @@ export const guardar_paciente = async (objPaciente) => {
    return respuesta;
 };
 
-export const eliminar_paciente = async (idPaciente, nomPaciente) => {
-   const datos = { func: 'eliminar_paciente', idPaciente, nomPaciente };
+export const eliminar_paciente = async (idPaciente, nomPaciente, csrf) => {
+   const datos = { func: 'eliminar_paciente', idPaciente, nomPaciente, csrf };
    let respuesta = await postJSON('../api/controller/pacientes.php', datos);
    return respuesta;
 }
 
-export const cambiar_credenciales = async (idPaciente, nomPaciente, apPaterno) => {
-   const datos = { func: 'cambiar_credenciales', idPaciente, nomPaciente, apPaterno };
+export const cambiar_credenciales = async (idPaciente, nomPaciente, apPaterno, csrf) => {
+   const datos = { func: 'cambiar_credenciales', idPaciente, nomPaciente, apPaterno, csrf };
    let respuesta = await postJSON('../api/controller/pacientes.php', datos);
    return respuesta;
 }
