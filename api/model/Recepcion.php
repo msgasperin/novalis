@@ -26,7 +26,7 @@
 			try {
 				$fecha_ini = date('Y-m-d') . ' 00:00:00';
 				$fecha_fin = date('Y-m-d') . ' 23:59:59';
-
+				
 				$sql = $this->dbh->prepare(
 					"SELECT O.id, id_folio, folio, paciente_nombre_historico, DATE_FORMAT(O.fecha_cap, '%d-%m-%Y') AS fecha_registro, DATE_FORMAT(O.fecha_cap, '%h:%i %p') AS hora_registro, tipo_cliente, convenio_nombre_historico, estatus, estatus_pago, total_neto, total_abonado, saldo_deudor, key_query, es_urgente, requiere_factura, publicada, DATE_FORMAT(fecha_publicada, '%d-%m-%Y') AS fecha_publicada, correo, telefono, sucursal_historico, DATE_FORMAT(O.fecha_completada, '%d-%m-%Y') AS fecha_completada, user_completo, DATE_FORMAT(O.fecha_entregado, '%d-%m-%Y') AS fecha_entregado, user_entrego, user_publico, DATE_FORMAT(O.fecha_cancelacion, '%d-%m-%Y') AS fecha_cancelacion, user_cancela, motivo_cancela
 					FROM ordenes_trabajo AS O

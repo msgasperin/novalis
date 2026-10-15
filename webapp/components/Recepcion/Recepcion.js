@@ -19,7 +19,6 @@ import { obtiene_descuentos } from "../Descuentos/DescuentosServices.js";
 
 let arrOrdenesBusAvanzada  = [];
 let arrOrdenesHoy          = [];
-let arrEstudios            = [];
 let arrPacientesBusqueda   = [];
 let comboConvenios         = '';
 let comboDescuentos        = '';
@@ -182,7 +181,9 @@ const obtener_ordenes_hoy = async (containerId) => {
       return;
    }
    else {
-      arrOrdenesHoy = respuesta.data;
+      arrOrdenesDetalle = respuesta.data;
+      console.log(arrOrdenesDetalle);
+      arrOrdenesHoy     = respuesta.data;
       pinta_ordenes_del_dia(arrOrdenesHoy, containerId);
    }
 };
@@ -1030,65 +1031,66 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
 };
 
 const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
-    let montoDescuento = 0;
-    let baseAplicableDescuento = parseFloat(totalConDesc) || 0;
-    let baseSinDescuento       = parseFloat(totalSinDesc) || 0;
-    let subtotalGeneral        = parseFloat(total) || (baseAplicableDescuento + baseSinDescuento);
+   let montoDescuento = 0;
+   let baseAplicableDescuento = parseFloat(totalConDesc) || 0;
+   let baseSinDescuento       = parseFloat(totalSinDesc) || 0;
+   let subtotalGeneral        = parseFloat(total) || (baseAplicableDescuento + baseSinDescuento);
 
-    let selectDescuento = $('#descuentoGeneralOrden option:selected');
-    let porcentajeDesc  = selectDescuento.data('descuento') || 0;
-    let nombreDescuento = selectDescuento.text().trim();
+   let selectDescuento = $('#descuentoGeneralOrden option:selected');
+   let porcentajeDesc  = selectDescuento.data('descuento') || 0;
+   let nombreDescuento = selectDescuento.text().trim();
 
-    let cargoExtra  = parseFloat($('#cargoExtraOrden').val()) || 0;
-    let motivoCargo = $('#motivoCargoExtraOrden').val().trim();
+   let cargoExtra  = parseFloat($('#cargoExtraOrden').val()) || 0;
+   let motivoCargo = $('#motivoCargoExtraOrden').val().trim();
 
-    if (porcentajeDesc > 0 && baseAplicableDescuento > 0) {
-        montoDescuento = Math.round((baseAplicableDescuento * parseFloat(porcentajeDesc)) / 100);
-    }
+   if (porcentajeDesc > 0 && baseAplicableDescuento > 0) {
+   montoDescuento = Math.round((baseAplicableDescuento * parseFloat(porcentajeDesc)) / 100);
+   }
 
-    if (montoDescuento > 0) {
-        $('#lblTextoDescuento').html(`<i class="bi bi-tag-fill me-1"></i> Descuento ${escapeHTML(nombreDescuento)}:`);
-        $('#lblMontoDescuento').text(`-$${montoDescuento.toFixed(2)}`);
-        $('#rowDescuentoAplicado').removeClass('d-none');
-    } else {
-        $('#rowDescuentoAplicado').addClass('d-none');
-    }
+   if (montoDescuento > 0) {
+      $('#lblTextoDescuento').html(`<i class="bi bi-tag-fill me-1"></i> Descuento ${escapeHTML(nombreDescuento)}:`);
+      $('#lblMontoDescuento').text(`-$${montoDescuento.toFixed(2)}`);
+      $('#rowDescuentoAplicado').removeClass('d-none');
+   } else {
+      $('#rowDescuentoAplicado').addClass('d-none');
+   }
 
-    if (cargoExtra > 0) {
-        let textoMotivo = motivoCargo !== '' ? ` (${escapeHTML(motivoCargo)})` : '';
-        $('#lblTextoCargoExtra').html(`<i class="bi bi-plus-circle-fill me-1"></i> Cargo extra${textoMotivo}:`);
-        $('#lblMontoCargoExtra').text(`+$${cargoExtra.toFixed(2)}`);
-        $('#rowCargoExtraAplicado').removeClass('d-none');
-    } else {
-        $('#rowCargoExtraAplicado').addClass('d-none');
-    }
+   if (cargoExtra > 0) {
+      let textoMotivo = motivoCargo !== '' ? ` (${escapeHTML(motivoCargo)})` : '';
+      $('#lblTextoCargoExtra').html(`<i class="bi bi-plus-circle-fill me-1"></i> Cargo extra${textoMotivo}:`);
+      $('#lblMontoCargoExtra').text(`+$${cargoExtra.toFixed(2)}`);
+      $('#rowCargoExtraAplicado').removeClass('d-none');
+   } else {
+      $('#rowCargoExtraAplicado').addClass('d-none');
+   }
 
-    let totalNeto = (subtotalGeneral - montoDescuento) + cargoExtra;
-    if (totalNeto < 0) totalNeto = 0;
+   let totalNeto = (subtotalGeneral - montoDescuento) + cargoExtra;
+   if (totalNeto < 0) totalNeto = 0;
 
-    let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
-    if (abonoInput > totalNeto) {
-        abonoInput = totalNeto;
-        $('#abonoOrden').val(totalNeto.toFixed(2));
-    }
+   let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
+   if (abonoInput > totalNeto) {
+      abonoInput = totalNeto;
+      $('#abonoOrden').val(totalNeto.toFixed(2));
+   }
 
-    if (abonoInput > 0) {
-        $('#lblMontoAbonoResumen').text(`-$${abonoInput.toFixed(2)}`);
-        $('#rowAbonoAplicado').removeClass('d-none');
-    } else {
-        $('#rowAbonoAplicado').addClass('d-none');
-    }
+   if (abonoInput > 0) {
+      $('#lblMontoAbonoResumen').text(`-$${abonoInput.toFixed(2)}`);
+      $('#rowAbonoAplicado').removeClass('d-none');
+   } else {
+      $('#rowAbonoAplicado').addClass('d-none');
+   }
 
-    let saldoPendiente = totalNeto - abonoInput;
+   let saldoPendiente = totalNeto - abonoInput;
 
-    $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
-    if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
-        $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
-    } else {
-        $('#lblSaldoPendienteOrden').removeClass('text-success').addClass('text-danger').text(`$${saldoPendiente.toFixed(2)}`);
-    }
+   $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
+   $('#abonoOrden').val(totalNeto);
+   if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
+      $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
+   } else {
+      $('#lblSaldoPendienteOrden').removeClass('text-success').addClass('text-danger').text(`$${saldoPendiente.toFixed(2)}`);
+   }
 
-    $('#montoDescuentoOrden').val(montoDescuento);
+   $('#montoDescuentoOrden').val(montoDescuento);
 };
 
 const combo_descuentos_generales = async (containerId) => {
@@ -1467,6 +1469,7 @@ const busqueda_avanzada_ordenes = async (containerId) => {
       return;
    }
    else {
+      arrOrdenesDetalle     = respuesta.data;
       arrOrdenesBusAvanzada = respuesta.data;
       pinta_ordenes_busqueda_avanzada(arrOrdenesBusAvanzada, containerId);
    }

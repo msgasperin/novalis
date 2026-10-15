@@ -398,10 +398,13 @@ function obtener_html_ticket_pro(array $orden, array $estudios, array $abonos): 
         <div class="legal-text">
             * Indispensable presentar este comprobante e identificación oficial para la entrega de resultados impresos.<br>
             * Los horarios de entrega son estimados y están sujetos a validación médica.<br>
-            * Para cualquier aclaración conserve este ticket.
+            * Para cualquier aclaración conserve este ticket.<br><br>
+            Al firmar este documento, declaro que he tenido a mi disposición y acepto el Aviso de Privacidad de <?= htmlspecialchars($_SESSION["emp_nombre"]) ?>, autorizando el tratamiento de mis datos de salud para la realización de análisis clínicos y la entrega de mis resultados.
+            <br><br><br><br>
+            ---------------------------------------------------------------------------------------------------------------------
         </div>
 
-        <div class="text-center fw-bold" style="margin-top: 3px; font-size: 7pt;">
+        <div class="text-center fw-bold" style="margin-top: 7px; font-size: 7pt;">
             ¡Gracias por confiar en nosotros!
         </div>
     </body>

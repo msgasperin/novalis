@@ -76,9 +76,8 @@
 
 						$sql->execute($params);
 
-				} else { // Búsqueda por estatus y rango de fechas
-
-						// Búsqueda por estatus y rango de fechas
+				}
+				else { // Búsqueda por estatus y rango de fechas
 						$fecha_ini = $post["fechaIni"] . ' 00:00:00';
 						$fecha_fin = $post["fechaFin"] . ' 23:59:59';
 

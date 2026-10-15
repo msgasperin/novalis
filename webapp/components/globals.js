@@ -1,4 +1,5 @@
 let arrOrdenesBandeja = [];
+let arrOrdenesDetalle = [];
 
 const comboMeses = `
 <option value="1">Enero</option>
@@ -663,7 +664,6 @@ const escapeHTML = (str) => {
     .replace(/'/g, '&#039;');
 };
 
-
 window.CSRF_TOKEN              = $('#csrfToken').val().trim();
 window.initDataTableExport     = initDataTableExport;
 window.valida_menu             = valida_menu;
@@ -699,6 +699,7 @@ window.getCeldaPago            = getCeldaPago;
 window.REGIMENES_FISCALES      = REGIMENES_FISCALES;
 window.USOS_CFDI               = USOS_CFDI;
 window.arrOrdenesBandeja       = arrOrdenesBandeja;
+window.arrOrdenesDetalle       = arrOrdenesDetalle;
 window.ModalAccesoDenegado     = ModalAccesoDenegado;
 window.escapeHTML              = escapeHTML;
 

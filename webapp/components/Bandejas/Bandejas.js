@@ -10,7 +10,7 @@ import {
    notificar_mail_resultados 
 } from "./BandejasServices.js";
 
-let arrPdfResultados = [];
+let arrPdfResultados  = [];
 let arrOrdenesBandeja = [];
 
 const TabBandejas = async () => {
@@ -21,7 +21,7 @@ const TabBandejas = async () => {
       $('#containerMain').html(`<div class="alert alert-danger mt-3 p-2 text-center">No tienes permisos para ver este módulo.</div>`);
       return;
    }
-   
+
    let html = `
    <div class="row">
       <div class="col-12 mt-2">
@@ -158,6 +158,7 @@ const obtiene_ordenes_estatus = async (origen, estatus) => {
       return;
    }
    else {
+      arrOrdenesDetalle = respuesta.data;
       arrOrdenesBandeja = respuesta.data || [];
       if (arrOrdenesBandeja.length > 0) {
          pinta_ordenes_bandejas(arrOrdenesBandeja);
@@ -906,7 +907,7 @@ const ModalViewerResultadosFolio = async (idOrden) => {
 
 const ModalViewDetallesOrden = async (idOrden) => {
 
-   let ordenSelected = arrOrdenesBandeja.find(orden => orden.id == idOrden);
+   let ordenSelected = arrOrdenesDetalle.find(orden => orden.id == idOrden);
 
    if (!ordenSelected) return; // La orden no está cargada porque viene de bandejas (checar)
 
@@ -914,9 +915,9 @@ const ModalViewDetallesOrden = async (idOrden) => {
    
    const bannerUrgente = ordenSelected.es_urgente == 1 
       ? `
-      <div class="alert alert-danger border-danger-subtle d-flex mb-3 shadow-sm rounded-3 p-2" role="alert">
+      <div class="alert alert-danger border-danger-subtle d-flex mb-3 shadow-sm rounded-3 p-2 align-items-center justify-content-center" role="alert">
          <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
-         <div class="text-center">
+         <div>
             <strong>¡ORDEN URGENTE!</strong> Esta orden requiere atención prioritaria en el flujo de laboratorio.
          </div>
       </div>` 

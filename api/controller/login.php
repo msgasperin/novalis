@@ -56,7 +56,7 @@
         $contrasenia = trim($_POST["contrasenia"] ?? '');
 
         if($usuario !== '' && $contrasenia !== '') {
-          $res = $v->login($usuario, $contrasenia);         
+          $res = $v->login($usuario, $contrasenia);
 
           if($res["estatus"] == 200) { 
             $v->limpiar_ip($ip);
