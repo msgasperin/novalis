@@ -1,5 +1,8 @@
 {
     "cliente_id": "labdemo",
+    "estatus": 1,
+    "plan": "pro",
+    "limite_sucursales": 5,
     "nombre_comercial": "Laboratorio Clínico San José",
     "slogan": "Precisión y confianza en cada diagnóstico",
     "logo_url": "api/assets/labdemo/images/logo.png",

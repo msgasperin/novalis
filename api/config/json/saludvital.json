@@ -1,5 +1,8 @@
 {
    "cliente_id": "saludvital",
+   "estatus": 1,
+   "plan": "basico",
+   "limite_sucursales": 1,
    "nombre_comercial": "Salud Vital",
    "slogan": "Confianza y responsabilidad es nuestra marca",
    "logo_url": "api/assets/saludvital/images/logo.png",

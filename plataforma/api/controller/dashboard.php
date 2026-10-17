@@ -14,6 +14,28 @@
       if(isset($_POST['func'])) {
          switch ($_POST['func']) {
 
+            case 'validar_aceptacion_aviso':
+
+               if($_SESSION["aviso_aceptado"]) {
+                  $res = ["estatus" => 200, "mensaje" => "ok_aceptado", "data" => []];
+               }
+               else {
+                  $res = $v->validar_aceptacion_aviso($_SESSION["id_cliente_portal"]); 
+                  if($res["estatus"] == 200) {
+                     $_SESSION["aviso_aceptado"] = true;                     
+                  }
+               }
+               echo json_encode($res);
+
+            break;
+
+            case 'aceptar_aviso_privacidad':
+                              
+               $res = $v->aceptar_aviso_privacidad(intval($_SESSION["id_cliente_portal"]), $_SESSION["cliente"], '1.0'); 
+               echo json_encode($res);
+
+            break;
+
             case 'obtiene_resultados_cliente':
 
                $res = ['estatus' => 500, 'mensaje' => 'Erorr al intentar obtener los datos', 'data' => []];

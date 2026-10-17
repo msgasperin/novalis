@@ -11,6 +11,15 @@
       $_POST = json_decode(file_get_contents("php://input"), true);
    }
 
+   if ($_SESSION["plan"] == "basico") {
+      echo json_encode([
+         'estatus' => 422,
+         'mensaje' => 'Tu plan no tiene acceso a esta sección',
+         'data'    => []
+      ]);
+      exit;
+   }
+
    if (isset($_SESSION["id_usuario"]) && !empty($_SESSION["id_usuario"])) {
       if (isset($_POST['func'])) {
 

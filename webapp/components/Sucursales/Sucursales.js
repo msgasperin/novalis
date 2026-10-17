@@ -111,6 +111,7 @@ const listar_sucursales = async (containerId) => {
    }
    else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+      closeLoad();
       return;
    }
    else {
@@ -218,8 +219,9 @@ const fn_guardar_sucursal = async (idSucursal) => {
       $('#modalFormSucursal').modal('hide');
       $('#btnGuardarSucursal').prop('disabled', false);
       listar_sucursales('listar_sucursales');
-   } else {
-      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
+   } 
+   else {
+      showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
       $('#btnGuardarSucursal').prop('disabled', false);
       return;
    }

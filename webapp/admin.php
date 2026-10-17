@@ -8,6 +8,32 @@
 	header( "Last-Modified: ". gmdate("D,dMYH:i:s"). " GMT" );
 	header( "Cache-Control: no-cache, must-revalidate" );
 	header( "Pragma: no-cache" );
+
+	$host       = $_SERVER['HTTP_HOST'];
+	$parts      = explode('.', $host);
+	$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+	$ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
+	$jsonPath   = "../api/config/json/{$subDominio}.json";
+
+	if (!file_exists($jsonPath)) {
+		$jsonPath = "../api/config/json/default.json";
+	}
+
+	$jsonContent = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+	$config      = json_decode($jsonContent, true);
+
+	// Asignación de variables con fallbacks
+	$nombreLab = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
+	$estatus   = $config['estatus'] ?? 0;
+	$favicon   = "../".$config['favicon'];
+
+	$_SESSION["plan"]              = $config["plan"];
+	$_SESSION["limite_sucursales"] = $config["limite_sucursales"];
+
+	if($estatus == 0) {
+		header("Location: http://labdemo.sis-11.test/webapp/pago-pendiente");
+		exit();
+	}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -51,6 +77,7 @@
 			<input type="hidden" id="nomEmpresa" value="<?php echo $_SESSION["emp_nombre"]; ?>" />
 			<input type="hidden" id="whatsAppEmpresa" value="<?php echo $_SESSION["emp_whats"]; ?>" />
 			<input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrf_token']; ?>">
+			<input type="hidden" id="inpPlan" value="<?php echo $_SESSION['plan']; ?>">
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">

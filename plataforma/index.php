@@ -2,7 +2,7 @@
    //ini_set('session.cookie_secure', 1);     // solo HTTPS
    ini_set('session.cookie_httponly', 1);   // no accesible desde JS
    ini_set('session.cookie_samesite', 'Strict'); // bloquea CSRF adicional
-   session_start();
+   session_start(); 
    require("api/config/seguridad.php");
    header( "Expires: Mon, 26 Jul 1997 05:00:00 GMT" );
    header( "Last-Modified: ". gmdate("D,dMYH:i:s"). " GMT" );
@@ -13,6 +13,22 @@
    $parts = explode('.', $host);
    // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
    $subdominio = (count($parts) >= 3) ? $parts[0] : 'default';
+
+   $jsonPath   = "../api/config/json/{$subdominio}.json";
+
+	if (!file_exists($jsonPath)) {
+		$jsonPath = "../api/config/json/default.json";
+	}
+
+	$jsonContent = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+	$config      = json_decode($jsonContent, true);	
+	$estatus     = $config['estatus'] ?? 0;
+
+
+	if($estatus == 0) {
+		header("Location: http://labdemo.sis-11.test/webapp/mantenimiento");
+		exit();
+	}
 
 	$logo    = "../".$_SESSION["logoUrl"];
 	$favicon = "../".$_SESSION["favicon"];
@@ -35,8 +51,10 @@
       <link rel="stylesheet" type="text/css" href="assets/css/styles.css" />
    </head>
    
-   <body onload="obtener_resultados_cliente();">
+   <body onload="valida_aceptacion_aviso();">
+      <input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrfTokenPortal']; ?>">
       <input type="hidden" id="tipoClientePortal" value="<?php echo $_SESSION["tipo_cliente"]; ?>">
+      <input type="hidden" id="subdo" value="<?php echo $subdominio; ?>">
 
       <!-- Header Superior con Resalte Inferior -->
       <header class="sticky-top p-3 mb-4 shadow-sm bg-white">
@@ -97,7 +115,7 @@
 
                   <!-- Botón Buscar -->
                   <div class="col-12 col-lg-1 d-grid">
-                     <button type="button" class="btn btn-dark fw-semibold shadow-sm rounded-5 btn-lib" id="btnFiltrar" onclick="obtener_resultados_cliente();">
+                     <button type="button" class="btn btn-dark fw-semibold shadow-sm rounded-5 btn-lib" id="btnFiltrar" onclick="valida_aceptacion_aviso();">
                         Filtrar
                      </button>
                   </div>
@@ -141,6 +159,7 @@
       </main>
 
       <div id="modalAdminDocs"></div>
+      <div id="modalAdminDocs2"></div>
 
       <div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
 			<div class="modal-dialog modal-fullscreen">

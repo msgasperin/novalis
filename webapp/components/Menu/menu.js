@@ -7,6 +7,7 @@ const cerrarMenu = () => {
 const inicio = () => {
   let perfil = $('#perfilUs').val().trim();
   
+  
   if(perfil == 'RECEPCION') {
     opcionActive('opcionRecepcion');
     TabRecepcion();
@@ -25,13 +26,13 @@ const inicio = () => {
 }
 
 const submenus = {
-
+  
   catPersonas: `
     <div onclick="fnPacientes(), cerrarMenu();"> <i class="bi bi-person-badge-fill"></i> Pacientes</div>
     <div onclick="fnPersonal(), cerrarMenu();"> <i class="bi bi-person-bounding-box"></i> Personal</div>`,
 
   configuracion: `
-    <div onclick="TabSucursales(), cerrarMenu();"><i class="bi bi-shop-window"></i> Sucursales</div>
+    <div onclick="TabSucursales(), cerrarMenu();" id="tabSucursalesSubMenu"><i class="bi bi-shop-window"></i> Sucursales</div>
     <div onclick="TabUsuarios(), cerrarMenu();"><i class="bi bi-person-gear"></i> Usuarios</div>
     <div onclick="TabPrecios(), cerrarMenu();"><i class="bi bi-currency-dollar"></i> Listas de precios</div>
     <div onclick="TabDescuentos(), cerrarMenu();"><i class="bi bi-percent"></i> Descuentos generales</div>`,
@@ -51,6 +52,7 @@ document.addEventListener("click", function(e) {
 
 function mostrarSubmenu(event, menu){
 
+    let plan    = $('#inpPlan').val().trim();
     let submenu = document.getElementById("globalSubmenu");
     // si está abierto con el mismo menú → cerrar
     if(submenu.dataset.menu === menu && submenu.style.display === "block") {
@@ -75,6 +77,13 @@ function mostrarSubmenu(event, menu){
     }
 
     submenu.style.display = "block";
+
+
+    
+
+    if(plan == "basico") {
+      $('#tabSucursalesSubMenu').remove();
+    }
 }
 
 const muestraMenu = (opcion) => {

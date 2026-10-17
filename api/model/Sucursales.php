@@ -21,18 +21,27 @@
 			return $res;
 		}
 
-		public function guardar_sucursal(array $post, string $user_cap) {
+		public function guardar_sucursal(array $post, string $user_cap, int $limite_sucursales) {
 			$estatus = 500;
 			$data    = [0];
 			$mensaje = 'Error al intentar guardar la sucursal';
 			try {
-				$sql = $this->dbh->prepare("INSERT INTO cat_sucursales (nombre, direccion, telefono, matriz, user_cap) VALUES (?,?,?,?,?)");
-				$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $post["matriz"], $user_cap));
 
-				if($ok) {
-					$estatus = 200;
-					$data    = [$this->dbh->lastInsertId()];
-					$mensaje = 'ok';
+				$valida_sucursales = $this->dbh->prepare("SELECT id FROM cat_sucursales WHERE activo = ?");
+				$valida_sucursales->execute([1]);
+				if($valida_sucursales->rowCount() >= $limite_sucursales) {
+					$mensaje = 'Haz alcanzao el límite de sucursales para tu cuenta Pro, elimina una sucursal o habla con nuestro centro de Soporte NOVALIS para ampliar el número de sucursales disponible';
+				}
+				else {
+
+					$sql = $this->dbh->prepare("INSERT INTO cat_sucursales (nombre, direccion, telefono, matriz, user_cap) VALUES (?,?,?,?,?)");
+					$ok = $sql->execute(array($post["nomSucursal"], $post["direccionSucursal"], $post["telSucursal"], $post["matriz"], $user_cap));
+
+					if($ok) {
+						$estatus = 200;
+						$data    = [$this->dbh->lastInsertId()];
+						$mensaje = 'ok';
+					}
 				}
 			} 
 			catch (Exception $error) {

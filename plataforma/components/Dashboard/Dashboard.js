@@ -1,6 +1,170 @@
-import { obtiene_resultados_cliente, obtiene_archivos_resultados_orden } from "./DashboardServices.js";
+import { obtiene_resultados_cliente, obtiene_archivos_resultados_orden, validar_aceptacion_aviso, aceptar_aviso_privacidad } from "./DashboardServices.js";
 
 let arrOrdenes        = [];
+
+const valida_aceptacion_aviso = async () => {
+
+   let respuesta = await validar_aceptacion_aviso();
+
+   if(respuesta.estatus == 200) {
+      obtener_resultados_cliente();
+   }
+   else if(respuesta.estatus == 202) {
+      ModalAvisoPrivacidad();
+   }
+   else if(respuesta.estatus != 200) {
+      showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500); 
+      return;
+   }
+   
+}
+
+const acepta_aviso_privacidad = async () => {
+
+   if(!$('#checkConsentimiento').prop('checked')) {
+      ToastColor.fire({
+         text: '¡Atención! debes aceptar el aviso de privacidad',
+         icon: 'warning',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#checkConsentimiento').focus();
+      return;
+   }
+
+   let respuesta = await aceptar_aviso_privacidad();
+
+   if (respuesta.estatus == 200) {
+      ToastColor.fire({
+         text: '¡Aviso de privacidad aceptado!',
+         icon: 'success',
+         position: 'top',
+         timerProgressBar: false
+      });
+      $('#modalAvisoPrivacidad').modal('hide');
+      obtener_resultados_cliente();
+   }
+   else {
+      ToastColor.fire({
+         text: '¡Atención! ' + respuesta.mensaje,
+         icon: 'error',
+         position: 'top',
+         timerProgressBar: false
+      });
+   }
+   
+}
+
+const ModalAvisoPrivacidad = () => {
+   
+   let html = `
+   <div class="modal fade" id="modalAvisoPrivacidad" tabindex="-1" aria-labelledby="modalAvisoPrivacidadLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+         <div class="modal-content border-0 shadow-lg">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white py-4 px-4">
+               <div class="d-flex align-items-center w-100">
+                  <div class="rounded-circle bg-white bg-opacity-25 p-3 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:50px; height:50px">
+                     <i class="bi bi-info-circle text-white fs-4"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-1" id="modalAvisoPrivacidadLabel">Aviso de privacidad</h5>
+                     <span class="text-white-50 small">Aceptación obligatoria del aviso de privacidad</span>
+                  </div>
+               </div>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body bg-light p-4 p-md-5">
+               <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                  
+                  <div class="text-center mb-4">
+                     <div class="text-primary display-6 mb-2">
+                        <i class="bi bi-shield-check"></i>
+                     </div>
+                     <h4 class="fw-bold text-dark">Protección de Datos Personales</h4>
+                  </div>
+                  
+                  <p class="text-muted small text-center mb-4 lh-lg">
+                     <strong>[Nombre del Laboratorio]</strong> utilizará sus datos personales y de salud para la generación, consulta y descarga de sus estudios clínicos en línea. Para mayor información sobre el tratamiento de sus datos y cómo ejercer sus Derechos ARCO, puede consultar nuestro 
+                     <a href="#" class="text-decoration-underline fw-semibold text-primary" onclick="ModalAvisoIntegral();">
+                        Aviso de Privacidad Integral aquí
+                     </a>.
+                  </p>
+
+                  <div class="form-check form-switch bg-light p-3 px-4 rounded-3 border mb-4 d-flex align-items-center justify-content-between">
+                     <label class="form-check-label small fw-semibold text-secondary user-select-none order-1 me-3" for="checkConsentimiento">
+                        He leído y acepto el Aviso de Privacidad y autorizo el tratamiento de mis datos de salud.
+                     </label>
+                     <input class="form-check-input fs-4 order-2 ms-0" type="checkbox" role="switch" id="checkConsentimiento">
+                  </div>
+
+                  <button type="button" id="btnConsultar" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm" onclick="acepta_aviso_privacidad();">
+                     Consultar Mis Resultados
+                  </button>
+
+               </div>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   $('#modalAvisoPrivacidad').modal('show');
+}
+
+const ModalAvisoIntegral = () => {
+
+   let subdo = $('#subdo').val().trim();
+   
+   let html = `
+   <div class="modal fade" id="modalAvisoIntegral" tabindex="-1" aria-labelledby="modalAvisoIntegralLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-lg-down">
+         <div class="modal-content border-0 shadow-lg">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white py-3 px-4 d-flex align-items-center justify-content-between">
+               <div class="d-flex align-items-center">
+                  <div class="rounded-circle bg-white bg-opacity-25 p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:50px; height:50px">
+                     <i class="bi bi-file-earmark-pdf text-white fs-4"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-0" id="modalAvisoIntegralLabel">Aviso de Privacidad Integral</h5>
+                     <span class="text-white-50 small">Documento legal y de protección de datos</span>
+                  </div>
+               </div>
+               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body bg-light p-3 p-md-4">
+               <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                  
+                  <!-- VISUALIZADOR PDF -->
+                  <div class="ratio ratio-16x9">
+                     <iframe src="/api/assets/${subdo}/docs/aviso_privacidad_v1.pdf" title="Aviso de Privacidad Integral" allowfullscreen></iframe>
+                  </div>
+
+               </div>
+               
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer bg-white border-0 px-4 pb-4 pt-0">
+               <button type="button" class="btn btn-outline-secondary rounded-pill px-4 ms-auto" data-bs-dismiss="modal">
+                  Entendido / Cerrar
+               </button>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs2').html(html);
+   $('#modalAvisoIntegral').modal('show');
+}
 
 const obtener_resultados_cliente = async () => {
    
@@ -105,6 +269,38 @@ const pinta_ordenes = (data) => {
 
    let estudios = [];
    let color    = '';
+
+
+   if(data.length == 0) {
+      $('#containerSolicitudes').html(
+         `<div class="container py-5">
+            <div class="row justify-content-center">
+               <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+                  <div class="card border-0 shadow-sm bg-body-tertiary rounded-4 text-center p-4 p-md-5">
+                  <div class="card-body">
+                     
+                     <!-- Ícono con fondo suave y pulso visual -->
+                     <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-4 p-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-folder-x fs-2"></i>
+                     </div>
+
+                     <!-- Título y descripción -->
+                     <h5 class="fw-bold text-body-emphasis mb-2">
+                        Sin resultados coincidentes
+                     </h5>
+                     <p class="text-secondary small mb-4">
+                        No encontramos ningún registro para tu búsqueda. Intenta simplificar los términos o cambiar los filtros activos.
+                     </p>
+
+                  </div>
+                  </div>
+               </div>
+            </div>
+         </div>`
+      );
+      return;
+   }
+
    let html = 
    '<div class="row">';
       data.forEach(row => {
@@ -286,7 +482,6 @@ const activarLoad = (mensajeInicial) => {
   $('#mensajeLoading').html(mensajeInicial);
 }
 
-
 const closeLoad = (mensajeFinal) => {
    $('#mensajeLoading').html(mensajeFinal);
    setTimeout(() => {
@@ -297,3 +492,6 @@ const closeLoad = (mensajeFinal) => {
 window.obtener_resultados_cliente  = obtener_resultados_cliente;
 window.buscar_ordenes_arr_paciente = buscar_ordenes_arr_paciente;
 window.ModalViewerResultadosFolio  = ModalViewerResultadosFolio;
+window.valida_aceptacion_aviso     = valida_aceptacion_aviso;
+window.acepta_aviso_privacidad     = acepta_aviso_privacidad;
+window.ModalAvisoIntegral          = ModalAvisoIntegral;

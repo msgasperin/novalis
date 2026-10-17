@@ -17,9 +17,26 @@
 	// Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
 	$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
-	$subDominio = 'labdemo'; // borrar es solo para pruebas responsive
-
 	$ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
+
+	$jsonPath = "../api/config/json/{$subDominio}.json";
+
+	if (!file_exists($jsonPath)) {
+		$jsonPath = "../api/config/json/default.json";
+	}
+
+	$jsonContent = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+	$config      = json_decode($jsonContent, true);
+
+	// Asignación de variables con fallbacks
+	$nombreLab = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
+	$estatus   = $config['estatus'] ?? 0;
+	$favicon   = "../".$config['favicon'];
+	
+	if($estatus == 0) {
+		header("Location: http://labdemo.sis-11.test/webapp/pago-pendiente");
+		exit();
+	}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -27,9 +44,9 @@
 	  	<meta charset="UTF-8">
 	  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	  	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	  	<title>:: NovaLIS ::</title>
+	  	<title>:: Novalis - <?= htmlspecialchars($nombreLab) ?> ::</title>
 	  	<!-- CSS -->
-	  	<link rel="shortcut icon" href="assets/images/favicon.ico"/>
+	  	<link rel="shortcut icon" href="<?= htmlspecialchars($favicon) ?>"/>
 	  	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap-5.3.2/css/bootstrap.css"/>
 		<link rel="stylesheet" type="text/css" href="assets/lib/sweetAlert2/sweetalert2.min.css" />
 	  	<link rel="stylesheet" type="text/css" href="assets/css/styles.css?x=<?php echo time();?>" />
@@ -37,6 +54,7 @@
 		<link rel="stylesheet" href="assets/lib/bootstrap-icons-1.13.1/bootstrap-icons.min.css">
 	</head>
 	<body class="fondo_index">
+		<input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrf_token']; ?>">
 		<section>
 			<div class="row">
 				<div class="col-12">

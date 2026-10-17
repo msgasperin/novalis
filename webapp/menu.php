@@ -1,10 +1,13 @@
 <?php
   $host = $_SERVER['HTTP_HOST'];
   $parts = explode('.', $host);
+  /** @var string $plan */
+  /** @var string $subDominio */
+  /** @var string $ruta */
   // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
-  $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
-  $subDominio = 'labdemo'; // Borrar es solo para pruebas en el cel
-  $ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
+  //$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+  //$subDominio = 'labdemo'; // Borrar es solo para pruebas en el cel
+  //$ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
 ?>
 <div class="row fondo-azul-1 header-top">
   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-5 col-7 p-2 mb-1">
@@ -110,7 +113,7 @@
           </div>    
           <?php } ?>
           
-          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR') { ?>
+          <?php if($_SESSION["perfil"] == 'ADMINISTRADOR' && $_SESSION["plan"] == 'pro') { ?>
           <div class="opciones_menu align-menu menu-con-submenu" id="opcionPortal" onclick="opcionActive('opcionPortal'), mostrarSubmenu(event, 'portal');">
             <i class="bi bi-browser-chrome icon-menu"></i>
             <div>Gestión del Portal</div>

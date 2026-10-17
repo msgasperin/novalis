@@ -5,7 +5,7 @@ const login_portal = async () => {
   let pass        = $('#inputPassword').val().trim();
   let tipoCliente = $('#tipo_cliente').val().trim();
   let fechaNac    = $('#inputFechaNac').val().trim();
-  let csrf        = $('#csrfTokenPortal').val();
+  let csrf        = $('#csrfToken').val();
 
   if (user == '') {
     console.log('Hola');
@@ -76,7 +76,7 @@ const cerrar_sesion = async () => {
   let respuesta = await cierra_sesion();
   if(respuesta.estatus == 200) {
     showMessageSwalTimer('Sesión finalizada correctamente', '', 'success', 2500);
-    redireccionar("../index", 1000);
+    redireccionar("../", 1000);
   }
   else {
     showMessageSwal('Ocurrio un error: ', res.mensaje, 'error');
@@ -142,7 +142,7 @@ const switchUserType = (type) => {
           // Mostrar fecha de nacimiento en pacientes
           containerFecha.classList.remove('d-none');
       }
-  }
+}
 
 window.login_portal   = login_portal;
 window.cerrar_sesion  = cerrar_sesion;

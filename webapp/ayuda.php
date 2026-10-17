@@ -12,7 +12,6 @@
    $host = $_SERVER['HTTP_HOST'];
    $parts = explode('.', $host);
    $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
-   $subDominio = 'labdemo'; // borrar solo para pruebas responsive
 
    $ruta = '../api/assets/' . $subDominio . '/images/logo.png';
 ?>

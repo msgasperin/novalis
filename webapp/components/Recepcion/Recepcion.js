@@ -33,36 +33,32 @@ const TabRecepcion = async () => {
       return;
    }
 
-   let estatusCaja  = $('#estatusCaja').val().trim();
-   let idCaja       = $('#idCaja').val().trim();
-   let aperturaCaja = $('#aperturaCaja').val().trim();
    let perfilUs     = $('#perfilUs').val().trim();
+   let estatusCaja  = $('#estatusCaja').val().trim();
    let btnAcciones  = '';
+   
+   if (perfilUs === 'RECEPCION') {      
 
-   if (perfilUs === 'RECEPCION') {
-      if (estatusCaja === 'cerrada' || idCaja == 0) {
-         ModalAbrirCaja();
-         return;
-      }
-      else if (estatusCaja === 'abierta' && fecActual > aperturaCaja) {
-        ModalCerrarCaja();
-        return;
-      }
-      else {
-         btnAcciones += `
-         <button class="btn btn-outline-secondary" type="button" id="btnMiCorte" onclick="ModalMiCorte();" title="Mi Corte">
-            <i class="bi bi-receipt-cutoff"></i>
-         </button>
-         <button class="btn btn-outline-secondary" type="button" id="btnMovimientoCaja" onclick="ModalMovimientosCaja();" title="Movimientos">
-            <i class="bi bi-arrow-down-up"></i>
-         </button>           
+      btnAcciones += `
+      <button class="btn btn-outline-secondary" type="button" id="btnMiCorte" onclick="ModalMiCorte();" title="Mi Corte">
+         <i class="bi bi-receipt-cutoff"></i>
+      </button>
+      <button class="btn btn-outline-secondary" type="button" id="btnMovimientoCaja" onclick="ModalMovimientosCaja();" title="Movimientos">
+         <i class="bi bi-arrow-down-up"></i>
+      </button>`;
+
+      if (estatusCaja === 'abierta') {
+         btnAcciones+=`
          <button class="btn btn-outline-dark" type="button" id="btnCerrarCaja" onclick="ModalCerrarCaja();" title="Cerrar Caja">
             <i class="bi bi-lock-fill"></i>
-         </button>
-         <button class="btn btn-success" type="button" id="btnNuevaOrden" onclick="TabRecepcion();" title="Nueva orden">
-            <i class="bi bi-plus-lg"></i>
          </button>`;
-      }      
+      }
+
+      btnAcciones+=`
+      <button class="btn btn-success" type="button" id="btnNuevaOrden" onclick="TabRecepcion();" title="Nueva orden">
+         <i class="bi bi-plus-lg"></i>
+      </button>`;
+          
    }
 
    let html = `
@@ -806,6 +802,20 @@ const vaciar_carrito_recepcion = async () => {
 };
 
 const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
+
+   let estatusCaja  = $('#estatusCaja').val().trim();
+   let idCaja       = $('#idCaja').val().trim();
+   let aperturaCaja = $('#aperturaCaja').val().trim();
+   
+   if (estatusCaja === 'cerrada' || idCaja == 0) {
+      ModalAbrirCaja();
+      return;
+   }
+   else if (estatusCaja === 'abierta' && fecActual > aperturaCaja) {
+      ModalCerrarCaja();
+      return;
+   }
+
    if (!pacienteOrden) {
       ToastColor.fire({ text: '¡Atención! No se ha seleccionado ningún paciente', icon: 'warning' });
       return;

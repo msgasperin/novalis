@@ -351,21 +351,54 @@
                                 <span class="badge bg-light text-secondary border fw-bold px-3 py-2 rounded-pill">PLAN INICIAL</span>
                             </div>
                             <h4 class="fw-bold text-dark mb-2">Básico / Matriz</h4>
-                            <p class="text-muted small">Ideal para laboratorios independientes que buscan agilizar su operación diaria.</p>
+                            <p class="text-muted small">Ideal para laboratorios independientes que buscan digitalizar su operación y entregar resultados en línea a sus pacientes.</p>
                             
                             <div class="my-3">
-                                <span class="display-5 fw-extrabold text-dark">$799</span>
+                                <span class="display-5 fw-extrabold text-dark">$999</span>
                                 <span class="text-muted">MXN / mes</span>
                             </div>
 
                             <ul class="list-unstyled small mb-4 flex-grow-1">
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> <strong>1 Sucursal / Matriz</strong></li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Órdenes y pacientes  <strong>ilimitados</strong></li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Módulos completos (Recepción, Caja, Resultados y más)</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Envío de resultados por correo electrónico</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Impresión de etiquetas para tubos</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Landing Page pública estática inicial</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-lg text-success fs-5 me-2"></i> Portal web de consulta de resultados</li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    <strong>1 Sucursal incluida</strong>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Órdenes y pacientes ilimitados
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Módulos: Recepción,  Caja, Movimientos, Cortes, Lista de Precios, Convenios y más
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Subida de Resultados en PDF con visor integrado
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Envío de Resultados vía Correo Electrónico (Hasta 1,000/mes)
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Impresión de Tickets y Etiquetas para Tubos
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Reportes Operativos Básicos (Corte diario y flujo de dinero)
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Almacenamiento: 5 GB de almacenamiento PDF
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Landing Page estática inicial del laboratorio
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
+                                    Portal Web Público de Consulta para Pacientes
+                                </li>
                             </ul>
 
                             <a href="https://wa.me/<?= $whatsappPhone ?>?text=<?= rawurlencode('Hola, me interesa contratar el Plan Básico de NOVALIS') ?>" target="_blank" class="btn btn-brand-outline w-100 py-2 fw-bold">
@@ -382,20 +415,42 @@
                                 <i class="bi bi-star-fill text-warning fs-5"></i>
                             </div>
                             <h4 class="fw-bold text-dark mb-2">Pro Multi-Sucursal</h4>
-                            <p class="text-muted small">Para laboratorios con varias sedes que requieren control comercial y financiero activo.</p>
+                            <p class="text-muted small">Diseñado para laboratorios con varias sedes o alta exigencia de control comercial, financiero y de análisis.</p>
                             
                             <div class="my-3">
-                                <span class="display-5 fw-extrabold text-brand-primary">$1,399</span>
+                                <span class="display-5 fw-extrabold text-brand-primary">$1,499</span>
                                 <span class="text-muted">MXN / mes</span>
                             </div>
 
                             <ul class="list-unstyled small mb-4 flex-grow-1">
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> <strong>Hasta 5 Sucursales incluidas</strong></li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Todo lo del Plan Básico</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> <strong>Módulo de Autogestión de la Landing Page</strong> (Promociones y sucursales)</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Módulo completo de Rentabilidad, Flujo y Auditoría</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Gestión avanzada de Convenios y Empresas</li>
-                                <li class="mb-2 d-flex align-items-center"><i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> Sucursal adicional extra: +$300 MXN/mes</li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i>
+                                    <strong>INCLUYE TODO LO DEL PLAN BÁSICO</strong>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> 
+                                    <strong>Hasta 3 Sucursales incluidas</strong>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> 
+                                    Módulo completo de Rentabilidad, Flujo y Auditoría
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i>
+                                    Landing Page Autogestionable (Promociones, número de whatsApp  y sucursales)
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i>
+                                    Envío de Resultados por Correo (Hasta 3,000/mes)
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i>
+                                    Almacenamiento: 15 GB de almacenamiento PDF
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> 
+                                    Sucursal adicional extra: +$400 MXN/mes
+                                </li>
                             </ul>
 
                             <a href="https://wa.me/<?= $whatsappPhone ?>?text=<?= rawurlencode('Hola, me interesa solicitar información del Plan Pro de NOVALIS') ?>" target="_blank" class="btn btn-brand w-100 py-2 fw-bold">

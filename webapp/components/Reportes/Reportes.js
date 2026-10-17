@@ -4,6 +4,7 @@ let arrReporte = [];
 
 const TabReportes = async () => {
    
+   let plan  = $('#inpPlan').val().trim();
    const res = await valida_menu('reportes');
 
    if (!res || res.estatus != 200) {
@@ -64,112 +65,118 @@ const TabReportes = async () => {
                </div>
             </div>
          </div>
-      </div>
-
-      <!-- Cuentas por Cobrar (Saldos Deudores) -->
-      <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('saldos_deudores', 'Cuentas por Cobrar', 3);">
-            <div class="card-body">
-               <div class="d-flex justify-content-center mb-3">
-                  <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
-                     <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+      </div>`;
+      if(plan == 'pro') {
+         html+=`
+         <!-- Cuentas por Cobrar (Saldos Deudores) -->
+         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
+            <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('saldos_deudores', 'Cuentas por Cobrar', 3);">
+               <div class="card-body">
+                  <div class="d-flex justify-content-center mb-3">
+                     <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+                     </div>
+                  </div>
+                  <div>
+                     <h5 class="card-title mb-1 fw-bold">Cuentas por Cobrar</h5>
+                     <p class="card-text text-muted small mb-0">
+                        Órdenes con saldo deudor pendiente de liquidar filtrado por paciente, sucursal o convenio.
+                     </p>
                   </div>
                </div>
-               <div>
-                  <h5 class="card-title mb-1 fw-bold">Cuentas por Cobrar</h5>
-                  <p class="card-text text-muted small mb-0">
-                     Órdenes con saldo deudor pendiente de liquidar filtrado por paciente, sucursal o convenio.
-                  </p>
+            </div>
+         </div>`
+      }
+      html+=`
+   </div>`;
+   
+   if(plan == 'pro') {
+      html+=`
+      <!-- SECCIÓN: OPERATIVOS Y COMERCIALES -->
+      <div class="row mt-3">
+         <div class="col-12">
+            <h6 class="text-secondary fw-bold text-uppercase fs-7 border-bottom pb-2">
+               <i class="bi bi-graph-up-arrow me-1"></i> Operativos y Análisis Comercial
+            </h6>
+         </div>
+
+         <!-- Estudios Más Solicitados y Utilidad -->
+         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
+            <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('estudios_solicitados', 'Estudios y Demanda', 4);">
+               <div class="card-body">
+                  <div class="d-flex justify-content-center mb-3">
+                     <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
+                        <i class="bi bi-journal-medical text-primary fs-3"></i>
+                     </div>
+                  </div>
+                  <div>
+                     <h5 class="card-title mb-1 fw-bold">Estudios y Rentabilidad</h5>
+                     <p class="card-text text-muted small mb-0">
+                        Top de estudios/paquetes más vendidos, volumen demandado y margen de utilidad calculado.
+                     </p>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
-   </div>
 
-   <!-- SECCIÓN: OPERATIVOS Y COMERCIALES -->
-   <div class="row mt-3">
-      <div class="col-12">
-         <h6 class="text-secondary fw-bold text-uppercase fs-7 border-bottom pb-2">
-            <i class="bi bi-graph-up-arrow me-1"></i> Operativos y Análisis Comercial
-         </h6>
-      </div>
-
-      <!-- Estudios Más Solicitados y Utilidad -->
-      <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('estudios_solicitados', 'Estudios y Demanda', 4);">
-            <div class="card-body">
-               <div class="d-flex justify-content-center mb-3">
-                  <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
-                     <i class="bi bi-journal-medical text-primary fs-3"></i>
+         <!-- Rendimiento por Cliente -->
+         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
+            <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('rendimiento_clientes', 'Rendimiento de Clientes', 5);">
+               <div class="card-body">
+                  <div class="d-flex justify-content-center mb-3">
+                     <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
+                        <i class="bi bi-building-check text-warning fs-3"></i>
+                     </div>
                   </div>
-               </div>
-               <div>
-                  <h5 class="card-title mb-1 fw-bold">Estudios y Rentabilidad</h5>
-                  <p class="card-text text-muted small mb-0">
-                     Top de estudios/paquetes más vendidos, volumen demandado y margen de utilidad calculado.
-                  </p>
+                  <div>
+                     <h5 class="card-title mb-1 fw-bold">Rendimiento Clientes</h5>
+                     <p class="card-text text-muted small mb-0">
+                        Análisis de volumen de órdenes y facturación aportada por empresas, doctores y clientes.
+                     </p>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
 
-      <!-- Rendimiento por Cliente -->
-      <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('rendimiento_clientes', 'Rendimiento de Clientes', 5);">
-            <div class="card-body">
-               <div class="d-flex justify-content-center mb-3">
-                  <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
-                     <i class="bi bi-building-check text-warning fs-3"></i>
+         <!-- Análisis Demográfico de Pacientes -->
+         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
+            <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('demografia_pacientes', 'Demografía de Pacientes', 6);">
+               <div class="card-body">
+                  <div class="d-flex justify-content-center mb-3">
+                     <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
+                        <i class="bi bi-people-fill text-secondary fs-3"></i>
+                     </div>
                   </div>
-               </div>
-               <div>
-                  <h5 class="card-title mb-1 fw-bold">Rendimiento Clientes</h5>
-                  <p class="card-text text-muted small mb-0">
-                     Análisis de volumen de órdenes y facturación aportada por empresas, doctores y clientes.
-                  </p>
+                  <div>
+                     <h5 class="card-title mb-1 fw-bold">Análisis de Pacientes</h5>
+                     <p class="card-text text-muted small mb-0">
+                        Estadísticas de atención agrupadas por rangos de edad, sexo y pacientes recurrentes.
+                     </p>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
 
-      <!-- Análisis Demográfico de Pacientes -->
-      <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('demografia_pacientes', 'Demografía de Pacientes', 6);">
-            <div class="card-body">
-               <div class="d-flex justify-content-center mb-3">
-                  <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
-                     <i class="bi bi-people-fill text-secondary fs-3"></i>
+         <!-- Descuentos y Cancelaciones -->
+         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
+            <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('descuentos_cancelaciones', 'Auditoría de Descuentos y Cancelaciones', 7);">
+               <div class="card-body">
+                  <div class="d-flex justify-content-center mb-3">
+                     <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
+                        <i class="bi bi-shield-slash-fill text-dark fs-3"></i>
+                     </div>
                   </div>
-               </div>
-               <div>
-                  <h5 class="card-title mb-1 fw-bold">Análisis de Pacientes</h5>
-                  <p class="card-text text-muted small mb-0">
-                     Estadísticas de atención agrupadas por rangos de edad, sexo y pacientes recurrentes.
-                  </p>
+                  <div>
+                     <h5 class="card-title mb-1 fw-bold">Auditoría y Cancelaciones</h5>
+                     <p class="card-text text-muted small mb-0">
+                        Supervisión de descuentos aplicados, cargos extra y análisis de motivos de cancelación.
+                     </p>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
-
-      <!-- Descuentos y Cancelaciones -->
-      <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12 mt-2">
-         <div class="card mb-3 shadow-sm border-0 pointer text-center h-100" onclick="ModalVisualizacionReporte('descuentos_cancelaciones', 'Auditoría de Descuentos y Cancelaciones', 7);">
-            <div class="card-body">
-               <div class="d-flex justify-content-center mb-3">
-                  <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center icon-reportes" style="width: 50px; height: 50px;">
-                     <i class="bi bi-shield-slash-fill text-dark fs-3"></i>
-                  </div>
-               </div>
-               <div>
-                  <h5 class="card-title mb-1 fw-bold">Auditoría y Cancelaciones</h5>
-                  <p class="card-text text-muted small mb-0">
-                     Supervisión de descuentos aplicados, cargos extra y análisis de motivos de cancelación.
-                  </p>
-               </div>
-            </div>
-         </div>
-      </div>
-   </div>`;   
+      </div>`;  
+   } 
 
    $('#containerMain').html(html);
 }

@@ -14,8 +14,6 @@
     // Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
     $subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
 
-    $subDominio = 'labdemo'; // Borrar solo es para pruebas responsive
-
     // 2. Ruta al archivo JSON estático
     $jsonPath = "api/config/json/{$subDominio}.json";
 
@@ -39,9 +37,10 @@
     $servicios   = $config['servicios']        ?? [];
     $sucursales  = $config['sucursales']       ?? [];
 
-    $_SESSION["nombreLab"] = $nombreLab;
-    $_SESSION["favicon"]   = $favicon;
-    $_SESSION["logoUrl"]   = $logoUrl;
+    $_SESSION["nombreLab"]      = $nombreLab;
+    $_SESSION["favicon"]        = $favicon;
+    $_SESSION["logoUrl"]        = $logoUrl;
+    $_SESSION["aviso_aceptado"] = false;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -61,8 +60,8 @@
         <!-- Estilos Personalizados -->
         <style>
             @font-face {
-                font-family: "Plus Jakarta Sans";
-                src: url("webapp/assets/css/fuentes/Plus_Jakarta_Sans/PlusJakartaSans-Regular.ttf") format("truetype");
+                font-family: "inter";
+                src: url("webapp/assets/css/fuentes/inter/Inter-Regular.woff2") format("truetype");
             }
 
             :root {
@@ -70,7 +69,7 @@
                 --brand-secondary: <?= $colores['secundario'] ?>;
                 --brand-accent: <?= $colores['acento'] ?>;
                 --brand-primary-rgb: <?= implode(',', sscanf($colores['primario'], "#%02x%02x%02x")) ?>;
-                --font-main: 'Plus Jakarta Sans', sans-serif;
+                --font-main: 'inter', sans-serif;
             }
 
             body {
@@ -229,7 +228,7 @@
         </style>
     </head>
     <body>
-        <input type="hidden" id="csrfTokenPortal" value="<?php echo $_SESSION['csrfTokenPortal']; ?>">
+        <input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrfTokenPortal']; ?>">
         <input type="hidden" name="tipo_cliente" id="tipo_cliente" value="paciente">
         
         <!-- Header / Navbar -->

@@ -7,6 +7,51 @@
          parent::__construct();
 	   	$this->dbh = $this->getDbh();
 	  	}
+
+		public function validar_aceptacion_aviso(int $id_cliente) {
+			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];
+			try {
+				$sql = $this->dbh->prepare("SELECT id FROM bitacora_avisos_privacidad WHERE cliente_id = ?");
+				$sql->execute([$id_cliente]);
+				if($sql->rowCount() > 0) {
+					$res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => []];	
+				}
+				else {
+					$res = ['estatus' => 202, 'mensaje' => 'no tiene aviso de aceptado', 'data' => []];
+				}
+
+			} catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+			
+			return $res;
+		}
+
+		public function aceptar_aviso_privacidad(int $id_usuario, string $usuario, string $version) {
+			
+			$res = ['estatus' => 500, 'mensaje' => 'error', 'data' => []];	
+
+			try {
+				$ip        = $_SERVER["REMOTE_ADDR"];
+				$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+				$proveedor = strtolower(substr($userAgent, 0, 255));
+				
+				$sql = $this->dbh->prepare("INSERT INTO bitacora_avisos_privacidad (cliente_id, nom_cliente_id, fecha_aceptacion, direccion_ip, proveedor, version_aviso) VALUES (?,?,?,?,?,?)");
+				$ok = $sql->execute(array($id_usuario, $usuario, date('Y-m-d H:i:s'), $ip, $proveedor, $version));
+
+				
+				$id = $this->dbh->lastInsertId();
+
+				if($ok && $id > 0) {
+					$res = ['estatus' => 200, 'mensaje' => 'ok', 'data' => []];	
+				}			
+			} catch (Exception $error) {
+				error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			return $res;
+		}
+		
 		
 		public function busqueda_ordenes_bandeja(int $id_sucursal, string $matriz, array $post) {
 			$res = [];

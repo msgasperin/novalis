@@ -6,6 +6,15 @@
   $v = new Sucursales();
   $g = new Globales();
   $_POST = json_decode(file_get_contents("php://input"), true);
+
+  if ($_SESSION["plan"] == "basico" && $_POST['func'] != 'obtiene_sucursales') {
+    echo json_encode([
+      'estatus' => 422,
+      'mensaje' => 'Tu plan no tiene acceso a esta sección',
+      'data'    => []
+    ]);
+    exit;
+  }
   
   if (isset($_SESSION["id_usuario"]) && !empty($_SESSION["id_usuario"])) {
     if (isset($_POST['func'])) {
@@ -48,7 +57,7 @@
           $_POST["matriz"]     = (int)$_POST["matriz"];
 
           if ($_POST["idSucursal"] === 0) {
-            $res              = $v->guardar_sucursal($_POST, $_SESSION["nombre"]);
+            $res              = $v->guardar_sucursal($_POST, $_SESSION["nombre"], (int)$_SESSION["limite_sucursales"]);
             $id_registro      = $res["data"][0] ?? 0;
             $mensaje_bitacora = 'Sucursal registrada: ' . $_POST["nomSucursal"];
           } 

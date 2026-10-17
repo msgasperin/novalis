@@ -9,6 +9,15 @@
    if (strpos($contentType, "application/json") !== false) {
       $_POST = json_decode(file_get_contents("php://input"), true);
    } 
+
+   if ($_SESSION["plan"] == "basico" && $_POST["idTipo"] > 2) {
+      echo json_encode([
+         'estatus' => 422,
+         'mensaje' => 'Tu plan no tiene acceso a esta sección',
+         'data'    => []
+      ]);
+      exit;
+   }
   
    if(isset($_SESSION["id_usuario"]) && $_SESSION["id_usuario"] != '') {
       if(isset($_POST['func'])) {
