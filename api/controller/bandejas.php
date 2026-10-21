@@ -76,6 +76,16 @@
                   break;
                }
                
+               $limit = 0;
+
+               if($_SESSION["plan"] == 'basico') {
+                  $limit = 5 * 1024 * 1024 * 1024; // 5 GB en bytes
+               }
+               else if($_SESSION["plan"] == 'pro') {
+                  //$limit = 10 * 1024 * 1024 * 1024; // 10 GB en bytes
+                  $limit = 1 * 1024 * 1024; // 10 GB en bytes
+               }
+
                $idOrden        = (int)$_POST["idOrden"];
                $folioSeguro    = preg_replace('/[^a-zA-Z0-9_\-]/', '', $_POST["folio"]);
                $nombre_archivo = $_FILES['archivo']['name'];	
@@ -105,6 +115,17 @@
                   break;
                }
 
+               //Validamos el almacenamiento actual
+               $resAlmacenamiento   = $v->validar_almacemiiento();    
+               $almacenamientoUsado = $resAlmacenamiento["data"][0];
+               $porcentajeUso       = $limit > 0 ? round(($almacenamientoUsado / $limit) * 100) : 100;
+
+               if($porcentajeUso >= 100) { 
+                  $data = ['almacenamiento' => $almacenamientoUsado, 'porcentaje' => $porcentajeUso, 'plan' => $_SESSION["plan"]];
+                  echo json_encode(['estatus' => 507, 'mensaje' => 'Tu límite de almacenamiento ha sido superado, por favor elimina archivos o habla con el administrador para informar sobre este problema.', 'data' => $data]);
+                  break;
+               }
+
                if (!file_exists($upload_folder)) {
                   if (mkdir($upload_folder, 0755, true)) {
                      copy('../../webapp/assets/docs/resultados/index.php', $upload_folder . 'index.php');
@@ -116,6 +137,11 @@
 
                   if ($res["estatus"] == 200) {
                      $g->bitacora('Resultado PDF agregado: ' . $nombre_archivo . ' del folio: ' . $folioSeguro, $idOrden, $_SESSION["id_usuario"], $_SESSION["nombre"]);
+                     
+                     $res["data"]["almacenamiento"] = $almacenamientoUsado;
+                     $res["data"]["porcentaje"]     = $porcentajeUso;
+                     $res["data"]["plan"]           = $_SESSION["plan"];
+
                   } else {
                      if (file_exists($archivador)) {
                         unlink($archivador);

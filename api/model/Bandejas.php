@@ -296,6 +296,28 @@
 
 			return $res;
 		}
+
+		public function validar_almacemiiento() {
+      	$estatus = 500;
+			$mensaje = 'Error al obtener el almacenamiento de archivos';
+			$data    = [0];
+			try {
+				$sql = $this->dbh->prepare("SELECT COALESCE(SUM(tamanio_bytes), 0) AS total_almacenamiento FROM orden_resultados_pdf WHERE activo = ?");
+				$sql->execute(array(1));
+				$row = $sql->fetch(PDO::FETCH_ASSOC);
+			
+				$estatus = 200;
+				$mensaje = 'ok';
+				$data    = [$row["total_almacenamiento"]];
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+
+			return $res;
+		}
 		
 	}
 ?>

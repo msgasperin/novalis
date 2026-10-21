@@ -615,11 +615,29 @@ const subir_pdf_resultado = async (idOrden) => {
    objSubidaResultado.append('archivo', file);
 
    let respuesta = await sube_pdf_resultado(objSubidaResultado);  
+
+   let plan     = '';
+   let limiteGB = 0;
    
+   if(respuesta.data.plan == 'basico') {
+      plan     = 'Básico';
+      limiteGB = '5 GB';
+   }
+   else {
+      plan     = 'Pro';
+      limiteGB = '10 GB';
+   }
+
    if (respuesta.estatus == 403) {
       fnNoSesion();
    }
+   else if(respuesta.estatus == 507) {     
+      
+      ModalLimiteSuperado(plan, limiteGB, 'almacenamiento');
+      $('#btnSubirPDF').prop('disabled', false);
+   }
    else if (respuesta.estatus == 200) { 
+      
       let objResultado = {
          id: respuesta.data.id,
          orden_folio: respuesta.data.orden_folio,
@@ -640,6 +658,12 @@ const subir_pdf_resultado = async (idOrden) => {
       $('#btnSubirPDF').prop('disabled', false);
       $('#pdf_archivo').val('');
       $('#pdf_descripcion').val('');
+
+      //Validamos si el almacenimiento es mayor a 85%
+      if(parseFloat(respuesta.data.porcentaje) >= 85) {
+         let usadoGB = (parseFloat(respuesta.data.almacenamiento) / (1024 ** 3)).toFixed(2) + ' GB';
+         ModalAlertaLimite(respuesta.data.porcentaje, usadoGB, limiteGB, 'almacenamiento');
+      }
    }
    else {
       showMessageSwal('Ocurrio un error: ', respuesta.mensaje, 'error');
@@ -1467,6 +1491,18 @@ const procesa_publicacion_notificacion = async (idOrden) => {
 
 const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
    let respuesta = await notificar_mail_resultados(keyQuery, correo, CSRF_TOKEN);
+
+   let plan   = '';
+   let limite = '';
+
+   if(respuesta.data.plan == 'basico') {
+      plan   = 'Básico';
+      limite = '1000 correos';
+   }
+   else {
+      plan   = 'Pro';
+      limite = '3000 correos';
+   }
       
    if (respuesta.estatus == 200) {
       ToastColor.fire({
@@ -1475,6 +1511,15 @@ const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
          position: 'top',
          timerProgressBar: false
       });
+
+      //Validamos si el almacenimiento es mayor a 85%
+      if(parseFloat(respuesta.data.porcentaje) >= 85) {
+         let usado = respuesta.data.almacenamiento + ' correos enviados';
+         ModalAlertaLimite(respuesta.data.porcentaje, usado, limite, 'correo');
+      }
+   }
+   else if(respuesta.estatus == 507) {     
+      ModalLimiteSuperado(plan, limite, 'correo');
    }
    else {
       ToastColor.fire({
@@ -1486,6 +1531,142 @@ const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
    }
 };
 
+const ModalLimiteSuperado = (planActual, limiteGB, tipo) => {
+
+   let titulo           = '';
+   let advertencia      = '';
+   let advertenciaExtra = '';
+
+   if(tipo == 'almacenamiento') {
+      titulo           = 'Almacenamiento Agotado';
+      advertencia      = 'Espacio máximo superado';
+      advertenciaExtra = 'Para seguir subiendo resultados de laboratorio, es necesario liberar espacio o actualizar tu suscripción.';
+   }
+   else if(tipo == 'correo') {
+      titulo           = 'Envío de resultados por correo agotado';
+      advertencia      = 'Envíos máximos superados';
+      advertenciaExtra = 'Para seguir enviando resultados de laboratorio por correo en este plan, es necesario esperar al siguiente mes.';
+   }
+
+   let html = `
+   <div class="modal fade modal-superior-blur" id="modalLimiteSuperado" tabindex="-1" aria-labelledby="modalLimiteSuperadoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content border-0 sombra-modal">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-danger text-white py-3">
+               <div class="d-flex align-items-center">
+                  <div class="rounded-circle bg-white bg-opacity-20 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                     <i class="bi bi-hdd-fill text-danger fs-5"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-0 fs-6" id="modalLimiteSuperadoLabel">${titulo}</h5>
+                     <small class="text-white-50">Límite del plan ${planActual} alcanzado</small>
+                  </div>
+               </div>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body bg-light p-4">
+               <div class="container-fluid px-0">
+                  <div class="row justify-content-center text-center">
+                     <div class="col-12 mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle p-3 mb-2" style="width: 75px; height: 75px;">
+                           <i class="bi bi-exclamation-octagon-fill fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">¡${advertencia}!</h4>
+                        <p class="text-muted small mb-0">
+                           Has utilizado el total de tus <strong>${limiteGB}</strong> asignados en tu plan actual. ${advertenciaExtra}
+                        </p>
+                     </div>
+
+                     <!-- BOTONES DE ACCIÓN -->
+                     <div class="col-12 d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                           <i class="bi bi-x-lg me-2"></i>Cerrar
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   $('#modalLimiteSuperado').modal('show');
+}
+
+const ModalAlertaLimite = (porcentajeUso, usadoGB, limiteGB, tipo) => {
+
+   let titulo      = '';
+   let advertencia = '';
+
+   if(tipo == 'almacenamiento') {
+      titulo      = 'Almacenamiento';
+      advertencia = 'Próximamente no podrás subir más resultados si alcanzas el 100%.';
+   }
+   else if(tipo == 'correo') {
+      titulo      = 'Límites de envío de resultados por correo';
+      advertencia = 'Próximamente no podrás enviar más resultados por correo si alcanzas el 100%.';
+   }
+
+   let html = `
+   <div class="modal fade modal-superior-blur" id="modalAlertaAlmacenamiento" tabindex="-1" aria-labelledby="modalAlertaAlmacenamientoLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content border-0 sombra-modal">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-warning text-dark py-3">
+               <div class="d-flex align-items-center">
+                  <div class="rounded-circle bg-dark bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                     <i class="bi bi-pie-chart-fill text-dark fs-5"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-0 fs-6" id="modalAlertaAlmacenamientoLabel">Aviso de ${titulo}</h5>
+                     <small class="text-dark opacity-75">Tu espacio se está agotando</small>
+                  </div>
+               </div>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body bg-light p-4">
+               <div class="container-fluid px-0">
+                  <div class="row justify-content-center text-center">
+                     <div class="col-12 mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle p-3 mb-2" style="width: 75px; height: 75px;">
+                           <i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">Estás cerca del límite</h4>
+                        <p class="text-muted small mb-3">
+                           Has consumido el <strong>${porcentajeUso}%</strong> de tu capacidad total (${usadoGB} de ${limiteGB} ). ${advertencia}
+                        </p>
+
+                        <!-- BARRA DE PROGRESO VISUAL -->
+                        <div class="progress" style="height: 10px;" role="progressbar" aria-label="Progreso de almacenamiento" aria-valuenow="${porcentajeUso}" aria-valuemin="0" aria-valuemax="100">
+                           <div class="progress-bar bg-warning" style="width: ${porcentajeUso}%"></div>
+                        </div>
+                     </div>
+
+                     <!-- BOTONES DE ACCIÓN -->
+                     <div class="col-12 d-flex justify-content-center gap-2 mt-2">
+                        <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                           <i class="bi bi-clock-history me-2">Recordar luego</i>
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   $('#modalAlertaAlmacenamiento').modal('show');
+}
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DECLARACIÓN DE FUNCIONES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 window.TabBandejas                       = TabBandejas;
 window.ModalGestionPDF                   = ModalGestionPDF;
@@ -1493,6 +1674,8 @@ window.ModalViewerResultado              = ModalViewerResultado;
 window.ModalViewerResultadosFolio        = ModalViewerResultadosFolio;
 window.ModalPublicarNotificar            = ModalPublicarNotificar;
 window.ModalViewDetallesOrden            = ModalViewDetallesOrden;
+window.ModalLimiteSuperado               = ModalLimiteSuperado;
+window.ModalAlertaLimite                 = ModalAlertaLimite;
 
 window.subir_pdf_resultado               = subir_pdf_resultado;
 window.eliminar_resultado                = eliminar_resultado;

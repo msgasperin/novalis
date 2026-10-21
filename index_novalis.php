@@ -445,7 +445,7 @@
                                 </li>
                                 <li class="mb-2 d-flex align-items-center">
                                     <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i>
-                                    Almacenamiento: 15 GB de almacenamiento PDF
+                                    Almacenamiento: 10 GB de almacenamiento PDF
                                 </li>
                                 <li class="mb-2 d-flex align-items-center">
                                     <i class="bi bi-check-circle-fill text-success fs-6 me-2"></i> 
