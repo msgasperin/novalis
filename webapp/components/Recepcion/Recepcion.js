@@ -53,6 +53,12 @@ const TabRecepcion = async () => {
             <i class="bi bi-lock-fill"></i>
          </button>`;
       }
+      else {
+          btnAcciones+=`
+         <button class="btn btn-outline-primary" type="button" id="btnAbrirCaja" onclick="ModalAbrirCaja();" title="Abrir Caja">
+            <i class="bi bi-door-open"></i>
+         </button>`;
+      }
 
       btnAcciones+=`
       <button class="btn btn-success" type="button" id="btnNuevaOrden" onclick="TabRecepcion();" title="Nueva orden">
@@ -454,16 +460,18 @@ const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
 
    $('#' + containerId).html(html);
 
-   setTimeout(() => {
-      if ($.fn.DataTable.isDataTable('#tablePacienteEncontrados')) {
-         $('#tablePacienteEncontrados').DataTable().destroy();
-      }
-      new DataTable('#tablePacienteEncontrados', {   
-         language: { url: "assets/lib/DataTables/es-ES.json" },
-         responsive: true,
-         order: [[0, 'desc']]
-      });
-   }, 200);
+   if (data.length > 0) {
+      setTimeout(() => {
+         if ($.fn.DataTable.isDataTable('#tablePacienteEncontrados')) {
+            $('#tablePacienteEncontrados').DataTable().destroy();
+         }
+         new DataTable('#tablePacienteEncontrados', {   
+            language: { url: "assets/lib/DataTables/es-ES.json" },
+            responsive: true,
+            order: [[0, 'desc']]
+         });
+      }, 200);
+   }
 };
 
 const buscar_paciente_encontrado = () => {
