@@ -246,25 +246,24 @@
 
   .m-responsive {
     opacity: 1;
-    left: 0px;
+    left: 5px;
     top: 200;
   }
 
   .wm-responsive {
     width: 5%;
-    /*background-color: #969c3a;*/
-    background-color: var(--primary-dark);
+    background-color: var(--primary);
   }
 
   .img-logo {
-    width: 50%;
+    width: 35%;
     margin-top: 1px;
     margin-bottom: 2px;
     margin-left: 70px;
   }
 
   .img-logo-cliente {
-    width: 40%;
+    width: 25%;
     margin-top: 3px;
     margin-bottom: 5px;
   }

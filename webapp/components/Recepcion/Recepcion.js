@@ -81,14 +81,14 @@ const TabRecepcion = async () => {
       </div>
    </div>
    <div class="row mt-3">
-      <div class="col-12 col-sm-8 col-lg-9 mt-2">
+      <div class="col-12 col-sm-8 col-lg-8 col-xl-8 col-xxl-9 mt-2">
          <div class="card">
             <div class="card-body">
                <div class="row">
                   <div class="col-12">
                      <h5 class="fw-bold text-secondary"><span class="badge rounded-pill bg-success">1</span> Selección de paciente</h5>
                   </div>
-                  <div class="col-12 col-sm-8 mt-2">
+                  <div class="col-12 col-sm-7 col-xxl-8 mt-2">
                      <label class="form-label fw-bold mb-1" for="busquedaPacienteRec">Búsqueda de paciente por nombre o correo electrónico</label>
                      <div class="input-group mb-3">
                         <input type="text" class="form-control form-control-lg fs-6" id="busquedaPacienteRec" placeholder="Ingresa el nombre del paciente o su correo electrónico">
@@ -97,7 +97,7 @@ const TabRecepcion = async () => {
                         </button>
                      </div>
                   </div>
-                  <div class="col-12 col-sm-4 mt-2">
+                  <div class="col-12 col-sm-5 col-xxl-4 mt-2">
                      <label class="form-label fw-bold mb-1" for="busFecNacPac">Búsqueda por fecha de nacimiento</label>
                      <div class="input-group mb-3">
                         <input type="date" class="form-control form-control-lg fs-6" id="busFecNacPac">
@@ -115,7 +115,7 @@ const TabRecepcion = async () => {
          <div id="container_form_carga_estudios"></div>
       </div>        
 
-      <div class="col-12 col-sm-4 col-lg-3 mt-2">
+      <div class="col-12 col-sm-4 col-lg-4 col-xl-4 col-xxl-3 mt-2">
          <div class="card">
             <div class="card-body">
                <div class="row">

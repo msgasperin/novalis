@@ -180,10 +180,10 @@ const pinta_ordenes_bandejas = (data) => {
          <thead class="table-dark text-uppercase small">
             <tr class="border-start border-1 border-dark">
                <th width="15%" class="text-center py-2">Orden</th>
-               <th width="35%" class="py-2">Paciente / Convenio</th>
+               <th width="32%" class="py-2">Paciente / Convenio</th>
                <th width="15%" class="text-center py-2">Registro</th>
                <th width="20%" class="text-center py-2">Estado Pago</th>
-               <th width="15%" class="text-center py-2">Acciones</th>
+               <th width="18%" class="text-center py-2">Acciones</th>
             </tr>
          </thead>
          <tbody>`;

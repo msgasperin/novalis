@@ -139,7 +139,7 @@ const pinta_listado_sucursales = (containerId, data) => {
       const telefonoLimpio  = escapeHTML(row.telefono);
 
       html += `
-      <div class="col-12 col-sm-3 col-md-3 mt-2" id="cardSucursal${row.id}">
+      <div class="col-12 col-sm-3 col-md-4 col-xxl-3 mt-2" id="cardSucursal${row.id}">
          <div class="card mb-3 shadow">
             <div class="card-body">
                <div class="row fs-8">

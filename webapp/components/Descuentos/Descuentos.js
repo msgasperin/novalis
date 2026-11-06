@@ -120,7 +120,7 @@ const pinta_listado_descuentos = (data) => {
    let html = `<div class="row">`;
    data.forEach((row) => {
       html += `
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3 mt-2" id="cardDescuento${row.id}">
+      <div class="col-12 col-sm-6 col-md-4 col-xxl-3 mt-2" id="cardDescuento${row.id}">
          <div class="card mb-3 shadow-sm border-0">
             <div class="card-body">
                <div class="row fs-8">

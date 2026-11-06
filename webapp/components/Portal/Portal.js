@@ -187,7 +187,7 @@ const pinta_listado_promociones = (data) => {
       }
 
       html += `
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3 mt-2" id="cardPromocion${row.id}">
+      <div class="col-12 col-sm-6 col-md-4 col-xll-3 mt-2" id="cardPromocion${row.id}">
          <div class="card mb-3 shadow-sm border-light-subtle h-100">
             <div class="card-body d-flex flex-column">
                <div class="mb-2">
