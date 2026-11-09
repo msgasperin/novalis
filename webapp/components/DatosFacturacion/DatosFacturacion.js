@@ -190,12 +190,14 @@ const listar_datos_facturacion = async (containerId, tipoReceptor, idReceptor) =
 
 const pintar_lista_datos_facturacion = (data, containerId) => {
    if (!data || data.length === 0) {
-      $(`#${containerId}`).html(`
-         <div class="text-center py-4">
-            <img src="assets/images/no_encontrado.png" class="img-fluid mb-2" style="max-height: 85px;" alt="Sin registros">
-            <p class="text-muted small mb-0">No se encontraron datos de facturación registrados</p>
-         </div>
-      `);
+      $('#' + containerId).html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron datos de facturación registrados.
+            </div>
+         </div>`
+      );
       return;
    }
 

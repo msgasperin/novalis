@@ -29,8 +29,11 @@ $key_query = $_GET['id'];
 // 4. Consultar la información del archivo en la Base de Datos
 // Ajusta los nombres de las columnas y tabla a tu base de datos real
 try {
+
+   $sql = false;
+
    if($_SESSION["tipo_cliente"] == 'paciente') {
-      $sql = $v->dbh->prepare(
+      $sql = $v->getDbh()->prepare(
          "SELECT D.id, orden_folio, nombre_servidor 
          FROM orden_resultados_pdf AS D 
          INNER JOIN ordenes_trabajo AS O ON O.id = D.orden_id 
@@ -38,7 +41,7 @@ try {
       $sql->execute([$key_query, $_SESSION["id_cliente_portal"]]);
    }
    else if($_SESSION["tipo_cliente"] == 'convenio') {
-     $sql = $v->dbh->prepare(
+     $sql = $v->getDbh()->prepare(
          "SELECT D.id, orden_folio, nombre_servidor 
          FROM orden_resultados_pdf AS D 
          INNER JOIN ordenes_trabajo AS O ON O.id = D.orden_id 

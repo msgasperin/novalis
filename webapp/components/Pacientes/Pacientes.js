@@ -190,7 +190,14 @@ const listar_pacientes = async (containerId) => {
 
 const pinta_listado_pacientes = (containerId, data) => {
    if (!data || data.length === 0) {
-      $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron pacientes registrados</div>');
+      $('#' + containerId).html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-person-x fs-3 text-primary"></i>
+               <br> No se encontraron pacientes registrados.
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }
@@ -468,7 +475,7 @@ const paciente_coincidente_seleccionado = (idPaciente, origen) => {
    }
 };
 
-const fn_guardar_paciente = async (idPaciente = 0, origen = 1, objPaciente = null, origenObjeto = 1) => {
+const fn_guardar_paciente = async (idPaciente = 0, origen, objPaciente = null, origenObjeto = 1) => {
    let idNum = parseInt(idPaciente) || 0;
      
    if (origenObjeto === 2) {
@@ -480,7 +487,7 @@ const fn_guardar_paciente = async (idPaciente = 0, origen = 1, objPaciente = nul
    let nomCompleto  = `${objPaciente.nomPaciente} ${objPaciente.apPaterno} ${objPaciente.apMaterno || ''}`.trim();
    let msjAccion    = '';
    objPaciente.func = 'guardar_paciente';
-   objPaciente.csrf = CSRF_TOKEN;
+   objPaciente.csrf = CSRF_TOKEN;  
 
    const res = await showMessageSwalQuestion('¿Estás seguro?', 'La información del paciente ' + escapeHTML(nomCompleto) + ' será almacenada', 'question', 'Sí, guardar', 'Cancelar');
    if (!res.result) {
@@ -500,7 +507,8 @@ const fn_guardar_paciente = async (idPaciente = 0, origen = 1, objPaciente = nul
       showMessageSwalTimer(msjAccion, '', 'success', 2500);
       $('#modalFormPaciente').modal('hide');
       $('#modalCoincidenciasPacientes').modal('hide');
-      $('#btnGuardarPaciente').prop('disabled', false);
+      $('#ModalPacientesEncontrados').modal('hide');
+      $('#btnGuardarPaciente').prop('disabled', false);     
 
       if (origen == 1) {
          $('#inputBuscarPaciente').val(nomCompleto);
@@ -514,14 +522,14 @@ const fn_guardar_paciente = async (idPaciente = 0, origen = 1, objPaciente = nul
             nombre: objPaciente.nomPaciente, 
             apellido_paterno: objPaciente.apPaterno, 
             apellido_materno: objPaciente.apMaterno, 
-            fecha_nacimiento: objPaciente.fechaNacimiento, 
+            fecha_nacimiento_format: objPaciente.fechaNacimiento, 
             sexo_biologico: objPaciente.sexoBiologico, 
             telefono: objPaciente.telefonoPaciente, 
             correo: objPaciente.correoPaciente 
          };
-         if (typeof window.paciente_seleccionado === 'function') {
-            window.paciente_seleccionado(0, objetoPac, 2);
-         }
+         
+         paciente_seleccionado(0, objetoPac);
+         
       }
    } 
    else {

@@ -122,12 +122,14 @@ const listar_sucursales = async (containerId) => {
 
 const pinta_listado_sucursales = (containerId, data) => {
    if (!data || data.length === 0) {
-      $('#' + containerId).html(`
-         <div align="center">
-            <img src="assets/images/no_encontrado.png" class="img img-fluid"><br>
-            No se encontraron sucursales registradas
-         </div>
-      `);
+      $('#' + containerId).html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron sucursales registradas.
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }

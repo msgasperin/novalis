@@ -765,7 +765,11 @@ const obtiene_mis_cortes_caja = async (containerId) => {
 };
 
 const pinta_mis_cortes_caja = (data, containerId) => {
+   
    let html = '';
+   let tipoTicket = $('#inpTipoTicket').val().trim();
+   let ticket     = '';
+   tipoTicket == 'carta' ? ticket = 'corte-carta' : ticket = 'corte';
 
    data.forEach(row => {
 
@@ -824,7 +828,7 @@ const pinta_mis_cortes_caja = (data, containerId) => {
                <button type="button" class="btn btn-sm btn-outline-dark rounded-circle me-1" onclick="ModalMovimientosCorteCaja(${row.id_caja});" title="Ver Movimientos">
                   <i class="bi bi-list-task"></i>
                </button>
-               <a href="reportes/corte?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-outline-dark rounded-circle" title="Imprimir ticket">
+               <a href="reportes/${ticket}?kq=${row.key_query}" target="_blank" class="btn btn-sm btn-outline-dark rounded-circle" title="Imprimir ticket">
                <i class="bi bi-printer"></i>
                </a>
             </div>

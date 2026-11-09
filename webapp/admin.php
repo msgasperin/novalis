@@ -23,9 +23,10 @@
 	$config      = json_decode($jsonContent, true);
 
 	// Asignación de variables con fallbacks
-	$nombreLab = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
-	$estatus   = $config['estatus'] ?? 0;
-	$favicon   = "../".$config['favicon'];
+	$nombreLab  = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
+	$estatus    = $config['estatus'] ?? 0;
+	$favicon    = "../".$config['favicon'];
+	$tipoTicket = $config["tipo_ticket"];
 
 	$_SESSION["plan"]              = $config["plan"];
 	$_SESSION["limite_sucursales"] = $config["limite_sucursales"];
@@ -78,6 +79,7 @@
 			<input type="hidden" id="whatsAppEmpresa" value="<?php echo $_SESSION["emp_whats"]; ?>" />
 			<input type="hidden" id="csrfToken" value="<?php echo $_SESSION['csrf_token']; ?>">
 			<input type="hidden" id="inpPlan" value="<?php echo $_SESSION['plan']; ?>">
+			<input type="hidden" id="inpTipoTicket" value="<?php echo $tipoTicket; ?>">
 		</div>
 
 		<div class="modal fade" id="modalLoading" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">

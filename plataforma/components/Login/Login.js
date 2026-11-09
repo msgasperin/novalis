@@ -8,7 +8,6 @@ const login_portal = async () => {
   let csrf        = $('#csrfToken').val();
 
   if (user == '') {
-    console.log('Hola');
     ToastColor.fire({
       text: '¡Atención! Debes ingresar un nombre de usuario',
       icon: 'warning',

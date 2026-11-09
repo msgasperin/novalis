@@ -208,7 +208,14 @@ const listar_listas_precios = async () => {
 
 const pinta_listas_precios = (data) => {  
    if (!data || data.length === 0) {
-      $('#listado_litas_precios').html('<div align="center" class="mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron listas de precios registradas</div>');
+      $('#listado_litas_precios').html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron listas de precios registradas.
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }
@@ -381,7 +388,14 @@ const pinta_precios_lista = (data, idListaPrecios) => {
    let idNum = parseInt(idListaPrecios) || 0;
 
    if (!data || data.length === 0) {
-      $('#listado_precios_lista').html('<div align="center" class="mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron estudios en esta lista</div>');
+      $('#listado_precios_lista').html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron estudios en esta lista de precios.
+            </div>
+         </div>`
+      );
       return;
    }
 

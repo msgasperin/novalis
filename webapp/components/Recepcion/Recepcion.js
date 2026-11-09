@@ -184,15 +184,19 @@ const obtener_ordenes_hoy = async (containerId) => {
    }
    else {
       arrOrdenesDetalle = respuesta.data;
-      console.log(arrOrdenesDetalle);
       arrOrdenesHoy     = respuesta.data;
       pinta_ordenes_del_dia(arrOrdenesHoy, containerId);
    }
 };
 
 const pinta_ordenes_del_dia = (data, containerId) => {
-   let cuantas = data.length;
+   let cuantas    = data.length;
+   let tipoTicket = $('#inpTipoTicket').val().trim();
+   let ticket     = '';
+   
    $('#totalHoy').html(cuantas + ' hoy');
+
+   tipoTicket == 'carta' ? ticket = 'ticket-carta' : ticket = 'ticket';
 
    let html = `<div class="orders-log-container pe-1 altura-ordenes-hoy">`;
 
@@ -215,7 +219,7 @@ const pinta_ordenes_del_dia = (data, containerId) => {
                      #${escapeHTML(row.folio || '')}
                   </span>
 
-                  <a href="reportes/ticket?kq=${encodeURIComponent(row.key_query || '')}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir ticket">
+                  <a href="reportes/${ticket}?kq=${encodeURIComponent(row.key_query || '')}" target="_blank" class="btn btn-sm btn-light border p-1 lh-1" title="Imprimir ticket">
                      <i class="bi bi-receipt text-primary fs-7"></i>
                   </a>
 
@@ -374,7 +378,7 @@ const ModalPacientesEncontrados = (data, parametroBusqueda) => {
                   <div class="col-12 col-sm-8 text-end mb-3 order-1 order-sm-2">`;
                      if (data.length > 0) {
                         html += `
-                        <button type="button" class="btn btn-outline-dark btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
+                        <button type="button" class="btn btn-outline-dark btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, 2);">
                            <i class="bi bi-person-plus-fill me-1"></i> Registrar nuevo paciente
                         </button>`;
                      }
@@ -419,7 +423,7 @@ const pinta_pacientes_encontrados = (data, parametroBusqueda, containerId) => {
                      <p class="mb-3">
                         No se encontraron pacientes que coincidan con "<strong>${escapeHTML(parametroBusqueda)}</strong>"
                      </p>
-                     <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, '', 2);">
+                     <button type="button" class="btn btn-success btn-sm btn-redondo px-3" onclick="ModalFormPaciente(0, 2);">
                         <i class="bi bi-person-plus-fill me-1"></i> Registrar como nuevo paciente
                      </button>
                   </td>
@@ -485,9 +489,12 @@ const buscar_paciente_encontrado = () => {
    pinta_pacientes_encontrados(filtrado, busqueda, 'container_pacientes_encontrador');
 };
 
-const paciente_seleccionado = (idPaciente) => {  
+const paciente_seleccionado = (idPaciente, paciente) => {  
    let idNum    = parseInt(idPaciente) || 0;
-   let paciente = arrPacientesBusqueda.find(pac => parseInt(pac.id) === idNum);
+   if(idNum != 0) {
+      paciente = arrPacientesBusqueda.find(pac => parseInt(pac.id) === idNum);
+   }
+   
    if (!paciente) return;
 
    pacienteOrden = paciente;
@@ -775,9 +782,11 @@ const pintado_carrito = (data, containerId, observacion) => {
    }
    else {
       html = `
-      <div class="text-center py-5">
-         <img src="assets/images/no_encontrado.png" class="img-fluid mb-3" alt="Sin estudios">
-         <p class="text-muted fw-semibold mb-0">No se encontraron estudios agregados a la orden</p>
+      <div class="col-12">
+         <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+            <i class="bi bi-info-circle fs-3 text-primary"></i>
+            <br> Selecciona un estudio y agrégalo a la orden de trabajo.
+         </div>
       </div>`;
    }
 
@@ -794,7 +803,14 @@ const borra_carrito_recepcion = async () => {
    }
    else if (respuesta.estatus == 200) {
       showMessageSwalTimer('Estudios eliminados correctamente', '', 'success', 2500);
-      $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
+      $('#estudios_agregados_recepcion').html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> Selecciona un estudio y agrégalo a la orden de trabajo.
+            </div>
+         </div>`
+      );
       $('#estudiosRecepcion').val(0).trigger('change');
       arrEstudios = [];
    }
@@ -806,7 +822,14 @@ const borra_carrito_recepcion = async () => {
 
 const vaciar_carrito_recepcion = async () => {
    await borrar_carrito_recepcion(CSRF_TOKEN);
-   $('#estudios_agregados_recepcion').html('<div class="text-center mt-5"><img src="assets/images/no_encontrado.png" class="img img-fluid"><br>No se encontraron estudios agregados</div>');
+   $('#estudios_agregados_recepcion').html(
+      `<div class="col-12">
+         <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+            <i class="bi bi-info-circle fs-3 text-primary"></i>
+            <br> Selecciona un estudio y agrégalo a la orden de trabajo.
+         </div>
+      </div>`
+   );
 };
 
 const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
@@ -1236,6 +1259,10 @@ const registra_orden = async () => {
 const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
    totalNeto = parseFloat(totalNeto) || 0;
 
+   let tipoTicket = $('#inpTipoTicket').val().trim();
+   let ticket     = '';
+   tipoTicket == 'carta' ? ticket = 'ticket-carta' : ticket = 'ticket';
+
    let html = `
    <div class="modal fade shadow-lg modal-superior-blur" id="modalOrdenRegistradaExito" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -1280,7 +1307,7 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
 
                <div class="row g-2">
                   <div class="col-md-6">
-                     <a href="reportes/ticket?kq=${encodeURIComponent(keyQuery || '')}" target="_blank" class="btn btn-dark btn-lib btn-redondo w-100">
+                     <a href="reportes/${ticket}?kq=${encodeURIComponent(keyQuery || '')}" target="_blank" class="btn btn-dark btn-lib btn-redondo w-100">
                         <i class="bi bi-printer me-1"></i> Imprimir
                      </a>
                   </div>
@@ -1494,6 +1521,11 @@ const busqueda_avanzada_ordenes = async (containerId) => {
 };
 
 const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
+
+   let tipoTicket = $('#inpTipoTicket').val().trim();
+   let ticket     = '';
+   tipoTicket == 'carta' ? ticket = 'ticket-carta' : ticket = 'ticket';
+
    let html = `
    <div class="table-responsive rounded-3 border shadow-sm">
       <table class="table table-hover align-middle mb-0 dataTable table-striped" id="tableBusquedaAvanzada">
@@ -1547,7 +1579,7 @@ const pinta_ordenes_busqueda_avanzada = (data, containerId) => {
                </td>
 
                <td class="text-center">
-                  <a href="reportes/ticket?kq=${encodeURIComponent(row.key_query || '')}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
+                  <a href="reportes/${ticket}?kq=${encodeURIComponent(row.key_query || '')}" target="_blank" class="btn btn-outline-dark btn-redondo btn-sm px-2" title="Imprimir ticket">
                      <i class="bi bi-ticket-detailed"></i>
                   </a>
                   <button type="button" class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Imprimir etiquetas" onclick="ModalImpresionEtiquetas('${escapeHTML(row.key_query || '')}');">

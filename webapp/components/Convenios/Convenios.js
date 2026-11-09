@@ -86,7 +86,14 @@ const fn_obtiene_convenios = async (containerId) => {
    }
    else if (respuesta.estatus != 200) {
       showMessageSwalTimer('Ocurrio un error: ', respuesta.mensaje, 'error', 2500);
-      $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+      $('#' + containerId).html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron convenios registrados.
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }
@@ -96,7 +103,14 @@ const fn_obtiene_convenios = async (containerId) => {
          fn_pinta_listado_convenios(containerId, arrConvenios);
       }
       else {
-         $('#' + containerId).html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron convenios registrados</div>');
+         $('#' + containerId).html(
+            `<div class="col-12">
+               <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+                  <i class="bi bi-info-circle fs-3 text-primary"></i>
+                  <br> No se encontraron convenios registrados.
+               </div>
+            </div>`
+         );
          closeLoad();
       }
    }
@@ -104,79 +118,91 @@ const fn_obtiene_convenios = async (containerId) => {
 
 const fn_pinta_listado_convenios = (containerId, data) => {
    const contenedor = document.getElementById(containerId);
-   
-   let iconTipoConvenio = '';
+
    let html = `<div class="row g-4">`;
+   
+   if(data.length > 0) {
+      let iconTipoConvenio = '';
 
-   data.forEach((row) => {
-      iconTipoConvenio = row.tipo === 'LABORATORIO' ? '<i class="bi bi-droplet"></i>'
-         : row.tipo === 'EMPRESA' ? '<i class="bi bi-building"></i>'
-         : row.tipo === 'DOCTOR' ? '<i class="bi bi-clipboard2-pulse"></i>' : '<i class="bi bi-ban"></i>';
+      data.forEach((row) => {
+         iconTipoConvenio = row.tipo === 'LABORATORIO' ? '<i class="bi bi-droplet"></i>'
+            : row.tipo === 'EMPRESA' ? '<i class="bi bi-building"></i>'
+            : row.tipo === 'DOCTOR' ? '<i class="bi bi-clipboard2-pulse"></i>' : '<i class="bi bi-ban"></i>';
 
-      html += `
-      <div class="col-12 col-md-6 col-lg-4" id="cardConvenio${row.id_convenio}">
-         <div class="card h-100 shadow border-0">
+         html += `
+         <div class="col-12 col-md-6 col-lg-4" id="cardConvenio${row.id_convenio}">
+            <div class="card h-100 shadow border-0">
 
-            <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-               <span class="badge rounded-pill px-3 py-1 bg-success bg-opacity-10 border-1 text-success border-success">
-                  <i class="bi bi-circle-fill me-1"></i> Activo
-               </span>
-               <small class="text-muted">ID: #${row.id_convenio}</small>
-            </div>
+               <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                  <span class="badge rounded-pill px-3 py-1 bg-success bg-opacity-10 border-1 text-success border-success">
+                     <i class="bi bi-circle-fill me-1"></i> Activo
+                  </span>
+                  <small class="text-muted">ID: #${row.id_convenio}</small>
+               </div>
 
-            <div class="card-body pt-2 mt-2">
+               <div class="card-body pt-2 mt-2">
 
-               <div class="d-flex align-items-center gap-3 mb-3">
-                  <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 circle-card-avatar">
-                     ${iniciales(row.nombre_comercial)}
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 circle-card-avatar">
+                        ${iniciales(row.nombre_comercial)}
+                     </div>
+                     <div>
+                        <div class="mb-0 fw-bold text-dark fs-7">${escapeHTML(row.nombre_comercial || '')}</div>
+                        <small class="text-muted fs-8">${iconTipoConvenio} ${escapeHTML(row.tipo || '')}</small>
+                     </div>
                   </div>
+
+                  <!-- Contacto + teléfono -->
+                  <div class="row g-2 mb-2">
+                     <div class="col-7">
+                        <small class="text-muted d-block fs-7">Contacto</small>
+                        <small class="fw-medium text-dark">${escapeHTML(row.persona_contacto || 'S/D')}</small>
+                     </div>
+                     <div class="col-5 border-start">
+                        <small class="text-muted d-block fs-7">Teléfono</small>
+                        <small class="fw-medium text-dark">${escapeHTML(row.telefono_contacto || 'S/D')}</small>
+                     </div>
+                  </div>
+
+                  <!-- Correo -->
                   <div>
-                     <div class="mb-0 fw-bold text-dark fs-7">${escapeHTML(row.nombre_comercial || '')}</div>
-                     <small class="text-muted fs-8">${iconTipoConvenio} ${escapeHTML(row.tipo || '')}</small>
+                     <small class="text-muted d-block fs-7">Correo</small>
+                     <small class="text-dark"><i class="bi bi-envelope me-1 text-success"></i>${escapeHTML(row.correo_contacto || 'S/D')}</small>
                   </div>
                </div>
 
-               <!-- Contacto + teléfono -->
-               <div class="row g-2 mb-2">
-                  <div class="col-7">
-                     <small class="text-muted d-block fs-7">Contacto</small>
-                     <small class="fw-medium text-dark">${escapeHTML(row.persona_contacto || 'S/D')}</small>
-                  </div>
-                  <div class="col-5 border-start">
-                     <small class="text-muted d-block fs-7">Teléfono</small>
-                     <small class="fw-medium text-dark">${escapeHTML(row.telefono_contacto || 'S/D')}</small>
-                  </div>
-               </div>
+               <!-- Footer con llamadas puramente numéricas -->
+               <div class="card-footer bg-white border-top-0 pb-2">
+                  <div class="d-flex justify-content-end gap-2">
 
-               <!-- Correo -->
-               <div>
-                  <small class="text-muted d-block fs-7">Correo</small>
-                  <small class="text-dark"><i class="bi bi-envelope me-1 text-success"></i>${escapeHTML(row.correo_contacto || 'S/D')}</small>
+                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', ${row.id_convenio});">
+                        <i class="bi bi-receipt"></i>
+                     </button>
+                     <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio(${row.id_convenio});">
+                        <i class="bi bi-pencil"></i>
+                     </button>
+                     <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesConvenio(${row.id_convenio});" title="Ver credenciales de acceso">
+                        <i class="bi bi-shield-lock"></i>
+                     </button>
+                     <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio});">
+                        <i class="bi bi-trash"></i>
+                     </button>
+
+                  </div>
                </div>
             </div>
-
-            <!-- Footer con llamadas puramente numéricas -->
-            <div class="card-footer bg-white border-top-0 pb-2">
-               <div class="d-flex justify-content-end gap-2">
-
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Gestionar datos de facturación" onclick="ModalDatosFacturacion('CONVENIO', ${row.id_convenio});">
-                     <i class="bi bi-receipt"></i>
-                  </button>
-                  <button class="btn btn-outline-secondary btn-redondo btn-sm px-2" title="Editar" onclick="ModalFormConvenio(${row.id_convenio});">
-                     <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="btn btn-outline-dark btn-redondo btn-sm px-2" onclick="ModalCredencialesConvenio(${row.id_convenio});" title="Ver credenciales de acceso">
-                     <i class="bi bi-shield-lock"></i>
-                  </button>
-                  <button class="btn btn-salmon btn-redondo btn-sm px-2 btnEliminarConvenio" title="Eliminar" onclick="fn_eliminar_convenio(${row.id_convenio});">
-                     <i class="bi bi-trash"></i>
-                  </button>
-
-               </div>
-            </div>
+         </div>`;
+      });
+   }
+   else {
+      html += 
+      `<div class="col-12">
+         <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+            <i class="bi bi-info-circle fs-3 text-primary"></i>
+            <br> No se encontraron convenios registrados.
          </div>
       </div>`;
-   });
+   }
 
    html += `</div>`;
    contenedor.innerHTML = html;

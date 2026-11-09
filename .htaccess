@@ -9,7 +9,9 @@ RewriteRule ^webapp/pago-pendiente$ webapp/pago_pendiente.php
 RewriteRule ^webapp/mantenimiento$ webapp/mantenimiento.php
 RewriteRule ^webapp/ayuda$ webapp/ayuda.php
 RewriteRule ^webapp/reportes/ticket$ webapp/reportes/ticket_pdf.php
+RewriteRule ^webapp/reportes/ticket-carta$ webapp/reportes/ticket_carta.php
 RewriteRule ^webapp/reportes/corte$ webapp/reportes/ticket_corte_caja.php
+RewriteRule ^webapp/reportes/corte-carta$ webapp/reportes/ticket_corte_caja_carta.php
 
 
 RewriteRule ^plataforma/ayuda$ plataforma/ayuda_plataforma.php

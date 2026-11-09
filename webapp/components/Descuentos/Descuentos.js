@@ -112,7 +112,14 @@ const listar_descuentos = async () => {
 
 const pinta_listado_descuentos = (data) => {
    if (!data || data.length === 0) {
-      $('#containerListDescuento').html('<div align="center"><img src="assets/images/no_encontrado.png" class="img img-fluid"> <br>No se encontraron descuentos registrados</div>');
+      $('#containerListDescuento').html(
+         `<div class="col-12">
+            <div class="alert alert-primary py-2 px-3 mb-0 text-center opacity-75" role="alert">
+               <i class="bi bi-info-circle fs-3 text-primary"></i>
+               <br> No se encontraron descuentos registrados.
+            </div>
+         </div>`
+      );
       closeLoad();
       return;
    }

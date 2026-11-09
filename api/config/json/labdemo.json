@@ -8,6 +8,7 @@
     "logo_url": "api/assets/labdemo/images/logo.png",
     "size_logo": 65,
     "favicon": "api/assets/labdemo/images/logo.png",
+    "tipo_ticket" : "termico",
     "colores": {
         "primario": "#66CCFF",
         "secundario": "#59ABFF",
@@ -15,55 +16,40 @@
     },
     "contacto": {
         "telefono": "228 123 4567",
-        "whatsapp": "+522288596167",
+        "whatsapp": "+522266787892",
         "email": "contacto@labsanjose.com",
         "horario": "Lun - Vie: 7:00 AM - 7:00 PM | Sáb: 7:00 AM - 2:00 PM"
     },
     "promociones": [
         {
-            "titulo": "Check-up Básico",
+            "titulo": "25% de Descuento Adulto",
             "destacado": false,
-            "badge": "Popular",
-            "precio_regular": "$650",
-            "precio_oferta": "$450",
+            "badge": "Adulto mayor",
+            "precio_regular": "$300.00",
+            "precio_oferta": "$200.00",
+            "incluye": [
+                "Biometría Hemática Completa",
+                "Química Sanguínea 6 elementos"
+            ]
+        },
+        {
+            "titulo": "Paquete Adulto Mayor",
+            "destacado": false,
+            "badge": "Adulto mayor",
+            "precio_regular": "$500.00",
+            "precio_oferta": "$400.00",
             "incluye": [
                 "Biometría Hemática Completa",
                 "Examen General de Orina",
-                "Química sanguínea de 12 elementos"
-            ]
-        },
-        {
-            "titulo": "Perfil Masculino / Femenino +40",
-            "destacado": true,
-            "badge": "Recomendado",
-            "precio_regular": "$140",
-            "precio_oferta": "$990",
-            "incluye": [
-                "Química Sanguínea 27 elementos",
-                "Perfil de Lípidos Completo",
-                "Pruebas de Función Hepática",
-                "Antígeno Prostático / Perfil Tiroideo"
-            ]
-        },
-        {
-            "titulo": "Perfil Diabetes & Control",
-            "destacado": false,
-            "badge": "Preventivo",
-            "precio_regular": "$750",
-            "precio_oferta": "$480",
-            "incluye": [
-                "Glucosa en ayuno",
-                "Hemoglobina Glicosilada (Hba1c)",
-                "Examen General de Orina",
-                "Microalbuminuria"
+                "Osteoporosis"
             ]
         },
         {
             "titulo": "Paquete Salud Infantil",
             "destacado": false,
             "badge": "Infantil",
-            "precio_regular": "$420",
-            "precio_oferta": "$280",
+            "precio_regular": "$420.00",
+            "precio_oferta": "$280.00",
             "incluye": [
                 "Biometría Hemática Completa",
                 "Coproparasitoscópico (3 muestras)",
@@ -72,15 +58,41 @@
             ]
         },
         {
-            "titulo": "Paquete Adulto Mayor",
+            "titulo": "Perfil Diabetes & Control",
             "destacado": false,
-            "badge": "Adulto mayor",
-            "precio_regular": "$500",
-            "precio_oferta": "$400",
+            "badge": "Preventivo",
+            "precio_regular": "$750.00",
+            "precio_oferta": "$480.00",
+            "incluye": [
+                "Glucosa en ayuno",
+                "Hemoglobina Glicosilada (Hba1c)",
+                "Examen General de Orina",
+                "Microalbuminuria"
+            ]
+        },
+        {
+            "titulo": "Perfil Masculino / Femenino +40",
+            "destacado": true,
+            "badge": "Recomendado",
+            "precio_regular": "$140.00",
+            "precio_oferta": "$990.00",
+            "incluye": [
+                "Química Sanguínea 27 elementos",
+                "Perfil de Lípidos Completo",
+                "Pruebas de Función Hepática",
+                "Antígeno Prostático / Perfil Tiroideo"
+            ]
+        },
+        {
+            "titulo": "Check-up Básico",
+            "destacado": false,
+            "badge": "Popular",
+            "precio_regular": "$650.00",
+            "precio_oferta": "$450.00",
             "incluye": [
                 "Biometría Hemática Completa",
                 "Examen General de Orina",
-                "Osteoporosis"
+                "Química sanguínea de 12 elementos"
             ]
         }
     ],
@@ -94,6 +106,11 @@
             "nombre": "Ávila Camacho",
             "direccion": "Manuel Ávila Camacho No. 92",
             "telefono": "2288291989"
+        },
+        {
+            "nombre": "Centro",
+            "direccion": "Calle Enríquez S/N Col Centro",
+            "telefono": "2288918981"
         }
     ],
     "servicios": [

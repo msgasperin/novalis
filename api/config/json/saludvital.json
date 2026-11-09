@@ -8,6 +8,7 @@
    "logo_url": "api/assets/saludvital/images/logo.png",
    "size_logo": 70,
    "favicon": "api/assets/saludvital/images/logo.png",
+   "tipo_ticket" : "carta",
    "colores": {
       "primario": "#02A899",
       "secundario": "#01917B",
