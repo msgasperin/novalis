@@ -1490,19 +1490,11 @@ const procesa_publicacion_notificacion = async (idOrden) => {
 };
 
 const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
+
    let respuesta = await notificar_mail_resultados(keyQuery, correo, CSRF_TOKEN);
 
-   let plan   = '';
-   let limite = '';
-
-   if(respuesta.data.plan == 'basico') {
-      plan   = 'Básico';
-      limite = '1000 correos';
-   }
-   else {
-      plan   = 'Pro';
-      limite = '3000 correos';
-   }
+   let plan   = respuesta.data.plan;
+   let limite = respuesta.data.limite;
       
    if (respuesta.estatus == 200) {
       ToastColor.fire({
@@ -1512,13 +1504,16 @@ const notif_mail_resultados = async (keyQuery, correo, CSRF_TOKEN) => {
          timerProgressBar: false
       });
 
-      //Validamos si el almacenimiento es mayor a 85%
-      if(parseFloat(respuesta.data.porcentaje) >= 85) {
+      //Se ha rebasado el límite de alerta 
+      if(parseInt(respuesta.codigo_alerta) == 300) {
          let usado = respuesta.data.almacenamiento + ' correos enviados';
          ModalAlertaLimite(respuesta.data.porcentaje, usado, limite, 'correo');
       }
+      else if(parseInt(respuesta.codigo_alerta) == 400) {
+         ModalPeriodoGracia(plan, limite, 'correo');
+      }
    }
-   else if(respuesta.estatus == 507) {     
+   else if(respuesta.codigo_alerta == 500) {     
       ModalLimiteSuperado(plan, limite, 'correo');
    }
    else {
@@ -1596,6 +1591,70 @@ const ModalLimiteSuperado = (planActual, limiteGB, tipo) => {
 
    $('#modalAdminDocs').html(html);
    $('#modalLimiteSuperado').modal('show');
+}
+
+const ModalPeriodoGracia = (planActual, tipo) => {
+
+   let titulo           = '';
+   let advertenciaExtra = '';
+
+   if(tipo == 'almacenamiento') {
+      titulo             = 'Límite de almacenamiento excedido (Zona de Gracia)';
+      advertenciaExtra   = 'Has superado el espacio contratado en tu plan, pero te hemos otorgado un margen temporal de almacenamiento adicional.';
+   }
+   else if(tipo == 'correo') {
+      titulo             = 'Límite de correos excedido (Zona de Gracia)';
+      advertenciaExtra   = 'Has superado los envíos mensuales de tu plan, pero cuentas con un margen de gracia temporal para seguir operando.';
+   }
+
+   let html = `
+   <div class="modal fade modal-superior-blur" id="modalPeriodoGracia" tabindex="-1" aria-labelledby="modalPeriodoGraciaLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content border-0 sombra-modal">
+            
+            <!-- HEADER -->
+            <div class="modal-header bg-warning text-dark py-3">
+               <div class="d-flex align-items-center">
+                  <div class="rounded-circle bg-dark bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                     <i class="bi bi-shield-exclamation text-dark fs-5"></i>
+                  </div>
+                  <div>
+                     <h5 class="modal-title fw-bold mb-0 fs-6" id="modalPeriodoGraciaLabel">${titulo}</h5>
+                     <small class="text-dark opacity-75">Plan ${planActual} - Margen temporal activo</small>
+                  </div>
+               </div>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body bg-light p-4">
+               <div class="container-fluid px-0">
+                  <div class="row justify-content-center text-center">
+                     <div class="col-12 mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle p-3 mb-2" style="width: 75px; height: 75px;">
+                           <i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">¡Estás en período de gracia!</h4>
+                        <p class="text-muted small mb-0">
+                           ${advertenciaExtra} Te recomendamos liberar espacio o actualizar tu suscripción antes de que el bloqueo sea definitivo al alcanzar el límite máximo de gracia.
+                        </p>
+                     </div>
+
+                     <!-- BOTONES DE ACCIÓN -->
+                     <div class="col-12 d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" data-bs-dismiss="modal">
+                           <i class="bi bi-x-lg me-2">Entendido</i>
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+         </div>
+      </div>
+   </div>`;
+
+   $('#modalAdminDocs').html(html);
+   $('#modalPeriodoGracia').modal('show');
 }
 
 const ModalAlertaLimite = (porcentajeUso, usadoGB, limiteGB, tipo) => {
@@ -1676,6 +1735,7 @@ window.ModalPublicarNotificar            = ModalPublicarNotificar;
 window.ModalViewDetallesOrden            = ModalViewDetallesOrden;
 window.ModalLimiteSuperado               = ModalLimiteSuperado;
 window.ModalAlertaLimite                 = ModalAlertaLimite;
+window.ModalPeriodoGracia                = ModalPeriodoGracia;
 
 window.subir_pdf_resultado               = subir_pdf_resultado;
 window.eliminar_resultado                = eliminar_resultado;

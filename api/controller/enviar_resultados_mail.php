@@ -1,8 +1,21 @@
 <?php
 
-   $host  = $_SERVER['HTTP_HOST'] ?? '';
-   $ruta  = 'http://'.$host.'/webapp/reportes/visor_resultados.php';
-   
+   $host       = $_SERVER['HTTP_HOST'] ?? '';
+	$parts      = explode('.', $host);
+	$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
+	$jsonPath   = "../config/json/{$subDominio}.json";
+   $ruta       = 'http://'.$host.'/webapp/reportes/visor_resultados.php';
+
+	if (!file_exists($jsonPath)) {
+		$jsonPath = "../config/json/default.json";
+	}
+
+	$jsonContent    = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+	$config         = json_decode($jsonContent, true);
+   $limite_alerta  = $config["limite_alerta_correos"];
+   $limite_oficial = $config["limite_correos"];
+   $limite_bloqueo = $config["limite_bloqueo_correos"];
+    
    if (empty($_POST)) {
       $inputJSON = file_get_contents('php://input');
       $inputData = json_decode($inputJSON, true);
@@ -15,19 +28,36 @@
    $v = new Conexion();
    $v->conectar();
 
-   if($_SESSION["plan"] == 'basico') {
-      $limit = 1000; // correos al mes
-   }
-   else if($_SESSION["plan"] == 'pro') {
-      $limit = 3000; // correos al mes
-   }
-
-
    require('../../webapp/assets/lib/PHPMailer/Exception.php');
    require('../../webapp/assets/lib/PHPMailer/PHPMailer.php');
    require('../../webapp/assets/lib/PHPMailer/SMTP.php');
 
    use PHPMailer\PHPMailer\PHPMailer;
+
+   // Función para leer y cargar el archivo .env de forma nativa
+   function cargarEnv(string $filePath) {
+      if (!file_exists($filePath)) {
+         return;
+      }
+      $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+      foreach ($lines as $line) {
+         // Ignorar comentarios
+         if (strpos(trim($line), '#') === 0) {
+            continue;
+         }
+         list($name, $value) = explode('=', $line, 2);
+         $name = trim($name);
+         $value = trim($value);
+         
+         // Guardar en $_ENV y usar putenv
+         if (!array_key_exists($name, $_ENV)) {
+            $_ENV[$name] = $value;
+            putenv("$name=$value");
+         }
+      }
+   }
+
+   cargarEnv('../config/.env');
 
    function bitacora_mail(string $id_tracking, int $id_usuario, string $usuario) {
       require_once('../config/class.pdo.php');
@@ -43,10 +73,10 @@
       $sql->execute(array($id_usuario, $usuario, date('m'), date('Y'), date('Y-m-d H:i:s'), $id_tracking, $ip, $port, $proveedor));
    }
 
-
-   $estatus = 500;
-   $mensaje = 'Petición no válida'; 
-   $data    = []; 
+   $estatus       = 500;
+   $mensaje       = 'Petición no válida'; 
+   $data          = []; 
+   $codigo_alerta = 200;
 
    // ── Validación CSRF para acciones de escritura / modificación ──   
    $csrf_recibido = $_POST['CSRF_TOKEN'] ?? '';
@@ -60,13 +90,14 @@
       $rowCorreos = $sqlCorreos->fetch(PDO::FETCH_ASSOC);
 
       $correosEnviados = $rowCorreos["correos_enviados"];
-      $porcentajeUso   = $limit > 0 ? round(($correosEnviados / $limit) * 100) : 0;
+      $porcentajeUso   = $limite_oficial > 0 ? round(($correosEnviados / $limite_oficial) * 100) : 0;
 
-      $data = ['almacenamiento' => $correosEnviados, 'porcentaje' => $porcentajeUso, 'limite' => $limit, 'plan' => $_SESSION["plan"]];
-
-      if($correosEnviados > $limit) {
-         $estatus = 507;
-         $mensaje = 'Límite de envío superado';
+      $data = ['almacenamiento' => $correosEnviados, 'porcentaje' => $porcentajeUso, 'limite' => $limite_oficial, 'plan' => $config["plan"]];
+      
+      if($correosEnviados > $limite_bloqueo) {
+         $codigo_alerta = 500;
+         $estatus       = 507;
+         $mensaje       = 'Límite de envío de resultado por correo superado del límite de bloqueo';
       }
       else {
          if (!empty($_POST["func"]) && $_POST["func"] == "notificar_mail_resultados" && $host != '') {      
@@ -156,19 +187,24 @@
                   $oMail              = new PHPMailer();
                   $oMail->isSMTP();
                   $oMail->CharSet    = 'UTF-8';
-                  $oMail->Host       = 'smtp.gmail.com';  
-                  $oMail->SMTPSecure = 'tls'; //Tipo se seguridad
-                  $oMail->Port       = 587;   //Puerto      
+                  $oMail->Host       = getenv('MAIL_HOST');  
+                  $oMail->SMTPSecure = getenv('MAIL_SECURE');
+                  $oMail->Port       = (int)getenv('MAIL_PORT');
                   $oMail->SMTPAuth   = true;  //True indica que se tendrá que aunténticar por FTP.      
-                  // $oMail->Username   = 'segobver.egob@gmail.com';
-                  // $oMail->Password   = 'pjczhzqrocikkvjc';
-                  $oMail->Username   = 'miguel.gasperin9@gmail.com';
-                  $oMail->Password   = 'qresaqxpybbbrojo';
+                  $oMail->Username   = getenv('MAIL_USER');
+                  $oMail->Password   = getenv('MAIL_PASS');
 
-                  $oMail->setFrom('miguel.gasperin9@gmail.com', $_SESSION["emp_nombre"]);
+                  $oMail->setFrom(getenv('MAIL_FROM'), $_SESSION["emp_nombre"]);
                   $oMail->addAddress($_POST["correo"], $row["paciente_nombre_historico"]);
                   $oMail->Subject    = 'Resultados Disponibles - Orden #' . $row["folio"];        
                   $oMail->msgHTML($contenido);
+
+                  if( ($correosEnviados >= $limite_alerta) && ($correosEnviados < $limite_oficial) ) {
+                     $codigo_alerta = 300; // Estás cerca de alcanzar el límite de resultados enviados por correo
+                  }
+                  else if( ($correosEnviados >= $limite_oficial) ) {
+                     $codigo_alerta = 400; // Haz superado el límite de resultados enviados por correo (el que permite tu plan)
+                  }
 
                   if ($oMail->send()) {
                      $estatus = 200;
@@ -196,5 +232,5 @@
    }
 
    header('Content-Type: application/json');
-   echo json_encode(array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data), JSON_FORCE_OBJECT);
+   echo json_encode(array('estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data, 'codigo_alerta' => $codigo_alerta), JSON_FORCE_OBJECT);
 ?>

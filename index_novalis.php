@@ -377,7 +377,7 @@
                                 </li>
                                 <li class="mb-2 d-flex align-items-center">
                                     <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
-                                    Envío de Resultados vía Correo Electrónico (Hasta 1,000/mes)
+                                    Envío de Resultados vía Correo Electrónico (Hasta 1,500/mes)
                                 </li>
                                 <li class="mb-2 d-flex align-items-center">
                                     <i class="bi bi-check-lg text-success fs-5 me-2"></i> 
