@@ -28,11 +28,12 @@
 	$favicon    = "../".$config['favicon'];
 	$tipoTicket = $config["tipo_ticket"];
 
-	$_SESSION["plan"]              = $config["plan"];
-	$_SESSION["limite_sucursales"] = $config["limite_sucursales"];
-
-	if($estatus == 0) {
+	if($estatus == 2) {
 		header("Location: http://labdemo.sis-11.test/webapp/pago-pendiente");
+		exit();
+	}
+	else if($estatus == 0) {
+		header("Location: http://labdemo.sis-11.test/webapp/servicio-concluido");
 		exit();
 	}
 ?>

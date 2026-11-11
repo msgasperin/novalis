@@ -4,7 +4,7 @@ ini_set('session.cookie_samesite', 'Strict');
 date_default_timezone_set("America/Mexico_City");
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+   session_start();
 }
 
 $mensajeError = '';
@@ -14,8 +14,6 @@ $bd_cliente   = 'error_bd';
 $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
 $parts = explode('.', $host);
 $subdominio = (count($parts) >= 3) ? $parts[0] : 'default';
-
-// $subdominio = 'labdemo'; // ⚠️ Descomentar solo para pruebas locales
 
 if (!empty($subdominio)) {
    $bd_cliente = match ($subdominio) {

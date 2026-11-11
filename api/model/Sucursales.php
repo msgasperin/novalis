@@ -21,12 +21,21 @@
 			return $res;
 		}
 
-		public function guardar_sucursal(array $post, string $user_cap, int $limite_sucursales) {
-			$estatus = 500;
-			$data    = [0];
-			$mensaje = 'Error al intentar guardar la sucursal';
+		public function guardar_sucursal(array $post, string $user_cap) {
+			$estatus           = 500;
+			$data              = [0];
+			$mensaje           = 'Error al intentar guardar la sucursal';
+			$limite_sucursales = 0;
 			try {
 
+				//Obtenemos los límites de envío de correo de la empresa
+				$sqlLimites = $this->dbh->query("SELECT limite_sucursales FROM datos_empresa WHERE id = 1");
+				if($sqlLimites->rowCount() > 0) {
+					$rowLimites        = $sqlLimites->fetch(PDO::FETCH_ASSOC);
+					$limite_sucursales = $rowLimites["limite_alerta_correos"];
+				}
+
+				// Validamos el número actual de sucursales activas de ese tenant
 				$valida_sucursales = $this->dbh->prepare("SELECT id FROM cat_sucursales WHERE activo = ?");
 				$valida_sucursales->execute([1]);
 				if($valida_sucursales->rowCount() >= $limite_sucursales) {

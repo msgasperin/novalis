@@ -57,7 +57,7 @@
           $_POST["matriz"]     = (int)$_POST["matriz"];
 
           if ($_POST["idSucursal"] === 0) {
-            $res              = $v->guardar_sucursal($_POST, $_SESSION["nombre"], (int)$_SESSION["limite_sucursales"]);
+            $res              = $v->guardar_sucursal($_POST, $_SESSION["nombre"]);
             $id_registro      = $res["data"][0] ?? 0;
             $mensaje_bitacora = 'Sucursal registrada: ' . $_POST["nomSucursal"];
           } 

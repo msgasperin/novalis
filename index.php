@@ -36,11 +36,17 @@
     $promociones = $config['promociones']      ?? [];
     $servicios   = $config['servicios']        ?? [];
     $sucursales  = $config['sucursales']       ?? [];
+    $estatus     = $config['estatus'] ?? 0;
 
     $_SESSION["nombreLab"]      = $nombreLab;
     $_SESSION["favicon"]        = $favicon;
     $_SESSION["logoUrl"]        = $logoUrl;
     $_SESSION["aviso_aceptado"] = false;
+
+	if($estatus != 1) {
+        header("Location: http://labdemo.sis-11.test/webapp/mantenimiento");
+        exit();
+	}
 ?>
 <!DOCTYPE html>
 <html lang="es">

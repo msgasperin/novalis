@@ -25,7 +25,7 @@
 	$estatus     = $config['estatus'] ?? 0;
 
 
-	if($estatus == 0) {
+	if($estatus != 1) {
 		header("Location: http://labdemo.sis-11.test/webapp/mantenimiento");
 		exit();
 	}

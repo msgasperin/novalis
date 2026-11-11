@@ -182,7 +182,7 @@ const pinta_ordenes_bandejas = (data) => {
                <th width="15%" class="text-center py-2">Orden</th>
                <th width="32%" class="py-2">Paciente / Convenio</th>
                <th width="15%" class="text-center py-2">Registro</th>
-               <th width="20%" class="text-center py-2">Estado Pago</th>
+               <th width="20%" class="text-center py-2">Estado</th>
                <th width="18%" class="text-center py-2">Acciones</th>
             </tr>
          </thead>
@@ -201,18 +201,9 @@ const pinta_ordenes_bandejas = (data) => {
             `<tr id="trBusqueda${row.id}" class="${isUrgente && row.estatus != 'CANCELADO' ? 'border-start border-1 border-danger' : 'border-start border-1 border-secondary-subtle'}">
                
                <td class="text-center">
-                  <div class="align-items-center justify-content-center gap-1 mb-1">
-                     <span class="font-monospace fw-bold text-primary-emphasis">
-                        #${escapeHTML(row.folio)}
-                     </span>
-                     ${isUrgente && row.estatus != 'CANCELADO' ? `
-                        <br><span class="fs-8 text-danger" title="Orden Urgente">
-                           <i class="bi bi-lightning-charge-fill text-danger"></i> URGENTE
-                        </span>
-                     ` : ''}
-                  </div>
-                  ${getBadgeEstatus(row.estatus)}
-                  <span id="labelPublicado${row.id}">${labelPublicada}</span>
+                  <span class="font-monospace fw-bold text-primary-emphasis">
+                     #${escapeHTML(row.folio)}
+                  </span>
                </td>
 
                <td>
@@ -231,7 +222,15 @@ const pinta_ordenes_bandejas = (data) => {
                </td>
 
                <td class="text-center">
-                  ${getCeldaPago(row.estatus_pago, row.total_neto, row.total_abonado, row.saldo_deudor)}
+                  <div class="align-items-center justify-content-center gap-1 mb-1">
+                     ${isUrgente && row.estatus != 'CANCELADO' ? `
+                        <br><span class="fs-8 text-danger" title="Orden Urgente">
+                           <i class="bi bi-lightning-charge-fill text-danger"></i> URGENTE
+                        </span>
+                     ` : ''}
+                  </div>
+                  ${getBadgeEstatus(row.estatus)}
+                  <span id="labelPublicado${row.id}">${labelPublicada}</span>
                </td>
 
                <td class="text-center">

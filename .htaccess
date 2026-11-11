@@ -6,6 +6,7 @@ RewriteRule ^inicio$ index.php
 RewriteRule ^webapp/inicio$ webapp/index.php
 RewriteRule ^webapp/admin$ webapp/admin.php
 RewriteRule ^webapp/pago-pendiente$ webapp/pago_pendiente.php
+RewriteRule ^webapp/servicio-concluido$ webapp/servicio_concluido.php
 RewriteRule ^webapp/mantenimiento$ webapp/mantenimiento.php
 RewriteRule ^webapp/ayuda$ webapp/ayuda.php
 RewriteRule ^webapp/reportes/ticket$ webapp/reportes/ticket_pdf.php

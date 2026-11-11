@@ -65,6 +65,7 @@
 						'sucursal'       => $row["sucursal"],
 						// Datos de la empresa cliente
 						'emp_nombre'     => $rowEmpresa["nombre"] ?? '',
+						'emp_plan'       => $rowEmpresa["plan"] ?? '',
 						'emp_logo'       => $rowEmpresa["logo"] ?? '',
 						'emp_direccion'  => $rowEmpresa["direccion"] ?? '',
 						'emp_rfc'        => $rowEmpresa["rfc"] ?? '',

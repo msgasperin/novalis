@@ -680,6 +680,7 @@ const agrega_estudio_carrito = async () => {
    }
    else if (res.estatus == 200) {
       $('#estudiosRecepcion').val(0).trigger('change');
+      $('#estudiosRecepcion').focus();
       pintado_carrito(res.data, 'estudios_agregados_recepcion', observacion);
    }
    else {
@@ -958,7 +959,7 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                               <h6 class="fw-bold mb-0 text-dark">Aplicar Descuento General</h6>
                            </div>
                            <div>
-                              <select name="descuentoGeneralOrden" id="descuentoGeneralOrden" class="form-select border-secondary-subtle" onchange="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc});">
+                              <select name="descuentoGeneralOrden" id="descuentoGeneralOrden" class="form-select border-secondary-subtle" onchange="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc}, 1);">
                                  <option value="0" selected data-descuento="0">Selecciona un descuento</option>
                               </select>
                               <div class="form-text text-muted small mt-1">
@@ -983,12 +984,12 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                                  <label for="cargoExtraOrden" class="form-label fw-semibold small text-secondary">Monto extra</label>
                                  <div class="input-group">
                                     <span class="input-group-text bg-light text-muted">$</span>
-                                    <input type="number" inputmode="decimal" step="0.01" name="cargoExtraOrden" id="cargoExtraOrden" class="form-control" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc});">
+                                    <input type="number" inputmode="decimal" step="0.01" name="cargoExtraOrden" id="cargoExtraOrden" class="form-control" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc}, 1);">
                                  </div>
                               </div>
                               <div class="col-md-7">
                                  <label for="motivoCargoExtraOrden" class="form-label fw-semibold small text-secondary">Motivo del cargo</label>
-                                 <input type="text" name="motivoCargoExtraOrden" id="motivoCargoExtraOrden" class="form-control" placeholder="Ej. Servicio a domicilio, urgencia..." maxlength="100" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc});">
+                                 <input type="text" name="motivoCargoExtraOrden" id="motivoCargoExtraOrden" class="form-control" placeholder="Ej. Servicio a domicilio, urgencia..." maxlength="100" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc}, 1);">
                               </div>
                            </div>
                         </div>
@@ -1030,7 +1031,7 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
                                  <label for="abonoOrden" class="form-label fw-semibold small text-secondary">Monto a abonar</label>
                                  <div class="input-group">
                                     <span class="input-group-text bg-light text-muted">$</span>
-                                    <input type="number" inputmode="decimal" step="0.01" name="abonoOrden" id="abonoOrden" class="form-control fw-bold" value="${total.toFixed(2)}" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc});">
+                                    <input type="number" inputmode="decimal" step="0.01" name="abonoOrden" id="abonoOrden" class="form-control fw-bold" value="${total.toFixed(2)}" placeholder="0.00" onkeypress="return fnValidaNumeros(event);" oninput="calcularTotalDinamico(${total}, ${totalConDesc}, ${totalSinDesc}, 2);">
                                  </div>
                               </div>
                               <div class="col-md-8">
@@ -1071,7 +1072,7 @@ const ModalRegistrarOrden = (total, totalConDesc, totalSinDesc) => {
    }, 200);
 };
 
-const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
+const calcularTotalDinamico = (total, totalConDesc, totalSinDesc, origen) => {
    let montoDescuento = 0;
    let baseAplicableDescuento = parseFloat(totalConDesc) || 0;
    let baseSinDescuento       = parseFloat(totalSinDesc) || 0;
@@ -1108,6 +1109,10 @@ const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
    let totalNeto = (subtotalGeneral - montoDescuento) + cargoExtra;
    if (totalNeto < 0) totalNeto = 0;
 
+   if(origen == 1) {
+      $('#abonoOrden').val(totalNeto);
+   }
+
    let abonoInput = parseFloat($('#abonoOrden').val()) || 0;
    if (abonoInput > totalNeto) {
       abonoInput = totalNeto;
@@ -1124,7 +1129,8 @@ const calcularTotalDinamico = (total, totalConDesc, totalSinDesc) => {
    let saldoPendiente = totalNeto - abonoInput;
 
    $('#lblTotalNetoOrden').text(`$${totalNeto.toFixed(2)}`);
-   $('#abonoOrden').val(totalNeto);
+
+   
    if (saldoPendiente <= 0 && totalNeto > 0 && abonoInput > 0) {
       $('#lblSaldoPendienteOrden').removeClass('text-danger').addClass('text-success').text('$0.00 (Liquidado)');
    } else {
@@ -1293,7 +1299,7 @@ const ModalOrdenRegistradaExito = (folio, totalNeto, keyQuery) => {
                   <div class="row align-items-center">
                      <div class="col-6">
                         <span class="text-muted fs-7 d-block text-uppercase fw-semibold">Monto Total</span>
-                        <small class="text-muted fs-7">Total neto cobrado</small>
+                        <small class="text-muted fs-7">Total neto de la orden</small>
                      </div>
                      <div class="col-6 text-end">
                         <h3 class="fw-bold text-dark mb-0">$${totalNeto.toFixed(2)}</h3>

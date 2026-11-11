@@ -16,11 +16,8 @@
 	$parts = explode('.', $host);
 	// Si hay al menos 3 partes (ej. labxyz.novalis.com), tomamos el subdominio
 	$subDominio = (count($parts) >= 3) ? $parts[0] : 'default';
-
 	$ruta       = '../api/assets/'.$subDominio.'/images/logo.png';
-
-	$jsonPath = "../api/config/json/{$subDominio}.json";
-
+	$jsonPath   = "../api/config/json/{$subDominio}.json";
 	if (!file_exists($jsonPath)) {
 		$jsonPath = "../api/config/json/default.json";
 	}
@@ -33,8 +30,12 @@
 	$estatus   = $config['estatus'] ?? 0;
 	$favicon   = "../".$config['favicon'];
 	
-	if($estatus == 0) {
+	if($estatus == 2) {
 		header("Location: http://labdemo.sis-11.test/webapp/pago-pendiente");
+		exit();
+	}
+	else if($estatus == 0) {
+		header("Location: http://labdemo.sis-11.test/webapp/servicio-concluido");
 		exit();
 	}
 ?>

@@ -76,16 +76,6 @@
                   break;
                }
                
-               $limit = 0;
-
-               if($_SESSION["plan"] == 'basico') {
-                  $limit = 5 * 1024 * 1024 * 1024; // 5 GB en bytes
-               }
-               else if($_SESSION["plan"] == 'pro') {
-                  //$limit = 10 * 1024 * 1024 * 1024; // 10 GB en bytes
-                  $limit = 1 * 1024 * 1024; // 10 GB en bytes
-               }
-
                $idOrden        = (int)$_POST["idOrden"];
                $folioSeguro    = preg_replace('/[^a-zA-Z0-9_\-]/', '', $_POST["folio"]);
                $nombre_archivo = $_FILES['archivo']['name'];	
@@ -114,6 +104,10 @@
                   echo json_encode(['estatus' => 400, 'mensaje' => 'El contenido del archivo no coincide con un formato PDF válido.', 'data' => []]);
                   break;
                }
+
+               //Obtenemos los límites de envío de correo de la empresa
+               $resLimites = $v->obtiene_limites_tenant(); 
+               $limit      = intval($resLimites["data"]["limite_almacenamiento"]) * 1024 * 1024 * 1024;               
 
                //Validamos el almacenamiento actual
                $resAlmacenamiento   = $v->validar_almacemiiento();    

@@ -813,8 +813,8 @@ const pinta_mis_cortes_caja = (data, containerId) => {
          <td class="py-2 text-end align-middle">
             <span class="fw-semibold text-dark">$${row.total_declarado}</span>
             <div class="lh-2 mt-1 fs-8">
-               <span class="text-muted d-block">Efec: $${row.declarado_efectivo}</span>
-               <span class="text-muted d-block">Tarj: $${row.declarado_tarjeta} | Transf: $${row.declarado_transferencia}</span>
+               <span class="text-muted d-block">Efec: $${row.declarado_efectivo ?? 0}</span>
+               <span class="text-muted d-block">Tarj: $${row.declarado_tarjeta ?? 0} | Transf: $${row.declarado_transferencia ?? 0}</span>
             </div>
          </td>
 

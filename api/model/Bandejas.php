@@ -318,6 +318,39 @@
 
 			return $res;
 		}
+
+		public function obtiene_limites_tenant() {
+      	$estatus = 500;
+			$mensaje = 'Error al obtener los límites del tenant';
+			$data    = [
+				'limite_sucursales'      => 0,
+				'limite_alerta_correos'  => 0,
+				'limite_correos'         => 0,
+				'limite_bloqueo_correos' => 0,
+				'limite_almacenamiento'  => 0
+			];
+			try {
+				$sql = $this->dbh->query("SELECT limite_sucursales, limite_alerta_correos, limite_correos, limite_bloqueo_correos, limite_almacenamiento FROM datos_empresa WHERE id = 1");
+				$row = $sql->fetch(PDO::FETCH_ASSOC);
+
+				$estatus = 200;
+				$mensaje = 'ok';
+				$data    = [
+					'limite_sucursales'      => $row["limite_sucursales"],
+					'limite_alerta_correos'  => $row["limite_alerta_correos"],
+					'limite_correos'         => $row["limite_correos"],
+					'limite_bloqueo_correos' => $row["limite_bloqueo_correos"],
+					'limite_almacenamiento'  => $row["limite_almacenamiento"]
+				];
+			} 
+			catch (Exception $error) {
+        		error_log("Error: " . $error->getMessage() . "\nTraza:\n" . $error->getTraceAsString());
+			}
+
+			$res = ['estatus' => $estatus, 'mensaje' => $mensaje, 'data' => $data];
+
+			return $res;
+		}
 		
 	}
 ?>

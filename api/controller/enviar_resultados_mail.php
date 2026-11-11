@@ -10,11 +10,9 @@
 		$jsonPath = "../config/json/default.json";
 	}
 
-	$jsonContent    = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
-	$config         = json_decode($jsonContent, true);
-   $limite_alerta  = $config["limite_alerta_correos"];
-   $limite_oficial = $config["limite_correos"];
-   $limite_bloqueo = $config["limite_bloqueo_correos"];
+	$jsonContent = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+	$config      = json_decode($jsonContent, true);
+   $nombreLab   = $config['nombre_comercial'] ?? 'Laboratorio Clínico';
     
    if (empty($_POST)) {
       $inputJSON = file_get_contents('php://input');
@@ -73,16 +71,28 @@
       $sql->execute(array($id_usuario, $usuario, date('m'), date('Y'), date('Y-m-d H:i:s'), $id_tracking, $ip, $port, $proveedor));
    }
 
-   $estatus       = 500;
-   $mensaje       = 'Petición no válida'; 
-   $data          = []; 
-   $codigo_alerta = 200;
+   $estatus        = 500;
+   $mensaje        = 'Petición no válida'; 
+   $data           = []; 
+   $codigo_alerta  = 200;
+   $limite_alerta  = 0;
+   $limite_oficial = 0;
+   $limite_bloqueo = 0;
 
    // ── Validación CSRF para acciones de escritura / modificación ──   
    $csrf_recibido = $_POST['CSRF_TOKEN'] ?? '';
    $csrf_sesion   = $_SESSION['csrf_token'] ?? '';
 
    if (!empty($csrf_recibido) || !empty($csrf_sesion) || hash_equals($csrf_sesion, $csrf_recibido)) {
+
+      //Obtenemos los límites de envío de correo de la empresa
+      $sqlLimites = $v->getDbh()->query("SELECT limite_alerta_correos, limite_correos, limite_bloqueo_correos FROM datos_empresa WHERE id = 1");
+      if($sqlLimites->rowCount() > 0) {
+         $rowLimites     = $sqlLimites->fetch(PDO::FETCH_ASSOC);
+         $limite_alerta  = $rowLimites["limite_alerta_correos"];
+         $limite_oficial = $rowLimites["limite_correos"];
+         $limite_bloqueo = $rowLimites["limite_bloqueo_correos"];
+      }    
 
       // Buscamos el límite de correos enviados en el mes 
       $sqlCorreos = $v->getDbh()->prepare("SELECT COUNT(id) AS correos_enviados FROM bitacora_mail WHERE mes = ? AND anio = ?");
@@ -115,7 +125,7 @@
                   $tokenAcceso = bin2hex(random_bytes(16)); // O usa $row['key_query']
                   
                   // URL PROVISIONAL para el acceso directo a los PDF del paciente
-                  $urlConsulta = $ruta.'?token='. $row['key_query'] .'&lab='.urlencode($_SESSION["emp_nombre"]);
+                  $urlConsulta = $ruta.'?token='. $row['key_query'] .'&lab='.urlencode($nombreLab);
 
                   // Plantilla de correo médica y responsiva
                   $contenido = '
@@ -135,7 +145,7 @@
                                  <!-- Encabezado -->
                                  <tr>
                                     <td align="center" style="background-color: #0F2744; padding: 30px 20px;">
-                                       <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; tracking-spacing: 0.5px;">'.$_SESSION["emp_nombre"].'</h1>
+                                       <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; tracking-spacing: 0.5px;">'.$nombreLab.'</h1>
                                        <p style="color: #e0eafd; margin: 5px 0 0 0; font-size: 14px;">Centro de Notificaciones</p>
                                     </td>
                                  </tr>
@@ -194,7 +204,7 @@
                   $oMail->Username   = getenv('MAIL_USER');
                   $oMail->Password   = getenv('MAIL_PASS');
 
-                  $oMail->setFrom(getenv('MAIL_FROM'), $_SESSION["emp_nombre"]);
+                  $oMail->setFrom(getenv('MAIL_FROM'), $nombreLab);
                   $oMail->addAddress($_POST["correo"], $row["paciente_nombre_historico"]);
                   $oMail->Subject    = 'Resultados Disponibles - Orden #' . $row["folio"];        
                   $oMail->msgHTML($contenido);
