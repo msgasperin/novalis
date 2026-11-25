@@ -1,8 +1,8 @@
 import { valida_login, cerrar_sesion } from "./LoginServices.js";
 
 const fn_login = async () => {
-  let user = $.trim($('#userLogin').val());
-  let pass = $.trim($('#passwordLogin').val());
+  let user = $('#userLogin').val().trim();
+  let pass = $('#passwordLogin').val().trim();
   let csrf = $('#csrfToken').val();
 
   if (user == '') {

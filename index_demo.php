@@ -509,7 +509,7 @@
         </a>
 
         <script src="webapp/assets/lib/bootstrap-5.3.2/js/bootstrap.bundle.min.js"></script>
-        <script src="webapp/assets/lib/jquery-3.7.1.min.js"></script>
+        <script src="webapp/assets/lib/jquery-4.1.0.min.js"></script>
         <script src="webapp/assets/lib/sweetAlert2/sweetalert2.min.js"></script>
     </body>
 </html>

@@ -113,7 +113,7 @@
 		</section>
 		<div id="modalIndex"></div>
 	
-		<script src="assets/lib/jquery-3.7.1.min.js"></script>
+		<script src="assets/lib/jquery-4.1.0.min.js"></script>
 		<script src="assets/lib/sweetAlert2/sweetalert2.min.js"></script>
 		<script src="assets/lib/bootstrap-5.3.2/js/bootstrap.js"></script>
 		<script type="module" src="components/globals.js?x=<?=time()?>"></script>

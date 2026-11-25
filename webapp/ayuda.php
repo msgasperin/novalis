@@ -1187,7 +1187,7 @@
       </footer>
 
       <!-- JS Scripts -->
-      <script src="assets/lib/jquery-3.7.1.min.js"></script>
+      <script src="assets/lib/jquery-4.1.0.min.js"></script>
       <script src="assets/lib/bootstrap-5.3.2/js/bootstrap.js"></script>
 
       <script>
