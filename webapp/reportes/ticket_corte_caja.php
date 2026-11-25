@@ -1,5 +1,5 @@
 <?php
-require_once '../assets/lib/dompdf-2.0.4/vendor/autoload.php';
+require_once '../assets/lib/dompdf-3.1.6/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;

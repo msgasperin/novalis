@@ -29,7 +29,7 @@
 				);
 				$sql->execute(array($usuario, $this->key, $contrasenia));
 
-				$sqlDataEmpresa = $this->dbh->prepare("SELECT nombre, logo, direccion, rfc, telefono, whats_app, correo, web, key_client FROM datos_empresa LIMIT 1");
+				$sqlDataEmpresa = $this->dbh->prepare("SELECT nombre, logo, direccion, rfc, telefono, whats_app, correo, web, key_client, plan FROM datos_empresa LIMIT 1");
 				$sqlDataEmpresa->execute();
 				$rowEmpresa = $sqlDataEmpresa->fetch(PDO::FETCH_ASSOC) ?: [];
 
