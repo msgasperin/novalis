@@ -87,7 +87,12 @@
 
             case 'registrar_movimiento':
 
-               if (empty($_POST["tipoMovimiento"]) || empty($_POST["montoMovimiento"]) || empty($_POST["conceptoMovimiento"]) || empty($_SESSION["id_usuario"]) || empty($_SESSION["id_caja"]) || empty($_SESSION["id_sucursal"])) {
+               if (empty($_SESSION["id_caja"])) {
+                  echo json_encode(['estatus' => 400, 'mensaje' => 'Debes abrir una caja para registrar el movimiento', 'data' => []]);
+                  break;
+               }
+
+               if (empty($_POST["tipoMovimiento"]) || empty($_POST["montoMovimiento"]) || empty($_POST["conceptoMovimiento"]) || empty($_SESSION["id_usuario"]) || empty($_SESSION["id_sucursal"])) {
                   echo json_encode(['estatus' => 400, 'mensaje' => 'Faltan parámetros para realizar esta acción', 'data' => []]);
                   break;
                }
